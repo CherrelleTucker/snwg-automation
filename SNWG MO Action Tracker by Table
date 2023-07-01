@@ -1,0 +1,85 @@
+function importSecondTablesFromFolder() {
+  // Replace 'FOLDER_ID' with the ID of the folder containing the documents
+  var folderId = '1WKYw4jnP6ejRkOLAIPoPvbEYClaLE4eR';
+
+  var folder = DriveApp.getFolderById(folderId);
+  var files = folder.getFilesByType(MimeType.GOOGLE_DOCS);
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  var allData = [];
+  var maxNumCols = 0;
+
+  while (files.hasNext()) {
+    var file = files.next();
+    var docId = file.getId();
+    var doc = DocumentApp.openById(docId);
+    var tables = doc.getBody().getTables();
+    var secondTable = findSecondTable(tables);
+
+    if (secondTable) {
+      var tableData = tableTo2DArray(secondTable);
+
+      if (tableData.length > 0) {
+        var documentName = file.getName();
+        var documentLink = '=HYPERLINK("' + file.getUrl() + '", "' + documentName + '")';
+        var modifiedTableData = tableData.map(function(row) {
+          return [documentLink].concat(row); // Add hyperlinked document name as the first column
+        });
+
+        // Filter out rows containing "Task Owner" or "Owner"
+        modifiedTableData = modifiedTableData.filter(function(row) {
+          var rowString = row.join(' ').toLowerCase();
+          return rowString.indexOf('task owner') === -1 && rowString.indexOf('owner') === -1;
+        });
+
+        allData.push.apply(allData, modifiedTableData);
+        maxNumCols = Math.max(maxNumCols, modifiedTableData[0].length);
+      }
+    }
+  }
+
+  // Add header row with additional columns
+  var headerRow = ['Action Source', 'Status', 'Assigned to', 'Project', 'Task'].concat(Array.from({length: maxNumCols - 5}, function() { return ''; }));
+  allData.unshift(headerRow);
+
+  // Write the data to the spreadsheet
+  if (allData.length > 0) {
+    var range = sheet.getRange(1, 1, allData.length, maxNumCols);
+    range.setValues(allData);
+
+    // Apply "create a filter" option to the header row range
+    var headerRange = sheet.getRange(1, 1, 1, maxNumCols);
+    headerRange.createFilter();
+  }
+}
+
+function findSecondTable(tables) {
+  if (tables.length >= 2) {
+    for (var i = 1; i < tables.length; i++) {
+      var table = tables[i];
+      var numCols = table.getRow(0).getNumCells();
+      if (numCols > 2) {
+        return table;
+      }
+    }
+  }
+
+  return null;
+}
+
+function tableTo2DArray(table) {
+  var numRows = table.getNumRows();
+  var numCols = table.getRow(0).getNumCells();
+  var data = [];
+
+  for (var i = 0; i < numRows; i++) {
+    var rowData = [];
+    for (var j = 0; j < numCols; j++) {
+      var cellValue = table.getCell(i, j).getText();
+      rowData.push(cellValue);
+    }
+    data.push(rowData);
+  }
+
+  return data;
+}
