@@ -1,0 +1,51 @@
+//Updating Presentation file id 1wV26VGjZJ_P7hsnxdkub6PltQ3ZkedYb8yDviEYE4aE by adding one slide to the beginning of presentation (first slide)
+//Duplicate SNWG MO Weekly Quad Chart Slide Template (not Presentation Template) id: 1iWm9oAJ-hFR_BJ-pEFGndhfFCLhWIigxJBvZM5xlf2M
+//Update Header Dates: Current Monday - Friday, MM/DD/YY - MM/DD/YY; Placeholder text: {{Current Mon to Fri}}
+//Update Last Week: populate all agendas with title dates falling within the previous week; hyperlink with document titles displayed; Placeholder text: {{Previous Week Agenda}}
+//Update This Week: populate all agendas with title dates falling within the current week; hyperlink with document titles displayed; Placeholder text: {{Current Week Agenda}}
+//Update Reporting: populate {{Current DMPR}} placeholder text for the hyperlink for DMPR that falls within the current month. Placeholder text: {{Current Month DMPR}}
+//Update Checklist: {{Current PI}} Google Script project id: 1Pu2loGm0fz7XR7W3DDwwuTBKZdkT4XfP5d23KUtrho_Nd9x0TZC5MK4J
+
+function updatePresentation() {
+    var templateId = '1iWm9oAJ-hFR_BJ-pEFGndhfFCLhWIigxJBvZM5xlf2M';
+    var targetPresentationId = '1wV26VGjZJ_P7hsnxdkub6PltQ3ZkedYb8yDviEYE4aE';
+
+    // Duplicate the template and get the new presentation
+    var templateFile = DriveApp.getFileById(templateId);
+    var newSlideFile = templateFile.makeCopy();
+    var newSlide = SlidesApp.openById(newSlideFile.getId());
+
+    // Get today's date and calculate the range for this week
+    var today = new Date();
+    var startOfWeek = Utilities.formatDate(new Date(today.setDate(today.getDate() - today.getDay() + 1)), 'GMT', 'MM/dd/yy');
+    var endOfWeek = Utilities.formatDate(new Date(today.setDate(today.getDate() - today.getDay() + 5)), 'GMT', 'MM/dd/yy');
+
+    // Get all slides and iterate over them
+    var slides = newSlide.getSlides();
+    for (var i = 0; i < slides.length; i++) {
+        var slide = slides[i];
+        var shapes = slide.getShapes();
+
+        // Iterate over all shapes in the slide
+        for (var j = 0; j < shapes.length; j++) {
+            var shape = shapes[j];
+            if (shape.getText) {
+                var text = shape.getText().asString();
+
+                // Replace placeholder with corresponding dates
+                if (text.includes('{{Current Mon to Fri}}')) {
+                    shape.getText().setText(text.replace('{{Current Mon to Fri}}', `${startOfWeek} - ${endOfWeek}`));
+                }
+            }
+        }
+    }
+
+    // Insert the new slide at the beginning of the target presentation
+    var targetPresentation = SlidesApp.openById(targetPresentationId);
+    targetPresentation.insertSlide(0, newSlide.getSlides()[0]);
+
+    // Remove the temporary slide
+    DriveApp.getFileById(newSlideFile.getId()).setTrashed(true);
+}
+
+updatePresentation();
