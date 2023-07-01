@@ -1,0 +1,61 @@
+//Given the following information, calculate the current PI.
+//Project Increments (PI) are 12 weeks long.
+// Projects Sprints within PIs are 2 weeks long.
+//After Sprint 5, there are 2 weeks called "Innovation and Planning".
+// This is followed by one week of "PI Planning".
+// The next PI begins the Monday of the following week. 
+//The fiscal year is from October 1 to September 30. 
+//There are 4 PI Quarters in a Fiscal year, begining October of the preceding calendar year. Example: Q1FY23 begins October 1, 2022. 
+//PI 23.3.1 begins on Monday, April 17 2023
+//Sprint display is in the format (fiscal)YY.Q.D.W
+
+
+function getCurrentPI() {
+  // Get the current date
+  var currentDate = new Date();
+
+  // Determine the current fiscal year
+  var fiscalYear = currentDate.getFullYear();
+  if (currentDate.getMonth() >= 9) {
+    fiscalYear++; // Fiscal year starts from October
+  }
+  fiscalYear = fiscalYear.toString().substr(-2); // Extract the last two digits
+
+  // Determine the current quarter
+  var fiscalMonth = (currentDate.getMonth() - 9 + 12) % 12; // Get the month number in fiscal year (where Oct is the 1st month)
+  var currentQuarter = Math.ceil((fiscalMonth + 1) / 3);
+
+  // Determine the current sprint
+  var sprintDuration = 2; // Duration of each sprint in weeks
+  var sprintsBeforePIPlanning = 5;
+  var sprintsInPI = 12;
+  var weeksInPI = sprintsInPI * sprintDuration;
+  var weeksSincePIPlanning = weeksInPI + sprintsBeforePIPlanning * sprintDuration;
+  var weeksSinceLastPIPlanning = weeksSincePIPlanning % weeksInPI;
+  var currentSprint = Math.floor(weeksSinceLastPIPlanning / sprintDuration) + 1;
+
+  // Determine the current week of the sprint
+  var currentWeek = weeksSinceLastPIPlanning % sprintDuration + 1;
+
+  // Format the PI number
+  var currentPI = fiscalYear + '.' + currentQuarter + '.' + currentSprint + '.' + currentWeek;
+
+  return currentPI;
+}
+
+function populateCurrentPI() {
+  // Get the current PI
+  var currentPI = getCurrentPI();
+
+  // Get the document by its ID
+  var documentId = '1App5CA_y0IUcgQSmzprWd-4R7sO6FxhevIm64OBbDdk'; // Replace with your actual document ID
+  var doc = DocumentApp.openById(documentId);
+
+  // Find and replace the placeholder text
+  var placeholderText = '{{Current PI}}'; //Escaping special characters for regex
+  var body = doc.getBody();
+  body.replaceText(placeholderText, currentPI);
+}
+
+// Call the function to replace placeholders with the current PI
+populateCurrentPI();
