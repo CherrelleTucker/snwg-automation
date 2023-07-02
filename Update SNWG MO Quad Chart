@@ -1,10 +1,16 @@
-//Updating Presentation file id 1wV26VGjZJ_P7hsnxdkub6PltQ3ZkedYb8yDviEYE4aE by adding one slide to the beginning of presentation (first slide)
-//Duplicate SNWG MO Weekly Quad Chart Slide Template (not Presentation Template) id: 1iWm9oAJ-hFR_BJ-pEFGndhfFCLhWIigxJBvZM5xlf2M
-//Update Header Dates: Current Monday - Friday, MM/DD/YY - MM/DD/YY; Placeholder text: {{Current Mon to Fri}}
-//Update Last Week: populate all agendas with title dates falling within the previous week; hyperlink with document titles displayed; Placeholder text: {{Previous Week Agenda}}
-//Update This Week: populate all agendas with title dates falling within the current week; hyperlink with document titles displayed; Placeholder text: {{Current Week Agenda}}
-//Update Reporting: populate {{Current DMPR}} placeholder text for the hyperlink for DMPR that falls within the current month. Placeholder text: {{Current Month DMPR}}
-//Update Checklist: {{Current PI}} Google Script project id: 1Pu2loGm0fz7XR7W3DDwwuTBKZdkT4XfP5d23KUtrho_Nd9x0TZC5MK4J
+1wV26VGjZJ_P7hsnxdkub6PltQ3ZkedYb8yDviEYE4aE
+// SNWG MO Weekly Quad Chart Slide Template (not Presentation Template) id: 1iWm9oAJ-hFR_BJ-pEFGndhfFCLhWIigxJBvZM5xlf2M
+// PI Calculator Google Script project id: 1Pu2loGm0fz7XR7W3DDwwuTBKZdkT4XfP5d23KUtrho_Nd9x0TZC5MK4J
+
+// Done: Updating Presentation file by adding one slide to the beginning of presentation (first slide)
+// Done: Duplicate SNWG MO Weekly Quad Chart Slide Template (not Presentation Template)
+// Done: Update Header Dates: Current Monday - Friday, MM/DD/YY - MM/DD/YY; Placeholder text: {{Current Mon to Fri}}
+// Done: Update Checklist: {{Current PI}} 
+
+//In Development: // Update Reporting: populate {{Current DMPR}} placeholder text for the hyperlink for DMPR that falls within the current month. Placeholder text: {{Current Month DMPR}}
+
+// Future development: Update Last Week: populate all agendas with title dates falling within the previous week; hyperlink with document titles displayed; Placeholder text: {{Previous Week Agenda}}
+// Future development: Update This Week: populate all agendas with title dates falling within the current week; hyperlink with document titles displayed; Placeholder text: {{Current Week Agenda}}
 
 function updatePresentation() {
     var templateId = '1iWm9oAJ-hFR_BJ-pEFGndhfFCLhWIigxJBvZM5xlf2M';
@@ -20,6 +26,9 @@ function updatePresentation() {
     var startOfWeek = Utilities.formatDate(new Date(today.setDate(today.getDate() - today.getDay() + 1)), 'GMT', 'MM/dd/yy');
     var endOfWeek = Utilities.formatDate(new Date(today.setDate(today.getDate() - today.getDay() + 5)), 'GMT', 'MM/dd/yy');
 
+    // Get the current PI
+    var currentPI = getCurrentPI();
+
     // Get all slides and iterate over them
     var slides = newSlide.getSlides();
     for (var i = 0; i < slides.length; i++) {
@@ -32,9 +41,11 @@ function updatePresentation() {
             if (shape.getText) {
                 var text = shape.getText().asString();
 
-                // Replace placeholder with corresponding dates
+                // Replace placeholders with corresponding dates and PI
                 if (text.includes('{{Current Mon to Fri}}')) {
                     shape.getText().setText(text.replace('{{Current Mon to Fri}}', `${startOfWeek} - ${endOfWeek}`));
+                } else if (text.includes('{{Current PI}}')) {
+                    shape.getText().setText(text.replace('{{Current PI}}', currentPI));
                 }
             }
         }
@@ -48,4 +59,38 @@ function updatePresentation() {
     DriveApp.getFileById(newSlideFile.getId()).setTrashed(true);
 }
 
+function getCurrentPI() {
+  // Get the current date
+  var currentDate = new Date();
+
+  // Determine the current fiscal year
+  var fiscalYear = currentDate.getFullYear();
+  if (currentDate.getMonth() >= 9) {
+    fiscalYear++; // Fiscal year starts from October
+  }
+  fiscalYear = fiscalYear.toString().substr(-2); // Extract the last two digits
+
+  // Determine the current quarter
+  var fiscalMonth = (currentDate.getMonth() - 9 + 12) % 12; // Get the month number in fiscal year (where Oct is the 1st month)
+  var currentQuarter = Math.ceil((fiscalMonth + 1) / 3);
+
+  // Determine the current sprint
+  var sprintDuration = 2; // Duration of each sprint in weeks
+  var sprintsBeforePIPlanning = 5;
+  var sprintsInPI = 12;
+  var weeksInPI = sprintsInPI * sprintDuration;
+  var weeksSincePIPlanning = weeksInPI + sprintsBeforePIPlanning * sprintDuration;
+  var weeksSinceLastPIPlanning = weeksSincePIPlanning % weeksInPI;
+  var currentSprint = Math.floor(weeksSinceLastPIPlanning / sprintDuration) + 1;
+
+  // Determine the current week of the sprint
+  var currentWeek = weeksSinceLastPIPlanning % sprintDuration + 1;
+
+  // Format the PI number
+  var currentPI = fiscalYear + '.' + currentQuarter + '.' + currentSprint + '.' + currentWeek;
+
+  return currentPI;
+}
+
+// Call the function to replace placeholders with the current PI and the current week's dates
 updatePresentation();

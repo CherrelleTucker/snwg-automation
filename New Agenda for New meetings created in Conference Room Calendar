@@ -1,0 +1,59 @@
+// Purpose: general agenda is created and stored in a top-level folder for the day's Google Calendar (Conference Room Reservation) events
+// Calendar ID: mn9msmqj2nqobs0md4gmgfnabk@group.calendar.google.com
+// Template ID: 1nZN2y09ad2V7CqK0QIqrFXB_lZvv4XyXtefbOzdpdpE
+// Folder id for newly created document to be placed in: 16oXc4f1Rlvwk0vsXa27Dvy-niH1E1IOr. Eventually would like thtis to automatically sort to the appropriate project folder. 
+// Done: Make a copy of the template document
+// Done: Set the new document's name with the date of the calendar event + title of the event; format YYYY-MM-DD
+// Done: Replace Placeholder text: {{Meeting Name}} with the same name as the meeting on the calendar; 
+// Done: Replace placeholder text: {{Date of Calendar Event}} with the same date as the calendar event; Format the date as "Day, Month Date, Year"  
+// Done: Replace placeholder text: {{Time of Calendar Event}} with the same time range as the calendar event; Format the time as "beginning HH:MM - ending HH:MM Timezone"
+// Done: Replace placeholder text {{Conference Room}} with the Location of the created meeting.
+// Done: Replace the place holder text {{Meeting Owner Name}} with the email address of the person who created the meeting. 
+//      Note that {{Meeting Owner Name}} is replaced with the email address of the event creator, as Google Apps Script does not have a direct method to get the creator's name.
+
+// In development: Set trigger so that scans calendar every day and creates agendas for future events based on new entries.
+
+function createDocFromTemplate() {
+    var calendarId = 'mn9msmqj2nqobs0md4gmgfnabk@group.calendar.google.com';
+    var templateId = '1nZN2y09ad2V7CqK0QIqrFXB_lZvv4XyXtefbOzdpdpE';
+    var targetFolderId = '16oXc4f1Rlvwk0vsXa27Dvy-niH1E1IOr';
+  
+    var calendar = CalendarApp.getCalendarById(calendarId);
+    var today = new Date();
+    var events = calendar.getEventsForDay(today);
+  
+    for (var i = 0; i < events.length; i++) {
+      var event = events[i];
+      var eventTitle = event.getTitle();
+      var eventDate = event.getStartTime();
+      var eventEndDate = event.getEndTime();
+  
+      var formattedDate = Utilities.formatDate(eventDate, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+      var docTitle = formattedDate + ' ' + eventTitle;
+  
+      var targetFolder = DriveApp.getFolderById(targetFolderId);
+      var file = DriveApp.getFileById(templateId).makeCopy(docTitle, targetFolder);
+  
+      var doc = DocumentApp.openById(file.getId());
+      var body = doc.getBody();
+  
+      var eventCreatorEmail = event.getCreators()[0]; //Get the creator's email address
+  
+      body.replaceText('{{Meeting Name}}', eventTitle);
+  
+      var longFormattedDate = Utilities.formatDate(eventDate, Session.getScriptTimeZone(), 'EEEE, MMMM dd, yyyy');
+      body.replaceText('{{Date of Calendar Event}}', longFormattedDate);
+  
+      var eventTime = Utilities.formatDate(eventDate, Session.getScriptTimeZone(), 'HH:mm') + 
+                      ' - ' + Utilities.formatDate(eventEndDate, Session.getScriptTimeZone(), 'HH:mm z');
+      body.replaceText('{{Time of Calendar Event}}', eventTime);
+  
+      var eventLocation = event.getLocation() || 'No location specified'; //Get the location or set a default message
+      body.replaceText('{{Conference Room}}', eventLocation);
+  
+      body.replaceText('{{Meeting Owner Name}}', eventCreatorEmail); //Replace with the creator's email address
+  
+      doc.saveAndClose();
+    }
+  }
+  
