@@ -10,20 +10,42 @@
 // Done: Replace placeholder text {{Conference Room}} with the Location of the created meeting.
 // Done: Replace the place holder text {{Meeting Owner Name}} with the email address of the person who created the meeting. 
 //      Note that {{Meeting Owner Name}} is replaced with the email address of the event creator, as Google Apps Script does not have a direct method to get the creator's name.
+// Done: Trigger runs each hour and searches for new meetings related to the chosen meeting creator email address and to be held within the next 30 days.
 
-// In development: Set trigger so that scans calendar every day and creates agendas for future events based on new entries.
-
-function createDocFromTemplate() {
+function createDocFromFutureEvents() {
     var calendarId = 'mn9msmqj2nqobs0md4gmgfnabk@group.calendar.google.com';
     var templateId = '1nZN2y09ad2V7CqK0QIqrFXB_lZvv4XyXtefbOzdpdpE';
     var targetFolderId = '16oXc4f1Rlvwk0vsXa27Dvy-niH1E1IOr';
+    
+    // Add the specific owner's email address here
+    var specificOwnerEmail = 'cherrelle.j.tucker@nasa.gov';
   
     var calendar = CalendarApp.getCalendarById(calendarId);
     var today = new Date();
-    var events = calendar.getEventsForDay(today);
+    var aMonthFromNow = new Date();
+    aMonthFromNow.setDate(today.getDate() + 30);
+  
+    var events = calendar.getEvents(today, aMonthFromNow);
+    
+    var scriptProperties = PropertiesService.getScriptProperties();
+    var processedEvents = scriptProperties.getProperty('processedEvents');
+    processedEvents = processedEvents ? JSON.parse(processedEvents) : {};
   
     for (var i = 0; i < events.length; i++) {
       var event = events[i];
+      var eventId = event.getId();
+  
+      if (processedEvents[eventId]) {
+        continue;
+      }
+  
+      var eventCreatorEmail = event.getCreators()[0]; //Get the creator's email address
+      
+      // Check if the event's creator is the specific owner
+      if (eventCreatorEmail !== specificOwnerEmail) {
+        continue;
+      }
+  
       var eventTitle = event.getTitle();
       var eventDate = event.getStartTime();
       var eventEndDate = event.getEndTime();
@@ -36,8 +58,6 @@ function createDocFromTemplate() {
   
       var doc = DocumentApp.openById(file.getId());
       var body = doc.getBody();
-  
-      var eventCreatorEmail = event.getCreators()[0]; //Get the creator's email address
   
       body.replaceText('{{Meeting Name}}', eventTitle);
   
@@ -54,6 +74,11 @@ function createDocFromTemplate() {
       body.replaceText('{{Meeting Owner Name}}', eventCreatorEmail); //Replace with the creator's email address
   
       doc.saveAndClose();
+      
+      processedEvents[eventId] = true;
     }
+  
+    scriptProperties.setProperty('processedEvents', JSON.stringify(processedEvents));
   }
   
+    
