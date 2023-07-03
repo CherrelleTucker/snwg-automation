@@ -1,13 +1,16 @@
-//Given the following information, calculate the current PI.
-//Project Increments (PI) are 12 weeks long.
+// Purpose: Calculate the current PI. 
+// Given: 
+// Project Increments (PI) are 12 weeks long.
 // Projects Sprints within PIs are 2 weeks long.
-//After Sprint 5, there are 2 weeks called "Innovation and Planning".
+// After Sprint 5, there are 2 weeks called "Innovation and Planning".
 // This is followed by one week of "PI Planning".
 // The next PI begins the Monday of the following week. 
-//The fiscal year is from October 1 to September 30. 
-//There are 4 PI Quarters in a Fiscal year, begining October of the preceding calendar year. Example: Q1FY23 begins October 1, 2022. 
-//PI 23.3.1 begins on Monday, April 17 2023
-//Sprint display is in the format (fiscal)YY.Q.D.W
+// The fiscal year (FY) is from October 1 to September 30. 
+// There are 4 PI Quarters in a Fiscal year, begining October of the preceding calendar year. Example: Q1FY23 begins October 1, 2022. 
+// PI 23.3.1 begins on Monday, April 17 2023
+// Sprint display is in the format (fiscal)YY.Q.D.W
+
+// Future Development: there is one week of Planning Vacation from 2023-07-14 to 2023-07-21, that breaks the pattern. It restarts on 2023-07-24.
 
 
 function getCurrentPI() {
