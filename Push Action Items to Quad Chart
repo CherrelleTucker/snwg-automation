@@ -1,0 +1,153 @@
+// Purpose: populate Current week, Current PI/Sprint, Open Action Items, Agendas from last week's meetings, and agendas from this week's meetings in a newly created slide that is inserted at the front of the presentation file. 
+
+// Presentation file id: 1wV26VGjZJ_P7hsnxdkub6PltQ3ZkedYb8yDviEYE4aE
+// SNWG MO Weekly Quad Chart Slide Template id: 1iWm9oAJ-hFR_BJ-pEFGndhfFCLhWIigxJBvZM5xlf2M
+// PI Calculator Google Script project id: 1Pu2loGm0fz7XR7W3DDwwuTBKZdkT4XfP5d23KUtrho_Nd9x0TZC5MK4J
+
+// Done: Updating Presentation file by adding one slide to the beginning of presentation (first slide)
+// Done: Duplicate SNWG MO Weekly Quad Chart Slide Template
+// Done: Update Header Dates: Current Monday - Friday, MM/DD/YY - MM/DD/YY; Placeholder text: {{Current Mon to Fri}}
+// Done: Populate current PI week. 
+// Done: Update {{Current PI}} 
+// Done: Populate Open Action Items
+
+function getCurrentPI() {
+  // Get the current date
+  var currentDate = new Date();
+
+  // Determine the current fiscal year
+  var fiscalYear = currentDate.getFullYear();
+  if (currentDate.getMonth() >= 9) {
+    fiscalYear++; // Fiscal year starts from October
+  }
+  fiscalYear = fiscalYear.toString().substr(-2); // Extract the last two digits
+
+  // Determine the current quarter
+  var fiscalMonth = (currentDate.getMonth() - 9 + 12) % 12; // Get the month number in fiscal year (where Oct is the 1st month)
+  var currentQuarter = Math.ceil((fiscalMonth + 1) / 3);
+
+  // Determine the current sprint
+  var sprintDuration = 2; // Duration of each sprint in weeks
+  var sprintsBeforePIPlanning = 5;
+  var sprintsInPI = 12;
+  var weeksInPI = sprintsInPI * sprintDuration;
+  var weeksSincePIPlanning = weeksInPI + sprintsBeforePIPlanning * sprintDuration;
+  var weeksSinceLastPIPlanning = weeksSincePIPlanning % weeksInPI;
+  var currentSprint = Math.floor(weeksSinceLastPIPlanning / sprintDuration) + 1;
+
+  // Determine the current week of the sprint
+  var currentWeek = weeksSinceLastPIPlanning % sprintDuration + 1;
+
+  // Format the PI number
+  var currentPI = fiscalYear + '.' + currentQuarter + '.' + currentSprint + '.' + currentWeek;
+
+  return currentPI;
+}
+
+function PopulateOpenActionItems(presentationId) {
+  var templatePresentationId = '1iWm9oAJ-hFR_BJ-pEFGndhfFCLhWIigxJBvZM5xlf2M';
+  var spreadsheetId = '1uYgX660tpizNbIy44ddQogrRphfwZqn1D0Oa2RlSYKg';
+  var sheetName = 'Table Pull';
+  var owners = ['Pontus', 'Sean', 'Larry', 'Katrina'];
+
+  var sheet = SpreadsheetApp.openById(spreadsheetId).getSheetByName(sheetName);
+  var data = sheet.getDataRange().getValues();
+
+  // Access the target presentation
+  var presentation = SlidesApp.openById(presentationId);
+  var newSlide = presentation.getSlides()[0];
+
+  var ownerData = {};
+
+  // Start from row 1 to skip the header
+  for (var i = 1; i < data.length; i++) {
+    var status = data[i][1];
+    var owner = data[i][2];
+    var actionItem = data[i][4];
+
+    // Check if status is not 'Done' and owner is in the owners array
+    if (status.toLowerCase() !== 'done' && owners.includes(owner)) {
+      // Append task to the owner's array of tasks in ownerData
+      if (ownerData[owner]) {
+        ownerData[owner].push(actionItem);
+      } else {
+        ownerData[owner] = [actionItem];
+      }
+    }
+  }
+
+  var shapes = newSlide.getShapes();
+
+  for (var i = 0; i < shapes.length; i++) {
+    var shape = shapes[i];
+    if(shape.getText) {
+      var textRange = shape.getText();
+      var shapeText = textRange.asString();
+
+      var allTasksText = "";
+      var sortedOwners = Object.keys(ownerData).sort(); // Sort owners alphabetically
+      for (var k = 0; k < sortedOwners.length; k++) {
+        var owner = sortedOwners[k];
+        var tasks = ownerData[owner];
+        for (var j = 0; j < tasks.length; j++) {
+          var taskWords = tasks[j].split(' ');
+          var firstSevenWords = taskWords.slice(0, 7).join(' ');
+          var taskText = `${owner} : ${firstSevenWords}\n`;
+          allTasksText += taskText;
+        }
+      }
+
+      var newText = shapeText.replace('{{Owner}} : {{Task}}', allTasksText);
+      textRange.setText(newText);
+    }
+  }
+}
+
+function updatePresentation() {
+    var templateId = '1iWm9oAJ-hFR_BJ-pEFGndhfFCLhWIigxJBvZM5xlf2M';
+    var targetPresentationId = '1wV26VGjZJ_P7hsnxdkub6PltQ3ZkedYb8yDviEYE4aE';
+
+    // Duplicate the template and get the new presentation
+    var templateFile = DriveApp.getFileById(templateId);
+    var newSlideFile = templateFile.makeCopy();
+    var newSlide = SlidesApp.openById(newSlideFile.getId());
+
+    // Get today's date and calculate the range for this week
+    var today = new Date();
+    var startOfWeek = Utilities.formatDate(new Date(today.setDate(today.getDate() - today.getDay() + 1)), 'GMT', 'MM/dd/yy');
+    var endOfWeek = Utilities.formatDate(new Date(today.setDate(today.getDate() - today.getDay() + 5)), 'GMT', 'MM/dd/yy');
+
+    // Get the current PI
+    var currentPI = getCurrentPI();
+
+    // Replace placeholders with corresponding dates and PI in the new slide
+    var newSlideShapes = newSlide.getSlides();
+    for (var i = 0; i < newSlideShapes.length; i++) {
+        var slide = newSlideShapes[i];
+        var shapes = slide.getShapes();
+        for (var j = 0; j < shapes.length; j++) {
+            var shape = shapes[j];
+            if (shape.getText) {
+                var text = shape.getText().asString();
+                if (text.includes('{{Current Mon to Fri}}')) {
+                    shape.getText().setText(text.replace('{{Current Mon to Fri}}', `${startOfWeek} - ${endOfWeek}`));
+                } else if (text.includes('{{Current PI}}')) {
+                    shape.getText().setText(text.replace('{{Current PI}}', currentPI));
+                }
+            }
+        }
+    }
+
+    // Insert the new slide at the beginning of the target presentation
+    var targetPresentation = SlidesApp.openById(targetPresentationId);
+    targetPresentation.insertSlide(0, newSlide.getSlides()[0]);
+
+    // Remove the temporary slide
+    DriveApp.getFileById(newSlideFile.getId()).setTrashed(true);
+
+    // Populate the open action items
+    PopulateOpenActionItems(targetPresentationId);
+}
+
+// Call the function to replace placeholders with the current PI, the current week's dates, and open action items
+updatePresentation();
