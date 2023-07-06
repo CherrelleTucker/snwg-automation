@@ -1,15 +1,24 @@
+// Purpose: Create custom action item menu for easy population. Search document for phrase "Action:" and populate action tracking table with relevant information. 
+// Restrictions: To be used as a script opened from within a container document, not as a standalone.
 // Done: Search the second column of the first table in a Google doc for the phrase "Action:" and pull the paragraph that follows
-// OBSOLETE: Done: Identify the names "Cherrelle", "Pontus", "Rahul", "Jeanne", "Jeanne'", "Jeanné", "Sean", "Larry", "Anita", "Jenny", "Rachel", "Katrina" directly following the word "Action:"
 // Done: Identify the second table in the document. Place the found name in the 2nd column, the paragraph following the "Action:" phrase in the 4th column.
 // Done: Create an Action: Tracking table only if one does not exist. The first column is "Status". The 2nd is "Owner". The 3rd is "Project". The 4th is "Action:"
-// In Development: Search "Attendees" list for names that may be identified after the "Action" key word, instead of a static list.  Account for the use of First, Last in Attendees list, but only either First or Last in the text.
-// Future Development: assign first level project name to the appropriate action.
-// Future development: deploy as add on? 
-// Test document ID: 1xDfJKBJqY9dZ5OZfIxdaZHGhp4MCG7498hjK_doRNzw
+// Done: Search "Attendees" list for names that may be identified after the "Action" key word, instead of a static list.  Account for the use of First, Last in Attendees list, but only either First or Last in the text.
+// Done: Create custom menu with action tracking population button
+// Future Development: assign first level project name to the appropriate action. 
+
+//Create Custom Get Action menu on document open
+function onOpen() {
+  DocumentApp.getUi() // 
+      .createMenu('Action Items')
+      .addItem('Get Actions','createTableIfNotExist')
+      .addToUi();
+}
+
 
 function createTableIfNotExist() {
-  const doc = DocumentApp.openById('1xDfJKBJqY9dZ5OZfIxdaZHGhp4MCG7498hjK_doRNzw');
-   const body = doc.getBody();
+  const doc = DocumentApp.getActiveDocument();  // Correct function call
+  const body = doc.getBody();
    
    // Extract attendees from the text above the first table
    const names = extractAttendees(body);
