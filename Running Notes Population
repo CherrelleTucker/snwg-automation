@@ -1,4 +1,11 @@
-// Purpose: search documents for OPERA blurbs and populate in running notes
+// Library script
+// edit container script with target phrase before running:
+// function myFunction() {
+ // var targetPhrase = "PBL"; // or whatever phrase you want to search for
+ // RunningNotesSearch.searchAndPopulate(targetPhrase);
+ //} Then call library functions
+
+// Purpose: search documents with reference notes for the current project or solution. populate in running notes
 // All folder id: 1l8gVfZqse5AWTfbVxVCwRcL84hf2XBc7
 // 2023 folder id: 1HPjhc2LADvS9j3W_K3riq4RQPBngfqGY
 
@@ -8,80 +15,9 @@
 // Done: hyperlink the source document in the first column 
 // Done: format background color, font, text size, paragraph indent
 
-function searchAndPopulate() {
+function searchAndPopulate(targetPhrase) { // 'targetPhrase' parameter added
   var folderId = "1HPjhc2LADvS9j3W_K3riq4RQPBngfqGY";
-  var targetDocumentId = "11m5ByTApXpHuIkWlVGyzcER9y9dbY0SCoAwyIH7Cnpc";
 
-  var folder = DriveApp.getFolderById(folderId);
-  var targetDocument = DocumentApp.openById(targetDocumentId);
-
-  var files = folder.getFilesByType(MimeType.GOOGLE_DOCS);
-
-  // Create an array of files and sort by title (which are dates)
-  var fileArray = [];
-  while (files.hasNext()) {
-    var file = files.next();
-    fileArray.push(file);
-  }
-  
-  // Sort the array by the title in ascending order (from oldest to newest)
-  fileArray.sort(function(a, b) {
-    return a.getName() > b.getName() ? 1 : -1;
-  });
-
-  // Now process each file in the sorted order
-  for (var f = 0; f < fileArray.length; f++) {
-    var file = fileArray[f];
-    var document = DocumentApp.openById(file.getId());
-
-    var documentURL = "https://docs.google.com/document/d/" + file.getId();
-    var documentTitle = file.getName();
-
-    var tables = document.getBody().getTables();
-    if (tables.length > 0) {
-      var table = tables[0];
-
-      var numRows = table.getNumRows();
-      var targetPhrase = "OPERA";
-
-      for (var i = 0; i < numRows; i++) {
-        var cell = table.getCell(i, 0); // First column
-        var text = cell.getText();
-
-        if (text.indexOf(targetPhrase) !== -1) {
-          if (table.getRow(i).getNumCells() > 1) { // Ensure the row has a second column
-            var targetCell = table.getCell(i, 1); // Second column
-
-            var targetTable = targetDocument.getBody().getTables()[0];
-            var newRow = targetTable.insertTableRow(0); // Insert at the beginning
-
-            var fontSize = 11; // Replace with the desired font size
-            var fontColor = '#000000';
-            var fontFamily = 'Raleway'; //Replace with the desired font family
-            var backGroundColor = '#FFFFFF';
-
-            var hyperlinkCell = newRow.appendTableCell(documentTitle);
-            hyperlinkCell.setLinkUrl(documentURL);
-            hyperlinkCell.setFontSize(fontSize).setBackgroundColor(backGroundColor).setFontFamily(fontFamily);       
-            
-            var lines = targetCell.getText().split('\n'); // Split cell contents into lines
-            var bulletCell = newRow.appendTableCell(''); // Append an empty cell
-            
-            for (var j = 0; j < lines.length; j++) {
-              var bulletParagraph = bulletCell.appendParagraph(lines[j]); // Append a paragraph for each line
-              bulletParagraph.setIndentFirstLine(0).setIndentStart(18); // Make it look like a bulleted list
-              bulletParagraph.editAsText().setFontSize(fontSize).setBackgroundColor(fontColor).setFontFamily(fontFamily);
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-function searchAndPopulate() {
-  var folderId = "1HPjhc2LADvS9j3W_K3riq4RQPBngfqGY";
- 
   var folder = DriveApp.getFolderById(folderId);
   var targetDocument = DocumentApp.getActiveDocument(); // Get the currently open/active document
 
@@ -112,7 +48,6 @@ function searchAndPopulate() {
       var table = tables[0];
 
       var numRows = table.getNumRows();
-      var targetPhrase = "OPERA";
 
       for (var i = 0; i < numRows; i++) {
         var cell = table.getCell(i, 0); // First column
@@ -131,7 +66,7 @@ function searchAndPopulate() {
 
             var hyperlinkCell = newRow.appendTableCell(documentTitle);
             hyperlinkCell.setLinkUrl(documentURL);
-            hyperlinkCell.editAsText().setFontSize(fontSize).setBackgroundColor(backGroundColor).setFontFamily(fontFamily);
+            hyperlinkCell.editAsText().setFontSize(fontSize).setBackgroundColor(backGroundColor).setFontFamily(fontFamily);   
             
             var lines = targetCell.getText().split('\n'); // Split cell contents into lines
             var bulletCell = newRow.appendTableCell(''); // Append an empty cell
