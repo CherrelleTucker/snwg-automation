@@ -1,17 +1,18 @@
-// Purpose: Create custom action item menu for easy population. Search document for phrase "Action:" and populate action tracking table with relevant information. 
-// Restrictions: To be used as a script opened from within a container document, not as a standalone.
+// Purpose: Create custom menu. "Get Actions" "Organize Attendees"
+// Done: Sort attendees alphabetically by first name
+// Done: Search document for phrase "Action:" and populate action tracking table with relevant information. 
 // Done: Search the second column of the first table in a Google doc for the phrase "Action:" and pull the paragraph that follows
-// Done: Identify the second table in the document. Place the found name in the 2nd column, the paragraph following the "Action:" phrase in the 4th column.
-// Done: Create an Action: Tracking table only if one does not exist. The first column is "Status". The 2nd is "Owner". The 3rd is "Project". The 4th is "Action:"
+// Done: Identify the second table in the document. Place the found name in the 2nd column, the paragraph following the "Action:" phrase in the 3rd column.
+// Done: Create an Action: Tracking table only if one does not exist. The first column is "Status". The 2nd is "Owner". The 3rd is "Action:"
 // Done: Search "Attendees" list for names that may be identified after the "Action" key word, instead of a static list.  Account for the use of First, Last in Attendees list, but only either First or Last in the text.
 // Done: Create custom menu with action tracking population button
-// Future Development: assign first level project name to the appropriate action. 
 
 //Create Custom Get Action menu on document open
 function onOpen() {
   DocumentApp.getUi() // 
-      .createMenu('Action Items')
-      .addItem('Get Actions','createTableIfNotExist')
+      .createMenu('Custom Items')
+      .addItem('Populate Actions','createTableIfNotExist')
+      .addItem ('Organize Attendees','sortAttendees')
       .addToUi();
 }
 
@@ -44,16 +45,7 @@ function createTableIfNotExist() {
            const nameIndex = words.indexOf(foundName.split(' ')[0]); // change here
            const action = words.slice(nameIndex + foundName.split(' ').length).join(' '); // get remaining words as action
  
-           let project = '';
-           for(let j=index-1; j>=0; j--){
-             // check if the line is underlined
-             if(attributes[j] && attributes[j]['UNDERLINE'] === true){
-               project = lines[j]; // this is the project name
-               break;
-             }
-           }
- 
-           actionList.push({name: foundName, action, project});
+           actionList.push({name: foundName, action});
          }
        }
      });
@@ -80,15 +72,14 @@ function createTableIfNotExist() {
        row = secondTable.appendTableRow();
      }
      
-     if(row.getNumCells() < 4) {
-       while(row.getNumCells() < 4) {
+     if(row.getNumCells() < 3) {
+       while(row.getNumCells() < 3) {
          row.appendTableCell();
        }
      }
  
      row.getCell(1).setText(actionItem.name); // owner
-     row.getCell(2).setText(actionItem.project); // project
-     row.getCell(3).setText(actionItem.action); // action
+     row.getCell(2).setText(actionItem.action); // action
    }
  }
  
@@ -101,7 +92,6 @@ function createTableIfNotExist() {
    const header = table.appendTableRow();
    header.appendTableCell("Status");
    header.appendTableCell("Owner");
-   header.appendTableCell("Project");
    header.appendTableCell("Action");
    return table;
  }
@@ -123,4 +113,30 @@ function createTableIfNotExist() {
  }
  
  createTableIfNotExist();
+ 
+function sortAttendees() {
+   const doc = DocumentApp.getActiveDocument();  // Open Active Document
+   const body = doc.getBody();
+  var text = body.getText(); // Get the text from the document
+
+  // Extract attendees. The script assumes that the attendee list is on its own line
+  // and there are no other lines with similar formatting.
+  var attendeesRegex = /^Attendees: (.*)$/m;
+  var attendeesMatch = text.match(attendeesRegex);
+
+  if (attendeesMatch) {
+    var attendees = attendeesMatch[1].split(", ");
+    attendees.sort();
+
+    var sortedAttendees = attendees.join(", ");
+
+    // Replace the original attendees list with the sorted one
+    body.replaceText(attendeesMatch[0], "Attendees: " + sortedAttendees);
+  } else {
+    console.log("No Attendees found");
+  }
+}
+
+sortAttendees(); // Call the function
+
  
