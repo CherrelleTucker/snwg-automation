@@ -7,7 +7,7 @@
 // Done: Search "Attendees" list for names that may be identified after the "Action" key word, instead of a static list.  Account for the use of First, Last in Attendees list, but only either First or Last in the text.
 // Done: Create custom menu with action tracking population button
 
-//Create Custom Get Action menu on document open
+
 function onOpen() {
   DocumentApp.getUi() // 
       .createMenu('Custom Items')
@@ -18,39 +18,43 @@ function onOpen() {
 
 
 function createTableIfNotExist() {
-  const doc = DocumentApp.getActiveDocument();  // Correct function call
+  const doc = DocumentApp.getActiveDocument();
   const body = doc.getBody();
-   
-   // Extract attendees from the text above the first table
-   const names = extractAttendees(body);
-   const firstTable = body.getTables()[0];
-   const actionList = [];
- 
-   // Iterate over the rows in the first table
-   for(let i = 0; i < firstTable.getNumRows(); i++) {
-     const cell = firstTable.getCell(i, 1); // second column
-     const lines = cell.getText().split('\n'); // split cell content into lines
-     const attributes = cell.getAttributes(); // get the text attributes in cell
- 
-     lines.forEach((line, index) => {
-       const actionKeyword = "Action:";
-       const startIndex = line.indexOf(actionKeyword);
- 
-       if (startIndex !== -1) {
-         const sentence = line.substring(startIndex + actionKeyword.length);
-         const words = sentence.split(" ");
- 
-         const foundName = names.find(name => words.join(' ').includes(name)); // change here
-         if(foundName) {
-           const nameIndex = words.indexOf(foundName.split(' ')[0]); // change here
-           const action = words.slice(nameIndex + foundName.split(' ').length).join(' '); // get remaining words as action
- 
-           actionList.push({name: foundName, action});
-         }
-       }
-     });
-   }
- 
+
+  // Extract attendees from the text above the first table
+  const names = extractAttendees(body);
+  const firstTable = body.getTables()[0];
+  const actionList = [];
+
+  // Iterate over the rows in the first table
+  for (let i = 0; i < firstTable.getNumRows(); i++) {
+    const cell = firstTable.getCell(i, 1);
+    const lines = cell.getText().split('\n');
+    const attributes = cell.getAttributes();
+
+    lines.forEach((line, index) => {
+      const actionKeyword = "Action:";
+      const startIndex = line.indexOf(actionKeyword);
+
+      if (startIndex !== -1) {
+        const sentence = line.substring(startIndex + actionKeyword.length);
+        const words = sentence.split(" ");
+
+        const foundName = names.find(name => words.join(' ').includes(name));
+        if (foundName) {
+          const nameIndex = words.indexOf(foundName.split(' ')[0]);
+          const action = words.slice(nameIndex + foundName.split(' ').length).join(' ');
+
+          // Check if the same name and action combination already exists in the second table
+          const isDuplicate = actionList.some(item => item.name === foundName && item.action === action);
+          if (!isDuplicate) {
+            actionList.push({ name: foundName, action });
+          }
+        }
+      }
+    });
+  }
+
    // Get or create the second table
    const secondTable = secondTableExists(body) ? body.getTables()[1] : createSecondTable(body);
  
