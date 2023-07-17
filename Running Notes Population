@@ -1,92 +1,302 @@
 // Library script
 // edit container script with target phrase before running:
-// function myFunction() {
- // var targetPhrase = "PBL"; // or whatever phrase you want to search for
- // RunningNotesSearch.searchAndPopulate(targetPhrase);
- //} Then call library functions
 
-// Purpose: search documents with reference notes for the current project or solution. populate in running notes
-// All folder id: 1l8gVfZqse5AWTfbVxVCwRcL84hf2XBc7
-// 2023 folder id: 1HPjhc2LADvS9j3W_K3riq4RQPBngfqGY
+// function callLibraryFunctions(){
+   // set the target phrase in the library
+//  LibraryRunningNotesSearchTitleandMonthly.TARGET_PHRASE = "ADMG";
 
-// Done: Search the first column in the first table of every document in the monthly meeting folder for the phrase "OPERA"
-// Done: Populates the corresponding  cell contents from the second row into the Running Notes document
-// Done: Add a row to the first table and place the information from the Monthly Meeting doc into the second column of the newly created first row
-// Done: hyperlink the source document in the first column 
-// Done: format background color, font, text size, paragraph indent
+  // Call the library functions
+//  LibraryRunningNotesSearchTitleandMonthly.getTitles();
+//  LibraryRunningNotesSearchTitleandMonthly.getMonthly();
+// }
 
-function searchAndPopulate(targetPhrase) { // 'targetPhrase' parameter added
-  var folderId = "1HPjhc2LADvS9j3W_K3riq4RQPBngfqGY";
+// function onOpen() {
+//  var ui = DocumentApp.getUi();
+//  ui.createMenu('Update Info')
+//     .addItem('Update Monthly and Project Meetings', 'callLibraryFunctions')
+//     .addToUi(); }
 
+// Version: 1.0
+// Purpose: search folders for files containing project updates and populate in running notes. 
+
+// Function: GetMonthly
+// Access primary folder: "Meeting Notes": 13zl2CvMNtDMFKcNZetAA00e5tkh3Eo_M
+// Access secondary folder: "Monthly Project Status Updates": 1l8gVfZqse5AWTfbVxVCwRcL84hf2XBc7
+// Open document>identify table>search cell 1 in each row for target phrase. 
+// Find key phrase. Find cell 2 of that row. Copy text contents. 
+// Open target document: "<Target Phrase> Running Notes"
+// Identify table. Search cell 2 of all rows for text that matches cell 2 from the source document. 
+//    If previous entry is found, stop. Return to source document. 
+//    If not found, create new row at the top of the table. 
+//    In target cell 1, populate Title of the Source Document. Hyperlink the title. 
+//    In target cell 2, populate the text copied source cell 2.
+// Repeat loop for next instance. Repeat loop for all documents in primary folder and subfolders.
+
+// function: getTitles
+// Access primary folder: "Meeting Notes": 13zl2CvMNtDMFKcNZetAA00e5tkh3Eo_M
+// Identify files with the Target Phrase in the title. 
+// Identify Title Date within full file title. Title format is "YYYY-MM-DD <Remainder of File Title>". 
+// Identify table. Search cell 2 of all rows for text that matches the title of the source document. 
+//    If previous entry is found, stop. Return to source folder. 
+//    If not found, create new row at the top of the table. 
+//    In target cell 1, populate Title Date of the Source file.
+//        Exception handling: If Target Phrase is found in the full file title, but no date is found in the full file title, return "Date Not Found" in cell 1 of the target document. 
+//    In target cell 2, populate the title of the file.  Hyperlink the title. 
+// Repeat loop for next instance. Repeat loop for all documents in primary folder and subfolders.
+
+// Both functions: format target cell contents fontSize = 11; fontColor = '#000000'; fontFamily = 'Raleway'; backGroundColor = '#FFFFFF';
+// Both functions: sort new entries in the target document in ascending order by cell 1. 
+
+var PRIMARY_FOLDER_ID ='13zl2CvMNtDMFKcNZetAA00e5tkh3Eo_M';// SNWG MO Meeting Notes folder
+var SECONDARY_FOLDER_ID ='1l8gVfZqse5AWTfbVxVCwRcL84hf2XBc7'; // SNWG MO Monthly Project Status Updates folder
+
+function getActiveDocumentId(){
+  var getActiveDocumentId = DocumentApp.getActiveDocument().getId();
+  return getActiveDocumentId;
+}
+
+function accessFolder(folderId){
   var folder = DriveApp.getFolderById(folderId);
-  var targetDocument = DocumentApp.getActiveDocument(); // Get the currently open/active document
+  return folder;
+}
 
-  var files = folder.getFilesByType(MimeType.GOOGLE_DOCS);
+function getFilesInFolder(folder) {
+  var files = [];
+  var fileIterator = folder.getFiles();
+  var folderIterator = folder.getFolders();
 
-  // Create an array of files and sort by title (which are dates)
-  var fileArray = [];
-  while (files.hasNext()) {
-    var file = files.next();
-    fileArray.push(file);
+  while (fileIterator.hasNext()) {
+    var file = fileIterator.next();
+    files.push(file);
   }
-  
-  // Sort the array by the title in ascending order (from oldest to newest)
-  fileArray.sort(function(a, b) {
-    return a.getName() > b.getName() ? 1 : -1;
-  });
 
-  // Now process each file in the sorted order
-  for (var f = 0; f < fileArray.length; f++) {
-    var file = fileArray[f];
-    var document = DocumentApp.openById(file.getId());
+  while (folderIterator.hasNext()) {
+    var subfolder = folderIterator.next();
+    var subfolderFiles = getFilesInFolder(subfolder);
+    files = files.concat(subfolderFiles);  
+  }
+  return files;
+}
 
-    var documentURL = "https://docs.google.com/document/d/" + file.getId();
-    var documentTitle = file.getName();
+function extractDateFromTitle(title) {
+  var datePattern = /^\d{4}-\d{2}-\d{2}/;
+  var match = title.match(datePattern);
 
-    var tables = document.getBody().getTables();
-    if (tables.length > 0) {
-      var table = tables[0];
+  if (match) {
+    return match[0];
+  } else {
+    return null;
+  }
+}
 
-      var numRows = table.getNumRows();
+function findInTable(document, TARGET_PHRASE){
+  var body = document.getBody();
+  var tables = body.getTables();
 
-      for (var i = 0; i < numRows; i++) {
-        var cell = table.getCell(i, 0); // First column
-        var text = cell.getText();
+  if (tables.length > 0){
+    var table = tables[0];
+    var numRows = table.getNumRows();
 
-        if (text.indexOf(targetPhrase) !== -1) {
-          if (table.getRow(i).getNumCells() > 1) { // Ensure the row has a second column
-            var targetCell = table.getCell(i, 1); // Second column
+    for (var i = 0; i < numRows; i++) {
+      var row = table.getRow(i);
+      var cell1 = row.getCell(0);
+      var cell1Text = cell1.getText();
 
-            var targetTable = targetDocument.getBody().getTables()[0];
-            var newRow = targetTable.insertTableRow(0); // Insert at the beginning
-
-            var fontSize = 11; // Replace with the desired font size
-            var fontFamily = 'Raleway'; // Replace with the desired font family
-            var backGroundColor = '#FFFFFF';
-
-            var hyperlinkCell = newRow.appendTableCell(documentTitle);
-            hyperlinkCell.setLinkUrl(documentURL);
-            hyperlinkCell.editAsText().setFontSize(fontSize).setBackgroundColor(backGroundColor).setFontFamily(fontFamily);   
-            
-            var lines = targetCell.getText().split('\n'); // Split cell contents into lines
-            var bulletCell = newRow.appendTableCell(''); // Append an empty cell
-            bulletCell.setBackgroundColor(backGroundColor); // Set background color for the second cell
-
-            for (var j = 0; j < lines.length; j++) {
-              var bulletParagraph = bulletCell.appendParagraph(lines[j]); // Append a paragraph for each line
-              bulletParagraph.setIndentFirstLine(0).setIndentStart(18); // Make it look like a bulleted list
-              bulletParagraph.editAsText().setFontSize(fontSize).setBackgroundColor(backGroundColor).setFontFamily(fontFamily);
-            }
-          }
-        }
+      if (cell1Text.includes(TARGET_PHRASE)) {
+        var cell2 = row.getCell(1);
+        var cell2Text = cell2.getText();
+        return cell2Text;
       }
+    }
+  }
+  return null;
+}
+
+function updateTargetDocumentForGetMonthly(TARGET_PHRASE, date, title, url) {
+  var TARGET_DOCUMENT_ID = getActiveDocumentId(); 
+  var targetDocument = DocumentApp.openById(TARGET_DOCUMENT_ID);
+  var body = targetDocument.getBody();
+  var tables = body.getTables();
+
+  if (tables.length > 0) {
+    var table = tables[0];
+    var numRows = table.getNumRows();
+
+    for (var i = 0; i < numRows; i++) {
+      var row = table.getRow(i);
+      var cell1 = row.getCell(0);
+      var cell1Url = cell1.getLinkUrl();
+      var cell2 = row.getCell(1);
+      var cell2Url = cell2.getLinkUrl();
+
+      // If cell 1 or cell 2 contains the same URL as the source document, a matching entry is found, so stop and return.
+      if (cell1Url === url || cell2Url === url) {
+        return;
+      }
+    }
+
+    var newRow = table.insertTableRow(0);
+
+    var newCell1 = newRow.appendTableCell();
+    newCell1.setText(date).setLinkUrl(url);  // Apply hyperlink to cell 1
+    formatCell(newCell1);
+
+    var newCell2 = newRow.appendTableCell();
+    newCell2.setText(title);
+    formatCell(newCell2);
+  }
+}
+
+function updateTargetDocumentForGetTitles(TARGET_PHRASE, date, title, url) {
+  var TARGET_DOCUMENT_ID = getActiveDocumentId(); 
+  var targetDocument = DocumentApp.openById(TARGET_DOCUMENT_ID);
+  var body = targetDocument.getBody();
+  var tables = body.getTables();
+
+  if (tables.length > 0) {
+    var table = tables[0];
+    var numRows = table.getNumRows();
+
+    for (var i = 0; i < numRows; i++) {
+      var row = table.getRow(i);
+      var cell1 = row.getCell(0);
+      var cell1Url = cell1.getLinkUrl();
+      var cell2 = row.getCell(1);
+      var cell2Url = cell2.getLinkUrl();
+
+      // If cell 1 or cell 2 contains the same URL as the source document, a matching entry is found, so stop and return.
+      if (cell1Url === url || cell2Url === url) {
+        return;
+      }
+    }
+
+    var newRow = table.insertTableRow(0);
+
+    var newCell1 = newRow.appendTableCell();
+    newCell1.setText(date);
+    formatCell(newCell1);
+
+    var newCell2 = newRow.appendTableCell();
+    newCell2.setText(title).setLinkUrl(url); // Apply hyperlink to cell 2
+    formatCell(newCell2);
+  }
+}
+
+function formatCell(cell) {
+  var fontSize = 11;
+  var fontFamily = 'Raleway';
+  var backGroundColor = '#FFFFFF';
+  
+  cell.setFontSize(fontSize);
+  cell.setFontFamily(fontFamily);
+  cell.setBackgroundColor(backGroundColor);
+}
+
+function sortTable(document, newRowCount) {
+  var body = document.getBody();
+  var tables = body.getTables();
+
+  if (tables.length > 0) {
+    var table = tables[0];
+    var data = [];
+
+    for (var i = 0; i < newRowCount; i++) {
+      var row = table.getRow(i);
+      var cell1 = row.getCell(0);
+      var cell2 = row.getCell(1);
+      data.push([cell1.getText(), cell2.getText(), cell1.getLinkUrl()]);
+
+      table.removeRow(i);
+    }
+
+    data.sort(function(a, b) {
+      return b[0].localeCompare(a[0]);
+    });
+
+    for (var i = 0; i < newRowCount; i++) {
+      var newRow = table.insertTableRow(i);
+      var newCell1 = newRow.appendTableCell(data[i][0]).setLinkUrl(data[i][2]);
+      formatCell(newCell1);  // Apply formatting to cell 1
+      var newCell2 = newRow.appendTableCell(data[i][1]);
+      formatCell(newCell2);  // Apply formatting to cell 2
     }
   }
 }
 
-function onOpen() {
-  var ui = DocumentApp.getUi();
-  ui.createMenu('Custom Menu')
-      .addItem('Search and Populate', 'searchAndPopulate')
-      .addToUi();
+function getMonthly() {
+  var TARGET_DOCUMENT_ID = getActiveDocumentId();
+  var secondaryFolder = accessFolder(SECONDARY_FOLDER_ID);
+  var files = getFilesInFolder(secondaryFolder);
+
+  var twoYearsAgo = new Date();
+  twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+  
+  var targetDocument = DocumentApp.openById(TARGET_DOCUMENT_ID);
+  var tables = targetDocument.getBody().getTables();
+  var initialRowCount = tables[0].getNumRows();
+  
+  files.forEach(function(file) {
+    // Skip "Template" files and move to the next.
+    if (file.getName().includes("Template")){
+      return;
+    }
+    // Search only files updated in last two years
+    if (file.getLastUpdated() >= twoYearsAgo) {
+      if (file.getMimeType() === 'application/vnd.google-apps.document') {
+        var doc = DocumentApp.openById(file.getId());
+        var text = findInTable(doc, TARGET_PHRASE);
+        if (text !== null) {
+          var documentTitle = file.getName();
+          var documentUrl = "https://docs.google.com/document/d/" + file.getId();
+          updateTargetDocumentForGetMonthly(TARGET_PHRASE, documentTitle, text, documentUrl);           
+        }
+      }
+    }
+  });
+  
+  var finalRowCount = tables[0].getNumRows();
+  var newRowCount = finalRowCount - initialRowCount;
+  sortTable(targetDocument, newRowCount);
+}
+
+function getTitles() {
+  // var TARGET_DOCUMENT_ID = getActiveDocumentId(); 
+
+  var primaryFolder = accessFolder(PRIMARY_FOLDER_ID);
+  var files = getFilesInFolder(primaryFolder);
+
+  // Create an array to store new rows
+  var newRows = [];
+
+  files.forEach(function(file) {
+
+    // Skip "Template" files and move to the next.
+    if (file.getName().includes("Template")){
+      return;
+    }
+
+    if (file.getName().includes(TARGET_PHRASE)) {
+      var date = extractDateFromTitle(file.getName());
+      if (date === null) {
+        date = "Date Not Found";
+      }
+
+      // Instead of adding a new row to the document here, add the row data to newRows
+      newRows.push({
+        date: date,
+        title: file.getName(),
+        url: "https://docs.google.com/document/d/" + file.getId(),
+      });
+    }
+  });
+
+  // Sort newRows by date in descending order (newest first)
+  newRows.sort(function(a, b) {
+    return a.date.localeCompare(b.date);
+  });
+
+  // Add the sorted rows to the document
+  newRows.forEach(function(row) {
+    updateTargetDocumentForGetTitles(TARGET_PHRASE, row.date, row.title, row.url);
+  });
 }
