@@ -150,3 +150,32 @@ function getFirstEmptyRow(table) {
 
 // Run the getActions function
 getActions();
+
+// Primary function: sortAttendees
+function sortAttendees() {
+  var document = DocumentApp.getActiveDocument();
+  var body = document.getBody();
+  var attendeesPhrase = 'Attendees: ';
+  var attendeesText = body.findText(attendeesPhrase);
+
+  if (attendeesText) {
+    var attendeesElement = attendeesText.getElement();
+    var attendeesString = attendeesElement.asText().getText().substring(attendeesPhrase.length);
+    var attendeesArray = attendeesString.split(',').map(function (name) {
+      return name.trim();
+    });
+
+    Logger.log('Attendees found:');
+    Logger.log(attendeesArray);
+
+    var sortedAttendees = attendeesArray.sort(function (a, b) {
+      return a.charAt(0).localeCompare(b.charAt(0));
+    });
+
+    var sortedAttendeesString = sortedAttendees.join(', ');
+    attendeesElement.asText().setText(attendeesPhrase + sortedAttendeesString);
+
+    Logger.log('Attendees moved:');
+    Logger.log(sortedAttendees);
+  }
+}
