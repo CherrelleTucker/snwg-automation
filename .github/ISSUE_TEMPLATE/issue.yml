@@ -1,0 +1,43 @@
+name: Issue
+description: Create an Issue
+title: "ADD THE ISSUE TITLE HERE"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is the Issue template! The values you add will be converted to a properly formatted Issue.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Add two to three sentences that explain the context of this issue and what it will achieve.
+      placeholder: your text goes here
+    validations:
+      required: true
+  - type: textarea
+    id: implementation-considerations
+    attributes:
+      label: Implementation Considerations
+      description: |
+        Points that need to be considered when developing this feature/writing this doc
+      value: "- type your first consideration here"
+    validations:
+      required: true
+  - type: textarea
+    id: deliverable
+    attributes:
+      label: Deliverable
+      description: What will be shown to to team to demonstrate acceptance criteria are complete
+      placeholder: your text goes here
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: |
+        Add cards on which this issue depends
+        Github automatically provides a list of possible issues if you start by typing a `#`
+      value: depends on
+    validations:
+      required: false
