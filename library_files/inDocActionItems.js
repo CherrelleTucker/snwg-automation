@@ -1,16 +1,17 @@
 // Purpose: Container script to populate action items to an end 3 column action item table from either a preceding table or a paragraphed document. 
-// To use as library script, add inDocActionItems script id to container document library, then transfer function libraryCall and function customMenu to the container script. 
+// To use as library script, add inDocActionItems script id to container document library, then transfer function libraryCall and  to the container script. Note: Current issue: As a library function, custom menu buttons will work but will show an error "Script function not found:<Script name>". Runs without issue, exception, or error within script. 
 
 // function to call inDocActionItems library script 
 // function libraryCall(){
   //inDocActionItems.runBothActionItems();
   //inDocActionItems.organizeAttendees();
+  //inDocActionItems.customMenu();
 //}
 
 // function to create custom menu with buttons
 function customMenu() {
     DocumentApp.getUi() // 
-        .createMenu('Custom Items')
+        .createMenu('Custom Menu')
         .addItem('Populate Actions','runBothActionItems')      
         .addItem ('Organize Attendees','organizeAttendees')
         .addToUi();
