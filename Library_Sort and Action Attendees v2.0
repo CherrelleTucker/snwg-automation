@@ -1,5 +1,5 @@
 // v2.0 Reorganized functions, corrected duplication, added not started status
-
+// Issue: loses hyperlinked text when populating table
 
 // Primary function: getActions
 function getActions() {
