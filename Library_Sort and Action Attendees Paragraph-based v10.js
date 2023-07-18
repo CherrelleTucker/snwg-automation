@@ -168,9 +168,16 @@ function sortAttendees() {
     });
 
     var sortedAttendeesString = sortedAttendees.join(', ');
+
+    // Check if the attendees are already in the correct order
+    if (sortedAttendeesString === attendeesString) {
+      Logger.log('Attendees are already sorted.');
+      return; // Stop further processing
+    }
+
     attendeesElement.asText().setText(attendeesPhrase + sortedAttendeesString);
 
-    Logger.log('Attendees moved:');
+    Logger.log('Attendees sorted:');
     Logger.log(sortedAttendees);
   }
 }
