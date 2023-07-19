@@ -1,4 +1,4 @@
-// Purpose: automatically searches week/month ahead to change group calendar events to match their meeting room colors. Flag meetings that are occuring in a space that has been double booked.
+// Purpose: automatically search week ahead to change group calendar events to match their meeting room colors. Flag meetings that are occuring in a space that has been double booked.
 // Done: account for variations of spelling and location entry "key phrase"
 // Done: Meeting colors change to Graphite when locations are double booked. 
 // Done: Events with no location are assigned color Flamingo.
@@ -14,14 +14,14 @@
   // 9/Blueberry = "3084" "CR3084"
   // 10/Basil =  "1030" "Turing"; 
   // 11/Tomato = "1034"
-
-//Final calendar ID: mn9msmqj2nqobs0md4gmgfnabk@group.calendar.google.com
+// IMPACT Conference Room Booking Google calendar ID: mn9msmqj2nqobs0md4gmgfnabk@group.calendar.google.com
 
 function ColorEvents() {
   var today = new Date();
   var nextweek = new Date();
-  nextweek.setDate(nextweek.getDate() + 7);
+  nextweek.setDate(nextweek.getDate() + 7); // look ahead 7 days
 
+  //Assign Google colors to room identifiers
   var colorMap = {
     '3': ["mccarthy", "1063"], // Grape
     '5': ["1062", "lovelace"], // Banana
@@ -32,7 +32,7 @@ function ColorEvents() {
     '11': ["1034"], // Tomato
   };
 
-  var calendar = CalendarApp.getCalendarById('mn9msmqj2nqobs0md4gmgfnabk@group.calendar.google.com');
+  var calendar = CalendarApp.getCalendarById('mn9msmqj2nqobs0md4gmgfnabk@group.calendar.google.com');  //<---replace with desired calendar id
   var events = calendar.getEvents(today, nextweek);
 
   var locationEventsMap = {};

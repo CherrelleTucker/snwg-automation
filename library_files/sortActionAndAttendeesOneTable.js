@@ -1,6 +1,7 @@
+// TODO: consider refactoring to have only one sortAction script
+
 // v1.0 Organize attendees, get action items. To recognize names, Action Owner must be listed in attendees.
 // Issue: loses hyperlinked text when populating table
-
 
 // Primary function: getActions
 function getActions() {
