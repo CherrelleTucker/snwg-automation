@@ -58,12 +58,6 @@ Contributions to the SNWG MO PC Workflows Optimization repository are welcome. I
 
 Please ensure that your contributions align with the purpose and goals of the repository.
 
-## License
-
-The SNWG MO PC Workflows Optimization repository is licensed under the [MIT License](LICENSE.md). You are free to use, modify, and distribute the scripts within this repository, subject to the terms and conditions of the license.
-
-Please note that while the scripts provided in this repository are thoroughly tested, they are provided "as is" without any warranty or guarantee of their fitness for any specific purpose. Users are responsible for understanding the functionality and limitations of the scripts and ensuring their suitability for their specific use cases.
-
 ## Acknowledgments
 
 We would like to acknowledge the contributions and support from the SNWG MO PC team for their valuable insights and feedback. Your contributions help improve the efficiency and effectiveness of our workflows. Thank you!
