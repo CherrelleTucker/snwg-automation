@@ -1,6 +1,7 @@
 // Purpose: Container script to populate action items to an end 3 column action item table from either a preceding table or a paragraphed document. 
 // To use as library script, add inDocActionItems script id to container document library, then transfer function libraryCall to the container script. Authorize script access.
 
+// script ID: 1kBbrOJCXewvSixfq1yR8d-lEtgDG5yzD9-pqPeuC9ugLka7gQULwkBH_ <--replace with current library script id. Project settings (geat icon)
 // //function to call inDocActionItems library script 
 // function libraryCall(){
 //  inDocActionItems.runBothActionItems();
