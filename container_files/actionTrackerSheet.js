@@ -1,16 +1,18 @@
 // Purpose: 
-// 1. Search agendas in SNWG Meeting Notes folder for meeting agenda action items to be completed and populate Source Document, Status, Owner, and Task in SNWG MO Action Tracker Sheet. 
-// 2. Push updated statuses to the action tracking table in their agenda.
+// 1. Search agendas for action items to be completed and populate in the Action Tracking Google Sheet.
+// 2. Push status updates from from the Action Tracking Google sheet to the Action source agendas as changed.
 
-// Issue: preserve hyperlinks in task items from the source documents (also issue within in-document action tracking script)
+// Future development: preserve links in task items from the source documents
 
-function onOpen() {
+// secondary function to create custom menu
+function customMenu() {
   SpreadsheetApp.getUi()
       .createMenu('Action Items')
-      .addItem('Get Actions','importActionsFromFolder')
-      .addItem('Update Document Status','updateStatus')
+      .addItem('Get Actions from Agendas','TablePullPopulate')
+      .addItem('Update Status in Source Document','updateStatus')
       .addToUi();
 }
+
 // Primary function: TablePullPopulate
 function TablePullPopulate() {
   var folderId = '1WKYw4jnP6ejRkOLAIPoPvbEYClaLE4eR';
@@ -39,16 +41,14 @@ function pullActionsFromDocuments(folderId) {
       var table = tables[i];
       var numCols = table.getRow(0).getNumCells();
 
-      if (numCols !== 3) {
-        // Skip tables that do not have 3 columns
+      if (numCols !== 3) { // Skip tables that do not have 3 columns
         continue;
       }
 
       var documentName = file.getName();
       var documentLink = '=HYPERLINK("' + file.getUrl() + '", "' + documentName + '")';
 
-      if (documentName.toLowerCase().indexOf('template') !== -1) {
-        // Skip files with "Template" in the title
+      if (documentName.toLowerCase().indexOf('template') !== -1) { // Skip files with "Template" in the title
         continue;
       }
 
@@ -60,8 +60,7 @@ function pullActionsFromDocuments(folderId) {
       for (var j = 0; j < modifiedTableData.length; j++) {
         var row = modifiedTableData[j];
 
-        if (row.some(function (cell) { return cell === ''; })) {
-          // Skip rows with empty cells
+        if (row.some(function (cell) { return cell === ''; })) {  // Skip rows with empty cells
           continue;
         }
 
@@ -135,10 +134,9 @@ function populateSheetWithActions(spreadsheetId, sheetName, actions) {
     range.setValues(actions);
   }
 }
-
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Primary function: push statuses updated in tracking sheet to their source documents
+// Primary function: updateStatus
 function updateStatus() {
   var spreadsheetId = '1uYgX660tpizNbIy44ddQogrRphfwZqn1D0Oa2RlSYKg'; // Replace with your actual spreadsheet ID
   var sheetName = 'Table Pull'; // Replace with the name of your sheet
