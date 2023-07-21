@@ -1,0 +1,136 @@
+// source calendar ID: c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com
+// sprint review template id: 1UxcyJtzCgDWnJc0Nr3UxtMKESU1cMowblvgq6I_jf0U
+// Jamboard template ID: 1fxtfrJKvVMwOHhQkZNXkSc5KMB-gafinTDtefz-htBs
+// target folder: 1UmjkjY5RTRYFOQEt10mwU8trJQ389Jum
+//  target subfolder ID (FY23): 1koAz9Q7-Yw9dQ4syVXzXzLPCI3AQFzqH
+//  target subfolder ID (FY24): not yet created
+// testing folder ID: 1V40h1Df4TMuuGzTMiLHxyBRPC-XJhQ10
+
+// Access IMPACT PI calendar. Find today. Identify the Current Sprint event. This event title - " Sprint " = currentSprintNumber example: "23.3 Sprint 4" = "23.3.4" Format: FY.PI.S This information will create the currentSprintNumber that informs the rest of the script. 
+
+// Access IMPACT Sprint Review Template. Duplicate IMPACT Sprint Review Template in the Testing folder
+
+// Name newly created file "IMPACT Sprint Review_" {{currentSprintNumber}}"
+
+// Slide 1 Placeholder text:
+//  {{currentSprintNumber}} 
+//  {{Date of Sprint Review}} access calendar, find the date of the Friday of the current sprint, populate 'Month date", "year'
+//  {{FY}} two-digit fiscal year
+
+// Slide 3 Placeholder text:
+//  {{1 Month}} = next month
+//  {{2 Month}} = 2 months from now
+
+// Slide 4 Placeholder text
+//  {{IMPACT JAMBOARD for Kudos}} Copy Jamboard Template file and place in the Testing Folder. Update title of newly created Jamboard "IMPACT-Kudos-Board _"{{FY.PI.S}" Hyperlink text box in the Sprint Review Presentation{{IMPACT Jamboard for Kudos}} with newly created jamboard hyperlink
+
+// Ensure you have enabled the "Google Calendar API" in the Google Cloud Console and set up the necessary credentials.
+
+// Google Apps Script
+
+// Source Calendar ID
+var source_calendar_id = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com';
+// Sprint Review Template ID
+var template_id = '1UxcyJtzCgDWnJc0Nr3UxtMKESU1cMowblvgq6I_jf0U';
+// Jamboard Template ID
+var jamboard_template_id = '1fxtfrJKvVMwOHhQkZNXkSc5KMB-gafinTDtefz-htBs';
+// Testing Folder ID
+var testing_folder_id = '1V40h1Df4TMuuGzTMiLHxyBRPC-XJhQ10';
+
+// Helper function to: Find and return the Current Sprint event.
+function getCurrentSprintEvent() {
+  var now = new Date();
+  var calendar = CalendarApp.getCalendarById(source_calendar_id);
+  var events = calendar.getEventsForDay(now, { search: 'Sprint' });
+  return events.length > 0 ? events[0] : null;
+}
+
+// Helper function to: Duplicate the IMPACT Sprint Review Template in the Testing folder and return the newly created file.
+function duplicateTemplate(currentSprintNumber) {
+  var templateFile = DriveApp.getFileById(template_id);
+  var newFile = templateFile.makeCopy('IMPACT Sprint Review_' + currentSprintNumber, DriveApp.getFolderById(testing_folder_id));
+  return newFile;
+}
+
+// Helper function to: Duplicate the Jamboard Template in the Testing folder and return the newly created file.
+function duplicateJamboardTemplate(currentSprintNumber) {
+  var jamboardTemplateFile = DriveApp.getFileById(jamboard_template_id);
+  var newJamboardTitle = 'IMPACT-Kudos-Board _' + currentSprintNumber;
+  var newJamboard = jamboardTemplateFile.makeCopy(newJamboardTitle, DriveApp.getFolderById(testing_folder_id));
+  return newJamboard;
+}
+
+// Helper function to: Update the title of the newly created Jamboard.
+function updateJamboardTitle(jamboardId, currentSprintNumber) {
+  var newTitle = 'IMPACT-Kudos-Board _' + currentSprintNumber;
+  var jamboard = SlidesApp.openById(jamboardId);
+  jamboard.setName(newTitle);
+}
+
+// Helper function to: Update the hyperlink for the shape in the Sprint Review Presentation with the newly created Jamboard hyperlink.
+function updateHyperlinkInPresentation(presentationId, slideIndex, shapeText, jamboardUrl) {
+  var presentation = SlidesApp.openById(presentationId);
+  var slides = presentation.getSlides();
+
+  if (slideIndex >= 0 && slideIndex < slides.length) {
+    var slide = slides[slideIndex];
+    var shapes = slide.getShapes();
+    for (var i = 0; i < shapes.length; i++) {
+      var shape = shapes[i];
+      var textRange = shape.getText();
+      var text = textRange.asString();
+      if (text.includes(shapeText)) {
+        shape.setLinkUrl(jamboardUrl);
+        break;
+      }
+    }
+  }
+}
+
+// Main function to: Create a new presentation.
+function createNewPresentation() {
+  var sprintEvent = getCurrentSprintEvent();
+  if (sprintEvent) {
+    var title = sprintEvent.getTitle(); // e.g., "23.3 Sprint 4"
+    var titleComponents = title.split('Sprint'); // e.g., ["23.3 ", " 4"]
+    var currentSprintNumber = titleComponents[0].trim() + '.' + titleComponents[1].trim(); // e.g., "23.3.4"
+
+    var fiscalYearQuarter = currentSprintNumber.split('.')[0] + '.' + currentSprintNumber.split('.')[1].charAt(0); // e.g., "23.3"
+    var sprintNumber = currentSprintNumber.split('.')[2]; // e.g., "4"
+
+    var newFile = duplicateTemplate(currentSprintNumber);
+    var newJamboard = duplicateJamboardTemplate(currentSprintNumber);
+    var jamboardUrl = 'https://jamboard.google.com/d/' + newJamboard.getId();
+
+    var presentation = SlidesApp.openById(newFile.getId());
+
+    // Slide 1
+    var slide1 = presentation.getSlides()[0];
+    slide1.replaceAllText('{{currentSprintNumber}}', currentSprintNumber);
+    slide1.replaceAllText('{{Date of Sprint Review}}', sprintEvent.getEndTime().toDateString());
+    slide1.replaceAllText('{{FY}}', new Date().getFullYear().toString().slice(-2));
+
+    // Slide 3
+    var slide3 = presentation.getSlides()[2];
+    var nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    slide3.replaceAllText('{{1 Month}}', monthNames[nextMonth.getMonth()]);
+
+    var twoMonthsLater = new Date();
+    twoMonthsLater.setMonth(twoMonthsLater.getMonth() + 2);
+    slide3.replaceAllText('{{2 Month}}', monthNames[twoMonthsLater.getMonth()]);
+
+    // Slide 4
+    updateHyperlinkInPresentation(newFile.getId(), 3, "IMPACT Jamboard for Kudos", jamboardUrl); // Example usage to set the hyperlink for the shape on Slide 4
+
+    // Slide 9
+    var slide9 = presentation.getSlides()[8]; // because indexing starts at 0
+    slide9.replaceAllText('{{FY.Q}}', fiscalYearQuarter);
+    slide9.replaceAllText('{{S}}', sprintNumber);
+  }
+}
+
+
+
+
