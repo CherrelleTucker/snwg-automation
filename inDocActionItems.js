@@ -1,13 +1,32 @@
-// Purpose: Container script to populate action items to an end 3 column action item table from either a preceding table or a paragraphed document. 
-// To use as library script, add inDocActionItems script id to container document library, then transfer function libraryCall to the container script. Authorize script access.
+// Purpose: 
+// 1. Search agendas for action items to be completed and populate in the Action Tracking Google Sheet.
+// 2. Push status updates from from the Action Tracking Google sheet to the Action source agendas as changed.
 
-// script ID: 1kBbrOJCXewvSixfq1yR8d-lEtgDG5yzD9-pqPeuC9ugLka7gQULwkBH_ <--replace with current library script id. Project settings (geat icon)
-// //function to call inDocActionItems library script 
+// Future development: preserve links in task items when copying to action table
+
+// This script is developed for use as either as a Google Apps Script container script or as a Google Apps Script library script. 
+// Google Apps Script container script: a script that is bound to a specific file, such as a Google Sheets, Google Docs, or Google Forms file. This container script acts as the file's custom script, allowing users to extend the functionality of the file by adding custom functions, triggers, and menu items to enhance its behavior and automation.
+
+// Google Apps Script library script: a self-contained script that contains reusable functions and can be attached to multiple projects or files. By attaching the library script to different projects, developers can access and use its functions across various files, enabling code sharing and improving code maintenance and version control.
+
+//////////////////////////////////////////////////
+
+// To use this script as a library script, follow the instructions below:
+// 1. Obtain the script ID of the inDocActionItems library script.
+//  script ID: 1kBbrOJCXewvSixfq1yR8d-lEtgDG5yzD9-pqPeuC9ugLka7gQULwkBH_ <-- verify current library script id by checking in Project settings (gear icon).
+// 2. Open the container document where you want to use this script.
+// 3. Click on the "Project settings" gear icon in the script editor.
+// 4. In the "Script ID" field, replace the existing script ID with the script ID of the inDocActionItems library script.
+// 5. Click "Save" to update the script ID.
+
+// function to use in your container to call inDocActionItems as a library script: 
 // function libraryCall(){
 //  inDocActionItems.runBothActionItems();
 //  inDocActionItems.organizeAttendees();
 //  inDocActionItems.customMenu();
 //}
+
+///////////////////////////////////////////////////
 
 // function to create custom menu with buttons
 function customMenu() {
@@ -18,7 +37,7 @@ function customMenu() {
       .addToUi();
 }
 
-// Primary function: actionsFromParagraphs
+// Primary function that extracts action items from paragraphs in the document and populates them into an action item table.
 function actionsFromParagraphs() {
   const document = DocumentApp.getActiveDocument();
   const body = document.getBody();
@@ -77,7 +96,7 @@ function actionsFromParagraphs() {
   }
 }
 
-// Helper function: extractAttendees
+// Helper function that extracts attendees' names from the document.
 function extractAttendees(body) {
   const attendees = [];
   const paragraphs = body.getParagraphs();
@@ -98,7 +117,7 @@ function extractAttendees(body) {
   return attendees;
 }
 
-// Helper function: createSecondTable
+// Helper function that creates a new action item table in the document.
 function createSecondTable(body) {
   const table = body.appendTable();
   const header = table.appendTableRow();
@@ -108,7 +127,7 @@ function createSecondTable(body) {
   return table;
 }
 
-// Helper function: getExistingActions
+// Helper function that retrieves existing action items from the table in the document.
 function getExistingActions(table) {
   const existingActions = [];
   const numRows = table.getNumRows();
@@ -123,7 +142,7 @@ function getExistingActions(table) {
   return existingActions;
 }
 
-// Helper function: checkIfActionExistsInTable
+// Helper function that checks if an action item already exists in the table.
 function checkIfActionExistsInTable(existingActions, actionItem) {
   for (const existingAction of existingActions) {
     if (existingAction.name === actionItem.name && existingAction.action === actionItem.action) {
@@ -133,7 +152,7 @@ function checkIfActionExistsInTable(existingActions, actionItem) {
   return false;
 }
 
-// Helper function: populateActionInTable
+// Helper function that populates an action item into the table.
 function populateActionInTable(table, actionItem) {
   const numRows = table.getNumRows();
 
@@ -157,7 +176,7 @@ function populateActionInTable(table, actionItem) {
   newRow.appendTableCell().setText(actionItem.action); // Action cell
 }
 
-// Primary function: actionsFromTable
+// Primary function that extracts action items from an existing table in the document and populates them into the Action Items table.
 function actionsFromTable() {
   const document = DocumentApp.getActiveDocument();
   const body = document.getBody();
@@ -186,7 +205,7 @@ function actionsFromTable() {
   }
 }
 
-// Helper function: findExistingActionTable
+// Helper function that searches for an existing action item table in the document.
 function findExistingActionTable(body) {
   const tables = body.getTables();
   for (let i = 0; i < tables.length; i++) {
@@ -229,7 +248,7 @@ function extractActionsFromTable(table) {
   return actionList;
 }
 
-// Secondary function: organizeAttendees 
+// Tertiary function that organizes attendees' names in alphabetical order in the document.
 function organizeAttendees() {
   var document = DocumentApp.getActiveDocument();
   var body = document.getBody();
@@ -271,7 +290,7 @@ actionsFromParagraphs();
 // Run the actionsFromTable function
 actionsFromTable();
 
-//Run both action functions
+// function to run both actionsFromParagraphs and actionsFromTable functions for the "Populate Actions" button.
 function runBothActionItems() {
   // Run actionsFromParagraphs function
   actionsFromParagraphs();
