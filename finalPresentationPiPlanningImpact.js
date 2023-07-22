@@ -1,15 +1,10 @@
 // Purpose: This script automates the creation of a new PI (Program Increment) Planning Final Presentation along with related Jamboards for a specific event on a Google Calendar. The generated presentation and Jamboards serve as templates for event attendees to populate with relevant information.
 
-// source calendar ID: c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com
-
-// Final Presentation Template ID: 1j5KLp01q8pI89E3PN2QIGlvmA0-rD2O8bONWwG21IMY
-
-// Kudos Jamboard template ID: 1fxtfrJKvVMwOHhQkZNXkSc5KMB-gafinTDtefz-htBs
-// StartStopContinue Jamboard template ID: 1rQBgG43-PKWj2OOIl3G_Pocb7hHQRWOH46RVGK-XD-c
-
-// Placement Folder ID: 169W64yI042Q24q4socXa4GhiQ7iY4a1f placed one folder up from fiscal year folder for easy viewability and error checking before final placement.
+// NOTE: This script is currently utilized as a library in impactPiWeekPackage
 
 // Issue: Slide 5 dates: same calculation as Welcome Script. D:
+
+////////////////////////////////////////////
 
 // Source Calendar ID
 var source_calendar_id = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com';
