@@ -19,23 +19,7 @@
 // 4. In the "Script ID" field, replace the existing script ID with the script ID of the inDocActionItems library script.
 // 5. Click "Save" to update the script ID.
 
-// function to use in your container to call inDocActionItems as a library script: 
-// function libraryCall(){
-//  inDocActionItems.runBothActionItems();
-//  inDocActionItems.organizeAttendees();
-//  inDocActionItems.customMenu();
-//}
-
 ///////////////////////////////////////////////////
-
-// function to create custom menu with buttons
-function customMenu() {
-  DocumentApp.getUi() // 
-      .createMenu('Custom Menu')
-      .addItem('Populate Actions','inDocActionItems.runBothActionItems')      
-      .addItem ('Organize Attendees','inDocActionItems.organizeAttendees')
-      .addToUi();
-}
 
 // Primary function that extracts action items from paragraphs in the document and populates them into an action item table.
 function actionsFromParagraphs() {
@@ -248,42 +232,6 @@ function extractActionsFromTable(table) {
   return actionList;
 }
 
-// Tertiary function that organizes attendees' names in alphabetical order in the document.
-function organizeAttendees() {
-  var document = DocumentApp.getActiveDocument();
-  var body = document.getBody();
-  var attendeesPhrase = 'Attendees: ';
-  var attendeesText = body.findText(attendeesPhrase);
-
-  if (attendeesText) {
-    var attendeesElement = attendeesText.getElement();
-    var attendeesString = attendeesElement.asText().getText().substring(attendeesPhrase.length);
-    var attendeesArray = attendeesString.split(',').map(function (name) {
-      return name.trim();
-    });
-
-    Logger.log('Attendees found:');
-    Logger.log(attendeesArray);
-
-    var sortedAttendees = attendeesArray.sort(function (a, b) {
-      return a.charAt(0).localeCompare(b.charAt(0));
-    });
-
-    var sortedAttendeesString = sortedAttendees.join(', ');
-
-    // Check if the attendees are already in the correct order
-    if (sortedAttendeesString === attendeesString) {
-      Logger.log('Attendees are already sorted.');
-      return; // Stop further processing
-    }
-
-    attendeesElement.asText().setText(attendeesPhrase + sortedAttendeesString);
-
-    Logger.log('Attendees sorted:');
-    Logger.log(sortedAttendees);
-  }
-}
-
 // Run the actionsFromParagraphs function
 actionsFromParagraphs();
 
@@ -299,5 +247,3 @@ function runBothActionItems() {
   actionsFromTable();
 }
 
-// Run the organizeAttendees function
-organizeAttendees();
