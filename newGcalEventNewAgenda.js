@@ -1,11 +1,19 @@
 // Purpose: general agenda is created and stored in a top-level folder for the day's Google Calendar (Conference Room Reservation) events
-// Calendar ID: mn9msmqj2nqobs0md4gmgfnabk@group.calendar.google.com
-// Template ID: 1nZN2y09ad2V7CqK0QIqrFXB_lZvv4XyXtefbOzdpdpE
-// Folder id for newly created document to be placed in: 16oXc4f1Rlvwk0vsXa27Dvy-niH1E1IOr 
+// How to use: create a Google Docs template document with {{Meeting Name}} {{Date of Calendar Event}}	{{Time of Calendar Event}} {{Conference Room}} {{Conference Room}} placeholders
+// in the script, replace General meeting agenda Template ID with chosen template ID
+// in the script, replace Folder id for newly created document to be placed in with the chosen folder ID
+// in the script, replace 'custom agenda' with your chosen exclusion phrase to keep new agenda from being made 
+// in the script, select "Triggers" tab (alarm clock) and add a trigger
+// in the IMPACT conference room calendar, create a future event with the title of the meeting and location. 
+// either run function createDocFromFutureEvents or wait for your trigger to run. 
+
+// IMPACT Conference Room Calendar ID: mn9msmqj2nqobs0md4gmgfnabk@group.calendar.google.com
+// General meeting agenda Template ID: 1nZN2y09ad2V7CqK0QIqrFXB_lZvv4XyXtefbOzdpdpE <--replace with chosen template
+// Folder id for newly created document to be placed in: 16oXc4f1Rlvwk0vsXa27Dvy-niH1E1IOr <--replace with chosen folder
 
 // event is created in IMPACT conference room calendar - calendar ID: mn9msmqj2nqobs0md4gmgfnabk@group.calendar.google.com
-// trigger: script runs once per day 
-// Search calendar for events for day after current day and later.
+// trigger: set in script settings 
+// Search calendar for events for the day after current day and later.
 // Check "Created by" id (owner email address) against specified email address.
 // If no match, abort action
 // If match, create document from specified template and place in specified folder.
@@ -17,7 +25,7 @@
 // Find "created by" email address. Replace {{Meeting Owner Name}} placeholder text in new document.
 //      Note that {{Meeting Owner Name}} is replaced with the email address of the event creator and not the owner name, as Google Apps Script does not have a direct method to get the creator's name.
 
-// Future Development: Eventually would like this to automatically sort to the appropriate project folder. 
+/////////////////////////////////////////////
 
 // Helper function: Get future events from a Google Calendar
 function getFutureEvents(calendarId) {
@@ -65,18 +73,17 @@ function replacePlaceholdersInDoc(doc, event) {
 
 // Helper function: Check if an event has a custom agenda template or otherwise should not be made; remove this function if not if not exculding routine events with custom agendas
 function isEventRecurring(event) {
-  return event.getDescription().toLowerCase().includes('custom agenda');
+  return event.getDescription().toLowerCase().includes('custom agenda'); // <--replace with your chosen exclusion phrase to keep new agenda from being made 
 }
-
 
 // Primary function: Find future events and create a general agenda document from them
 function createDocFromFutureEvents() {
   var calendarId = 'mn9msmqj2nqobs0md4gmgfnabk@group.calendar.google.com'; 
-  var templateId = '1nZN2y09ad2V7CqK0QIqrFXB_lZvv4XyXtefbOzdpdpE';
-  var targetFolderId = '16oXc4f1Rlvwk0vsXa27Dvy-niH1E1IOr';
+  var templateId = '1nZN2y09ad2V7CqK0QIqrFXB_lZvv4XyXtefbOzdpdpE'; // <-- replace with desired template
+  var targetFolderId = '16oXc4f1Rlvwk0vsXa27Dvy-niH1E1IOr'; // <-- replace with desired target folder
 
   // Add the specific owner's email address here
-  var specificOwnerEmail = 'cherrelle.j.tucker@nasa.gov';
+  var specificOwnerEmail = 'cherrelle.j.tucker@nasa.gov'; // <-- replace with desired meeting creator's email
 
   var events = getFutureEvents(calendarId);
   
@@ -90,11 +97,11 @@ function createDocFromFutureEvents() {
     var event = events[i];
     var eventId = event.getId();
 
-    if (processedEvents[eventId] || isEventRecurring(event)) { // <<--Remove "|| isEventRecurring(event)" if not exculding routine events with custom agendas
+    if (processedEvents[eventId] || isEventRecurring(event)) { // <<-- Remove "|| isEventRecurring(event)" if not exculding routine events with custom agendas
       continue;
     }
 
-    var eventCreatorEmail = event.getCreators()[0]; //Get the creator's email address
+    var eventCreatorEmail = event.getCreators()[0]; // Get the creator's email address
     
     // Check if the event's creator is the specific owner
     if (eventCreatorEmail !== specificOwnerEmail) {
