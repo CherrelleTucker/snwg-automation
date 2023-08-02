@@ -1,22 +1,39 @@
-// Purpose: This script automates the creation of a new PI (Program Increment) Planning Final Presentation along with related Jamboards for a specific event on a Google Calendar. The generated presentation and Jamboards serve as templates for event attendees to populate with relevant information.
+// Purpose:  
+// To automate the creation of an "Internal Planning Meeting Agenda" presentation for a given Program Increment (PI) in the IMPACT project. It extracts the current PI number from the next "Final Presentation" event in the IMPACT PI Calendar, duplicates a presentation template, and populates it with relevant data such as PI number, key dates, Kudos Jamboard hyperlink, and Start/Stop/Continue (SSC) Jamboard hyperlink for retrospective purposes. The script also calculates and displays the dates for five two-week sprints followed by two one-week periods in the presentation's Slide 5. Additionally, it creates two Jamboards, one for Kudos and one for Start/Stop/Continue (SSC) for the PI Planning Retro. The script duplicates the respective Jamboard templates, updates their titles with the current PI number, and provides hyperlinks to these Jamboards in the presentation.
 
-// NOTE: This script is currently utilized as a library in impactPiWeekPackage
+// Future development: 
+// dates on slide 5 do not progress past the end of 2023, instead looping back around to the beginning of the PI
 
-// Issue: Slide 5 dates: same calculation as Welcome Script. D:
+// NOTE: While this script is currently utilized as a library in impactPiWeekPackage, t is developed as a Google Apps Script standalone script. It is designed to operate independently and does not require any external application or service to function. 
+
+// To Use:
+// 1. Make a copy of the Google Apps Script: Open the script editor in your Google Workspace (formerly G Suite) account. Create a new script file and copy-paste the entire script into it.
+
+// 2. Set up calendar and folder IDs: Replace the placeholder values in the global variables section with your specific calendar and folder IDs.Update the 'source_calendar_id' with the ID of your IMPACT PI Calendar. Update the 'placement_folder_id' with the ID of the folder where you want to store the generated presentations and Jamboards.
+
+// 3. Template IDs: If you have your own presentation and Jamboard templates, replace the 'template_id', 'kudos_jamboard_template_id', and 'ssc_jamboard_template_id' with the IDs of your templates. Alternatively, you can modify the provided templates to suit your needs.
+
+// 4. Save the script: Save the script and give it a descriptive name.
+
+// 5. Run the 'createNewPresentation()' function: Click the "Run" button or use the keyboard shortcut "Ctrl + Enter" (Windows) or "Cmd + Enter" (Mac) to execute the script.
+
+// 6. Grant permissions: The script will request permission to access your Google Calendar, Google Drive, and Google Slides. Click "Continue" and grant the necessary permissions.
+
+// 7. Enjoy the automation:The script will automatically create a new "Internal Planning Meeting Agenda" presentation and two Jamboards for the given PI. The presentation will be populated with relevant data and the Jamboards will be hyperlinked in the slides as needed.
+
+// 8. Schedule the script (optional): If you want this process to run automatically, you can set up a time-based trigger to run the 'createNewPresentation()' function at specific intervals (e.g., weekly) to generate new agendas and Jamboards.
+
+// Please note that you need to be familiar with Google Apps Script and have the necessary permissions to access and modify Google Calendar, Google Drive, and Google Slides to use this script effectively.
+// Make sure to review and customize the script to fit your specific use case before running it.
 
 ////////////////////////////////////////////
 
-// Source Calendar ID
-var source_calendar_id = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com';
-// Final Presentation Template ID
-var template_id = '1j5KLp01q8pI89E3PN2QIGlvmA0-rD2O8bONWwG21IMY';
-// Kudos Jamboard template ID
-var kudos_jamboard_template_id = '1fxtfrJKvVMwOHhQkZNXkSc5KMB-gafinTDtefz-htBs';
-// SSC Jamboard template ID
-var ssc_jamboard_template_id = '1rQBgG43-PKWj2OOIl3G_Pocb7hHQRWOH46RVGK-XD-c';
-// Placement Folder ID
-var placement_folder_id = '1V40h1Df4TMuuGzTMiLHxyBRPC-XJhQ10'; //<<-- update to permanent folder prior to deployment
-
+// Global variables
+var source_calendar_id = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com'; // IMPACT PI Calendar
+var template_id = '1j5KLp01q8pI89E3PN2QIGlvmA0-rD2O8bONWwG21IMY'; // Final Presentation Template ID
+var kudos_jamboard_template_id = '1fxtfrJKvVMwOHhQkZNXkSc5KMB-gafinTDtefz-htBs'; // Kudos Jamboard template ID
+var ssc_jamboard_template_id = '1rQBgG43-PKWj2OOIl3G_Pocb7hHQRWOH46RVGK-XD-c'; // SSC Jamboard template ID
+var placement_folder_id = '169W64yI042Q24q4socXa4GhiQ7iY4a1f'; // IMPACT PI Planning Google Drive folder
 
 // Helper function to: Find and return the next "Final Presentation" event.
 function getNextFinalPresentationEvent() {
@@ -179,8 +196,7 @@ function updateSccJamboardHyperlinkInPresentation(presentationId, slideIndex, sh
   }
 }
 
-
-// Main function to: Create a new presentation and Jamboards.
+// Primary function: Create a new presentation and Jamboards.
 function createNewPresentation() {
   // Get the next "Final Presentation" event from the source calendar.
   var managementReviewEvent = getNextFinalPresentationEvent();
