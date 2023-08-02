@@ -1,36 +1,28 @@
-// Purpose: populate relevant Sprint Review and PI Planning files in the description field of their Google calendar event. 
+// Purpose:  To automate and enhance the management of events in a Google Calendar associated with specific projects and sprints, namely Sprint Reviews and PI Planning Week events. It interacts with Google Calendar and Google Drive to find and populate relevant files in the description field of their Google calendar event in the shared IMPACT PI Calendar based on the event titles.
 
-// source file: IMPACT PI calendar id c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com
+// To note: 
+// This script is created to be a stand-alone script within the Google Apps Script environment. A stand-alone script is a script project that exists independently. This script  may be used as a library or included in other projects, however it is a self-contained script with its own set of functions and code logic. Stand-alone scripts can be created to perform specific tasks, automate workflows, manipulate data, or interact with various Google services like Google Sheets, Google Drive, Google Calendar, etc.
 
-// IMPACT Sprint search folder with subfolders: 1UmjkjY5RTRYFOQEt10mwU8trJQ389Jum
-// IMPACT PI Planning search folder with subfolders: 169W64yI042Q24q4socXa4GhiQ7iY4a1f
+// Use instructions: 
+// Open a new or existing Google Sheets file where you want to use the script.
+// Click on "Extensions" in the top menu and select "Apps Script" from the dropdown menu. This will open the Google Apps Script editor in a new tab.
+// Copy and paste the provided script into the Apps Script editor, replacing the existing code (if any).
+// Before running the script, ensure that the script contains the correct Google Calendar ID and folder IDs for the "IMPACT Sprint" and "IMPACT PI Planning" search folders. These IDs are specified in the global constants CALENDAR_ID, SPRINT_SEARCH_FOLDER_ID, and PI_SEARCH_FOLDER_ID.
+// Save the script file in the Apps Script editor by clicking on the floppy disk icon or pressing Ctrl + S (Windows/Linux) or Cmd + S (Mac).
+// To run the script, click on the play button ▶️ or use the keyboard shortcut Ctrl + Enter (Windows/Linux) or Cmd + Enter (Mac) while the cursor is inside the updateCalendarEvents() function.
+// The script will start processing the events in the specified Google Calendar. For "Sprint Review" events, it will extract the Sprint number from the event title and search for relevant files in the designated "IMPACT Sprint" search folder. If it finds relevant files, it will update the event's description with links to those files. Similarly, for "PI Planning" events, it will extract the PI number and identify key phrases from the event title. It will then search for relevant files in the designated "IMPACT PI Planning" search folder based on the extracted information and update the event's description with links to those files.
+// After running the script, you can check the logs in the script editor to view the progress and outcomes of the processing for each event.
+
+// Note:
+// Make sure that the Google Calendar, as well as the folders mentioned in the global constants, have the necessary permissions so that the script can access and modify event descriptions and files within those folders. Also, ensure that the script is using the correct calendar ID and folder IDs for the "IMPACT" project. Modify the script as needed to fit your specific project's requirements
+
+/////////////////////////////
 
 // Global constants
-var CALENDAR_ID = "c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com";
-var SPRINT_SEARCH_FOLDER_ID = "1UmjkjY5RTRYFOQEt10mwU8trJQ389Jum";
+var CALENDAR_ID = "c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com"; // IMPACT PI calendar
+var SPRINT_SEARCH_FOLDER_ID = "1UmjkjY5RTRYFOQEt10mwU8trJQ389Jum"; // IMPACT Sprint search folder with subfolders
 var PI_SEARCH_FOLDER_ID = "169W64yI042Q24q4socXa4GhiQ7iY4a1f";
-var FY_FOLDERS = ['FY23', 'FY24'];
-
-// Primary function to execute search and attach actions for PI and Sprint events
-function updateCalendarEvents() {
-  Logger.log("Starting updateCalendarEvents");
-  // Get Calendar
-  var calendar = CalendarApp.getCalendarById(CALENDAR_ID);
-  
-  // Process Sprint Review Events
-  Logger.log("Getting Sprint Review Events");
-  var sprintEvents = getSprintReviewEvents(calendar);
-  sprintEvents.forEach(function(event) {
-  Logger.log("Processing Sprint Event: " + event.getTitle());
-    processSprintEvent(event, SPRINT_SEARCH_FOLDER_ID);
-  });
-  
-  // Process PI Planning Events
-  var piEvents = getPIPlanningEvents(calendar);
-  piEvents.forEach(function(event) {
-    processPIEvent(event, PI_SEARCH_FOLDER_ID);
-  });
-}
+var FY_FOLDERS = ['FY23', 'FY24']; // IMPACT PI Planning search folder with subfolders
 
 // Helper function to return all sprint review events from the past six months to the next three months
 function getSprintReviewEvents(calendar) {
@@ -157,4 +149,25 @@ function formatFilesForDescription(files) {
   return files.map(function(file) {
     return file.getName() + ": " + file.getUrl();
   }).join("\n");
+}
+
+// Primary function to execute search and attach actions for PI and Sprint events
+function updateCalendarEvents() {
+  Logger.log("Starting updateCalendarEvents");
+  // Get Calendar
+  var calendar = CalendarApp.getCalendarById(CALENDAR_ID);
+  
+  // Process Sprint Review Events
+  Logger.log("Getting Sprint Review Events");
+  var sprintEvents = getSprintReviewEvents(calendar);
+  sprintEvents.forEach(function(event) {
+  Logger.log("Processing Sprint Event: " + event.getTitle());
+    processSprintEvent(event, SPRINT_SEARCH_FOLDER_ID);
+  });
+  
+  // Process PI Planning Events
+  var piEvents = getPIPlanningEvents(calendar);
+  piEvents.forEach(function(event) {
+    processPIEvent(event, PI_SEARCH_FOLDER_ID);
+  });
 }
