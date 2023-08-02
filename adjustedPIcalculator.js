@@ -3,7 +3,7 @@
 // Future Development: none currently identified
 
 // To note: 
-// This script is developed as a Google Apps Script library script: i.e. a script that is not bound to a specific file, such as a Google Sheets, Google Docs, or Google Forms file. This standalone script project contains reusable code and functions and can be shared and included in multiple other scripts, allowing developers to easily reuse code across different projects.
+// This script is developed as a Google Apps Script library script: i.e. a script that is not bound to a specific file, such as a Google Sheets, Google Docs, or Google Forms file. This project contains reusable code and functions and can be shared and included in multiple other scripts, allowing developers to easily reuse code across different projects.
 
 // How to use a library script: 
 // In the script editor, click on "File" > "Project properties."
@@ -14,11 +14,11 @@
 // Choose the version of the library you want to use (usually, you'll want to use the latest version).
 // Set the identifier, which is the name you will use to reference the library functions in your main script project.
 // Click "Save."
-// After adding the library, you can use its functions in your main script project by calling them with the specified identifier. This way, you can take advantage of the shared code and easily maintain and update common functionalities across multiple projects.
+// After adding the library, you can use its functions in your main script project by calling the function replacePlaceholderWithPI. This way, you can take advantage of the shared code and easily maintain and update common functionalities across multiple projects.
 
 // How to use this script: 
 // Ensure placeholder text {{Adjusted PI}} is in the target file (the file you would like the information populated in).
-// Verify that all Adjustment Weeks have been accounted for in Adjustment Weeks section of the library script
+// Verify that all Adjustment Weeks have been accounted for in Adjustment Weeks section of the library script 
 // Results will populate the placeholder text in the target file in FY.Q.S "Week" W format.
 
 ///////////////////////////////////
@@ -119,18 +119,19 @@ function renameNextPiPlanning(pi) {
   return pi.endsWith(".6.2") ? "Next PI Planning" : pi;
 }
 
-// Secondary function to replace placeholder text {{Adjusted PI}} with the calculated Adjusted PI
-function populatePlaceholder() {
-  var date = new Date();
-  var adjustedPI = getCurrentPI(date);
-  var body = DocumentApp.getActiveDocument().getBody();
-  var text = body.editAsText();
-  text.replaceText("{{Adjusted PI}}", adjustedPI);
-}
+// Helper function to calculate the Adjusted PI
+function getPI(inputDate) {
+  if (!(inputDate instanceof Date)) {
+    // Attempt to parse the inputDate as a string and convert it to a Date object
+    inputDate = new Date(inputDate);
 
-// Primary function to calculate the Adjusted PI
-function getCurrentPI(date) {
-  var daysPassed = (toMillis(date) - toMillis(BASE_DATE)) / (24 * 60 * 60 * 1000) - adjustmentWeeks(date) * 7;
+    // Check if the parsed inputDate is valid
+    if (isNaN(inputDate.getTime())) {
+      throw new Error("Invalid date provided to getPI function.");
+    }
+  }
+
+  var daysPassed = (toMillis(inputDate) - toMillis(BASE_DATE)) / (24 * 60 * 60 * 1000) - adjustmentWeeks(inputDate) * 7;
   var weeksPassed = Math.floor(daysPassed / 7);
   
   // calculate the total two week periods passed since the BASE_DATE
@@ -143,14 +144,33 @@ function getCurrentPI(date) {
   var piStr = "FY" + fy + "." + pi + "." + sprint + " Week " + week;  // Format result as FY.Q.S Week W
   piStr = renameInnovation(piStr);
   piStr = renameNextPiPlanning(piStr);
-  
+
   return piStr;
 }
 
+// Primary function to replace placeholder text {{Adjusted PI}} with the calculated Adjusted PI
+function replacePlaceholderWithPI(document, adjustedPI) {
+  var body = document.getBody();
+  var text = body.editAsText();
+  text.replaceText("{{Adjusted PI}}", adjustedPI);
+}
+
+// Test function
+function testGetPI() {
+  var currentDate = new Date(); // Use a valid date object here.
+  try {
+    var currentPI = getPI(currentDate);
+    Logger.log(currentPI);
+  } catch (error) {
+    Logger.log("Error: " + error.message);
+  }
+}
+
 // Call function to test with specific date
-function testGetCurrentPI() {
-  var currentDate = new Date('2023-08-21');
-  var currentPI = getCurrentPI(currentDate);
+function testMakeCurrentPI() {
+  var currentDate = new Date('2023-08-30');
+  var currentPI = getPI(currentDate);
   Logger.log(currentPI);
 }
+
 
