@@ -1,18 +1,27 @@
-// Purpose: create and populate bi-weekly Sprint review slides and Jamboard for IMPACT Sprint reviews. Newly created files are placed in the IMPACT Team Meetings folder
+// Purpose: 
+// To automate the creation of a presentation and Jamboard (a collaborative whiteboard tool) for Sprint Review events in the "IMPACT Project Increment" Google Calendar. The script is triggered one week before each Sprint Review, saving time and ensuring consistency in the document creation process for the IMPACT Project Increment team.
 
-// To use: run function "createNewPresentation". Built-in trigger executes "createNewPresentation" one week before the next Sprint Review 
+// To note: 
+// This script is developed as a Google Apps Script standalone script. It is designed to operate independently and does not require any external application or service to function. It is a self-contained piece of code with a time-based daily trigger.
 
+// To use: 
+// Instructions for Using the "IMPACT Sprint Review Automation" Script
+// Make a Copy of the Script:
+// Open the IMPACT Sprint Review Automation Script. Click "File" > "Make a copy..." and rename it as desired.
+// Configure Global Variables: Replace the source_calendar_id, template_id, jamboard_template_id, and placement_folder_id with your own Google Calendar and Drive IDs.
+// Update Slide numbering to match your template numbering in the primary function createNewPresentation if needed.
+// Save and Run the Script: Click the floppy disk icon (or press Ctrl + S) to save the script. Click the play button (▶) in the toolbar to run the script manually for the first time.
+// Grant Necessary Permissions: If prompted, grant the script the necessary permissions to access your Google Calendar and Drive.
+// Test the Script (Optional): To test the script functionality, manually call the createNewPresentation function by clicking the play button (▶) again.
+// Set Up the Trigger (Optional): The script will automatically create and manage a time-driven trigger to run one week before each upcoming Sprint Review event in your Google Calendar.
 
 ///////////////////////////////////////////////////
 
-// Source Calendar ID
-var source_calendar_id = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com';
-// Sprint Review Template ID
-var template_id = '1UxcyJtzCgDWnJc0Nr3UxtMKESU1cMowblvgq6I_jf0U';
-// Jamboard Template ID
-var jamboard_template_id = '1fxtfrJKvVMwOHhQkZNXkSc5KMB-gafinTDtefz-htBs';
-// Testing Folder ID
-var placement_folder_id = '1UmjkjY5RTRYFOQEt10mwU8trJQ389Jum';
+// Global variables
+var source_calendar_id = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com'; // IMPACT Project Increment Google Calendar
+var template_id = '1UxcyJtzCgDWnJc0Nr3UxtMKESU1cMowblvgq6I_jf0U'; // Sprint Review Template ID
+var jamboard_template_id = '1fxtfrJKvVMwOHhQkZNXkSc5KMB-gafinTDtefz-htBs'; // Jamboard Template ID
+var placement_folder_id = '1UmjkjY5RTRYFOQEt10mwU8trJQ389Jum'; // IMPACT Team Meetings Google Drive folder
 
 // Helper function to: Find and return the Current Sprint event.
 function getCurrentSprintEvent() {
@@ -64,7 +73,7 @@ function updateHyperlinkInPresentation(presentationId, slideIndex, shapeText, ja
   }
 }
 
-// Main function to: Create a new presentation.
+// Primary function to: Create a new presentation.
 function createNewPresentation() {
   var sprintEvent = getCurrentSprintEvent();
   if (sprintEvent) {
@@ -110,7 +119,7 @@ function createNewPresentation() {
 
 // Trigger function to execute one week before the next Sprint Review event on the IMPACT PI Calendar
 function executeOneWeekBeforeSprintReview() {
-  var sourceCalendar = CalendarApp.getCalendarById(sourceCalendarId);
+  var sourceCalendar = CalendarApp.getCalendarById(source_calendar_id);
   var today = new Date();
   var oneWeekFromToday = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
   var events = sourceCalendar.getEvents(today, oneWeekFromToday);
