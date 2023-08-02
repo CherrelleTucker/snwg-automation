@@ -1,15 +1,36 @@
-// Purpose: create and populate new PI Planning Management Review presentation for event attendees to populate
+// Purpose:
+// Automate the creation of a new presentation for an "IMPACT PI Planning Management Review" based on the next scheduled event in the "IMPACT PI Google calendar." It retrieves the relevant data, such as the Program Increment (PI) number and the date of the review event, from the calendar event's title. The script then duplicates a specified template and populates it with the extracted data, including the fiscal year, quarter, and date of the review event. The end result is a new presentation ready for the management review, streamlining the process and ensuring consistency in the generated slides.
 
-// NOTE: This script is currently utilized as a library in impactPiWeekPackage
+// TO NOTE:  
+// Although this script is developed as a Google Apps Script standalone script. it is currently utilized as a library in impactPiWeekPackage. It is designed to operate independently and does not require any external application or service to function. 
+ 
+// To Use:
+// 1. Make a copy of the Google Apps Script: Open the script editor in your Google Workspace (formerly G Suite) account. Create a new script file and copy-paste the entire script into it.
+
+// 2. Set up calendar and folder IDs: Replace the placeholder values in the global variables section with your specific calendar and folder IDs.Update the 'source_calendar_id' with the ID of your IMPACT PI Calendar. Update the 'placement_folder_id' with the ID of the folder where you want to store the generated presentations and Jamboards.
+
+// 3. Template IDs: If you have your own presentation templates, replace the 'template_id with the IDs of your templates.
+
+// 4. Save the script: Save the script and give it a descriptive name.
+
+// 5. Run the 'createNewPresentation()' function: Click the "Run" button or use the keyboard shortcut "Ctrl + Enter" (Windows) or "Cmd + Enter" (Mac) to execute the script.
+
+// 6. Grant permissions: The script will request permission to access your Google Calendar, Google Drive, and Google Slides. Click "Continue" and grant the necessary permissions.
+
+// 7. Enjoy the automation:The script will automatically create a new "Management Review" presentation for the given PI. The presentation will be populated with relevant data.
+
+// 8. Schedule the script (optional): If you want this process to run automatically, you can set up a time-based trigger to run the 'createNewPresentation()' function at specific intervals (e.g., weekly) to generate presentations.
+
+// Please note that you need to be familiar with Google Apps Script and have the necessary permissions to access and modify Google Calendar, Google Drive, and Google Slides to use this script effectively.
+// Make sure to review and customize the script to fit your specific use case before running it.
+
 
 //////////////////////////////////////////
 
-// Source Calendar ID
-var source_calendar_id = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com';
-// Management Review Template ID
-var template_id = '1M9R_Yds6OO6TAmEtmsXrtOSmeaCyDh7NBIYswRmIhwI';
-// Placement Folder ID
-var placement_folder_id = '169W64yI042Q24q4socXa4GhiQ7iY4a1f';
+// Global variables
+var source_calendar_id = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com'; // IMPACT PI Google calendar
+var template_id = '1M9R_Yds6OO6TAmEtmsXrtOSmeaCyDh7NBIYswRmIhwI'; // Management Review Template ID
+var placement_folder_id = '169W64yI042Q24q4socXa4GhiQ7iY4a1f'; // IMPACT PI Planning Google Drive folder
 
 // Helper function to: Find and return the next "Management Review" event.
 function getNextManagementReviewEvent() {
