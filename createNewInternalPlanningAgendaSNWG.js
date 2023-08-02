@@ -1,47 +1,20 @@
-// Purpose: create a new SNWG Internal Weekly Planning Meeting agenda based on the template, replacing placeholders with appropriate data.
+// Purpose: 
+// create and populate a new Internal Planning meeting agenda based on a template document. It accomplishes this by creating a copy of the template, fetching links to relevant files (past and future) from specific folders, calculating the current Program Increment (PI), and replacing placeholders in the document with the obtained data. It has an external trigger to execute each Sunday
+
+// To Note: 
+// This script is developed as a Google Apps Script standalone script. It is designed to operate independently and does not require any external application or service to function. It is a self-contained piece of code with a time-based weekly trigger.
+
+// To Use: 
+// Copy the Script: Open the Google Apps Script editor by clicking on "Extensions" in the Google Docs/Sheets/Slides menu, then selecting "Apps Script." Delete any existing code in the editor and paste the entire script provided into the editor.
+// Set Up Template: Replace the value of the `templateId` variable with the ID of your own Google Docs template for the Internal Planning Meeting agenda. To get the template ID, open your template, copy the document's URL, and extract the unique document ID from the URL.
+// Configure Folder IDs: Replace the folder IDs (`previousAgendaFolderId`, `operaTagUpFolderId`, `snwgMonthlyFolderId`, and `dmprFolderId`) with the IDs of the respective folders where your past agendas, OPERA tag-up files, SNWG/NASA monthly reports, and DMPR files are stored. You can find the folder ID in the URL when you open the folder in Google Drive.
+// Save and Deploy: Save the script and click on the "Deploy" button. Choose "New deployment" and configure the settings as per your requirement. For simplicity, choose "Web app" and set access to "Anyone, even anonymous." Click "Deploy" and grant the necessary permissions.
+// Run the Script: After deploying, a URL will be generated for the script's web app. Open that URL in a browser, and it will run the script to create a new Internal Planning Meeting agenda based on the template. The agenda will include links to the most recent past and closest future files from the specified folders, along with the current Program Increment (PI) information.
+// Automate Regularly: For convenience, you can set up a trigger to run the script automatically at a specific time or interval. In the script editor, click on the "Triggers" icon (the clock), and set up a new trigger to run the `createNewInternalAgenda` function at your desired frequency (e.g., weekly on Mondays).
+// Customize Further (Optional): If you want to modify the appearance or content of the generated agenda, you can customize the template document to suit your needs. Just ensure that the placeholders (`{{...}}`) in the template match the names used in the script.
+// Remember to keep your template document up to date and ensure that the relevant files are present in the specified folders to get accurate information in the generated agenda. Happy planning!
 
 ////////////////////////////////////////////////
-
-// Primary function to create and populate a new Internal Planning meeting agenda
-function createNewInternalAgenda() {
-  var templateId = "1tE6xNFeMLVpcGwWMB9GuYpGom5F4Bi_81dUsp_W3jDQ";
-  var newDocument = createCopyOfTemplate(templateId);
-  var newDocumentId = newDocument.getId();
-  var document = DocumentApp.openById(newDocumentId);
-
-  // Get the date for the next Monday following the current date
-  var currentDate = getMondayFollowingDate(new Date());
-  var newDocumentName = currentDate + " SNWG MO Internal Planning Meeting";
-  document.setName(newDocumentName);
-
-  // IDs of folders where specific files are stored
-  var previousAgendaFolderId = "1WKYw4jnP6ejRkOLAIPoPvbEYClaLE4eR";
-  var operaTagUpFolderId = "1M3EMWLCxhkqcPKLmH7grDu2zhSEuOvmc";
-  var snwgMonthlyFolderId = "1HPjhc2LADvS9j3W_K3riq4RQPBngfqGY";
-  var dmprFolderId = "1y2vjwf52HBJpTeSIg7sYPaLSSzGAnWZU";
-
-  // Get links to specific files from their respective folders
-  var nextOperaTagUpLink = getMostRecentFileLink(operaTagUpFolderId, newDocumentId, true);
-  var previousAgendaLink = getMostRecentFileLink(previousAgendaFolderId, newDocumentId, false);
-  var previousOperaTagUpLink = getMostRecentFileLink(operaTagUpFolderId, newDocumentId, false);
-  var snwgMonthlyLink = getMostRecentFileLink(snwgMonthlyFolderId, newDocumentId, false);
-  var dmprLink = getDMPRLink(dmprFolderId, currentDate);
-
-  // Get the current PI (Program Increment) for the document using the PI calculator library script
-  var currentPI = currentPIcalculator.getCurrentPI();
-  var documentBody = document.getBody();
-
-  // Replace placeholders in the document body with the obtained links and PI information
-  replaceWithHyperlink(documentBody, "{{Link to Previous Agenda}}", previousAgendaLink);
-  replaceWithHyperlink(documentBody, "{{link to last OPERA tag up}}", previousOperaTagUpLink);
-  replaceWithHyperlink(documentBody, "{{link to next OPERA tag up}}", nextOperaTagUpLink);
-  replaceWithHyperlink(documentBody, "{{link to last SNWG/NASA monthly}}", snwgMonthlyLink);
-  replaceWithHyperlink(documentBody, "{{link to current DMPR}}", dmprLink);
-
-  documentBody.replaceText("{{Current PI}}", currentPI); 
-
-  replaceWithFormattedDate(documentBody, "{{Internal Date}}", currentDate);
-}
 
 // Helper Function: Create a copy of a template document
 function createCopyOfTemplate(templateId) {
@@ -61,19 +34,62 @@ function getMondayFollowingDate(date) {
 function getMostRecentFileLink(folderId, excludeId, isFuture) {
   var folder = DriveApp.getFolderById(folderId);
   var files = folder.getFiles();
-  var relevantFile = null;
-  var relevantFileName = '';
+  var relevantPastFile = null;
+  var relevantFutureFile = null;
   var todayStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
 
   while (files.hasNext()) {
     var file = files.next();
     var fileName = file.getName();
     var fileId = file.getId();
-    relevantFile = getRelevantFile(isFuture, todayStr, fileName, fileId, excludeId, relevantFile, relevantFileName);
-    if (relevantFile) relevantFileName = fileName;
+    
+    if (!fileName.includes("Template")) { // Exclude files with "Template" in their name
+      
+      var fileDate = parseDateFromFileName(fileName); // Implement this function to parse the date from the filename
+      
+      if (fileDate instanceof Date) {
+        var fileStr = Utilities.formatDate(fileDate, Session.getScriptTimeZone(), "yyyy-MM-dd");
+        
+        if (fileStr < todayStr) {
+          // Check if the file is in the past and more recent than the current most recent past file
+          if (!relevantPastFile || fileDate > parseDateFromFileName(relevantPastFile.getName())) {
+            relevantPastFile = file;
+          }
+        } else if (fileStr > todayStr) {
+          // Check if the file is in the future and closer to today than the current closest future file
+          if (!relevantFutureFile || fileDate < parseDateFromFileName(relevantFutureFile.getName())) {
+            relevantFutureFile = file;
+          }
+        }
+      }
+      
+    }
+  }
+  
+  return isFuture ? (relevantFutureFile ? relevantFutureFile.getUrl() : '') : (relevantPastFile ? relevantPastFile.getUrl() : '');
+}
+
+// Helper function to parse the date from the filename
+function parseDateFromFileName(fileName) {
+  // Regular expression to match the date format "YYYY-MM-DD" at the beginning of the filename
+  var dateRegex = /^(\d{4}-\d{2}-\d{2})/;
+  
+  var match = fileName.match(dateRegex);
+  if (match && match.length > 1) {
+    var dateString = match[1];
+    var dateComponents = dateString.split("-");
+    var year = parseInt(dateComponents[0]);
+    var month = parseInt(dateComponents[1]) - 1; // Months in JavaScript are 0-indexed (0 = January, 11 = December)
+    var day = parseInt(dateComponents[2]);
+
+    // Check if the parsed date components are valid
+    if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+      return new Date(year, month, day);
+    }
   }
 
-  return relevantFile ? relevantFile.getUrl() : '';
+  // Return null if the date cannot be parsed from the filename
+  return null;
 }
 
 // Helper Function: Get the relevant file based on the specified conditions
@@ -85,7 +101,6 @@ function getRelevantFile(isFuture, todayStr, fileName, fileId, excludeId, curren
   }
   return currentRelevantFile;
 }
-
 
 // Helper Function: Get the link of the DMPR file corresponding to a given month
 function getDMPRLink(folderId, currentDate) {
@@ -102,7 +117,6 @@ function getDMPRLink(folderId, currentDate) {
       break;
     }
   }
-
   return dmprFile ? dmprFile.getUrl() : '';
 }
 
@@ -131,4 +145,49 @@ function replaceWithFormattedDate(documentBody, placeholderText, currentDate) {
   dateForInternal.setDate(dateForInternal.getDate() + 1);
   var formattedDate = Utilities.formatDate(dateForInternal, Session.getScriptTimeZone(), "EEEE, MMMM dd, yyyy");
   documentBody.replaceText(placeholderText, formattedDate);
+}
+
+// Primary function to create and populate a new Internal Planning meeting agenda
+function createNewInternalAgenda() {
+  var templateId = "1tE6xNFeMLVpcGwWMB9GuYpGom5F4Bi_81dUsp_W3jDQ"; // Template: YYYY-MM-DD Internal SNWG Meeting Agenda
+  var newDocument = createCopyOfTemplate(templateId);
+  var newDocumentId = newDocument.getId();
+  var document = DocumentApp.openById(newDocumentId);
+  var documentBody = document.getBody();
+
+  // Get the date for the next Monday following the current date
+  var currentDate = getMondayFollowingDate(new Date());
+  var newDocumentName = currentDate + " SNWG MO Internal Planning Meeting"; 
+  document.setName(newDocumentName);
+
+  // IDs of folders where specific files are stored
+  var previousAgendaFolderId = "1WKYw4jnP6ejRkOLAIPoPvbEYClaLE4eR"; // Weekly Internal Planning>FY23 SNWG MO Google Drive Folder
+  var operaTagUpFolderId = "1M3EMWLCxhkqcPKLmH7grDu2zhSEuOvmc"; // OPERA> FY23 SNWG MO Google Drive Folder 
+  var snwgMonthlyFolderId = "1HPjhc2LADvS9j3W_K3riq4RQPBngfqGY"; // Monthly Project Status Update> FY23 SNWG MO Google Drive Folder
+  var dmprFolderId = "1y2vjwf52HBJpTeSIg7sYPaLSSzGAnWZU"; // ST10 DMPR> FY23 IMPACT Google Drive Folder
+
+  // Get links to specific files from their respective folders
+  var nextOperaTagUpLink = getMostRecentFileLink(operaTagUpFolderId, newDocumentId, true);
+  var previousAgendaLink = getMostRecentFileLink(previousAgendaFolderId, newDocumentId, false);
+  var previousOperaTagUpLink = getMostRecentFileLink(operaTagUpFolderId, newDocumentId, false);
+  var snwgMonthlyLink = getMostRecentFileLink(snwgMonthlyFolderId, newDocumentId, false);
+  var dmprLink = getDMPRLink(dmprFolderId, currentDate);
+
+  // Get the current PI (Program Increment) for the document using the PI calculator library script
+  var adjustedDate = new Date(); // Use a valid date object here or pass the required date
+  var adjustedPI = adjustedPIcalculator.getPI(adjustedDate);
+
+  // Call the function to replace the placeholder text in the document
+  adjustedPIcalculator.replacePlaceholderWithPI(document, adjustedPI); // <-- Use the 'document' object here, not 'targetDocument'
+
+  // Replace placeholders in the document body with the obtained links and PI information
+  replaceWithHyperlink(documentBody, "{{Link to Previous Agenda}}", previousAgendaLink);
+  replaceWithHyperlink(documentBody, "{{link to last OPERA tag up}}", previousOperaTagUpLink);
+  replaceWithHyperlink(documentBody, "{{link to next OPERA tag up}}", nextOperaTagUpLink);
+  replaceWithHyperlink(documentBody, "{{link to last SNWG/NASA monthly}}", snwgMonthlyLink);
+  replaceWithHyperlink(documentBody, "{{link to current DMPR}}", dmprLink);
+
+  //documentBody.replaceText("{{Adjusted PI}}", adjustedPI); 
+
+  replaceWithFormattedDate(documentBody, "{{Internal Date}}", currentDate);
 }
