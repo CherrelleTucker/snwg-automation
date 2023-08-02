@@ -1,4 +1,33 @@
-// Purpose: to process a list of attendees copied from an email's required: and optional: list, replace specific email addresses with associated names, remove additional email addresses, unneccessary text & duplicates, then alphabetize by first name 
+// Purpose: 
+// Clean and organize the attendees' section in a Google Document. It restructures names from "Last Name, First Name Middle Initial" to "First Name Last Name" format, removes duplicate entries, and eliminates any email addresses from the list. Additionally, it maps specific email addresses to their corresponding names based on a provided mapping and sorts the names alphabetically. The script aims to enhance the presentation and readability of the attendees' section by ensuring it contains unique and properly formatted names.
+
+// To Note:
+// This script is developed for use as either as a Google Apps Script container script or as a Google Apps Script library script. 
+// Google Apps Script container script: a script that is bound to a specific file, such as a Google Sheets, Google Docs, or Google Forms file. This container script acts as the file's custom script, allowing users to extend the functionality of the file by adding custom functions, triggers, and menu items to enhance its behavior and automation.
+
+// Google Apps Script library script: a self-contained script that contains reusable functions and can be attached to multiple projects or files. By attaching the library script to different projects, developers can access and use its functions across various files, enabling code sharing and improving code maintenance and version control.
+
+// To Use As container script:
+// Open your Google Document: Open the Google Document where you want to extract action items and populate them in an action tracking table.
+// Open the Script Editor: Click on "Extensions" in the top menu and then select "Apps Script." This will open the Google Apps Script editor in a new tab.
+// Copy the Script: Copy the entire script provided above and paste it into the Google Apps Script editor.
+// Save the Script: Click on the floppy disk icon or press "Ctrl + S" (Windows) or "Cmd + S" (Mac) to save the script.
+// Execute the function organizeAttendees
+// Enable Permissions:The script will request permission to access your Google Document. Click "Continue" and grant the necessary permissions.
+
+// Please ensure that you are familiar with the Google Apps Script environment and have appropriate access to edit the Google Document before running the script. Also, review and customize the script as per your specific requirements before using it.
+
+//////////////////////////////////////////////////
+
+// To use this script as a library script:
+// 1. Obtain the script ID of the inDocActionItems library script.
+//  script ID: 1kBbrOJCXewvSixfq1yR8d-lEtgDG5yzD9-pqPeuC9ugLka7gQULwkBH_ <-- verify current library script id by checking in Project settings (gear icon).
+// 2. Open the container document where you want to use this script.
+// 3. Click on the "Project settings" gear icon in the script editor.
+// 4. In the "Script ID" field, replace the existing script ID with the script ID of the inDocActionItems library script.
+// 5. Click "Save" to update the script ID.
+
+//////////////////////////////////
 
 // Helper function to reorganize names from "Last Name, First Name Middle Initial" to "First Name Last Name"
 function reorganizeNames(names) {
@@ -93,6 +122,7 @@ function removeDuplicates(arr) {
   return resultArr;
 }
 
+// Primary function to create a cleaned attendees list
 function organizeAttendees() {
   // Step 1: Get the active Google Document and its body
   var document = DocumentApp.getActiveDocument();
