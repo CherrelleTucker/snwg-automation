@@ -1,16 +1,28 @@
-// Purpose: create and populate new PI Planning Welcome presentation from template. 
-// Current issue: dates on slide 12 will not progress to 2024
+// Purpose:
+// This script automates the creation of an "Internal Planning Meeting Agenda" presentation for a specific Program Increment (PI) within the IMPACT project. It utilizes the IMPACT PI Calendar to extract the current PI number from the next "Final Presentation" event and then duplicates a presentation template. The script populates the new presentation with relevant data, including the PI number, key dates, Kudos Jamboard hyperlink, and Start/Stop/Continue (SSC) Jamboard hyperlink for retrospective purposes. Additionally, the script calculates and displays the dates for five two-week sprints followed by two one-week periods in Slide 5 of the presentation. Moreover, it creates two Jamboards for the PI Planning Retro, one for Kudos and one for SSC. The script duplicates the respective Jamboard templates, updates their titles with the current PI number, and provides hyperlinks to these Jamboards in the presentation.
 
-// NOTE: This script is currently utilized as a library in impactPiWeekPackage
+// Future development:
+// The script will need enhancement to ensure the dates on Slide 5 continue progressing beyond the end of 2023, without looping back to the beginning of the PI.
+
+// To Note: While this script is currently utilized as a library in "impactPiWeekPackage," it is developed as a Google Apps Script standalone script. It is designed to operate independently and does not require any external application or service to function.
+
+// To Use:
+// 1. Make a copy of the Google Apps Script: Open the script editor in your Google Workspace (formerly G Suite) account. Create a new script file and copy-paste the entire script into it.
+// 2. Set up calendar and folder IDs: Replace the placeholder values in the global variables section with your specific calendar and folder IDs. Update the 'source_calendar_id' with the ID of your IMPACT PI Calendar. Update the 'placement_folder_id' with the ID of the folder where you want to store the generated presentations and Jamboards.
+// 3. Template IDs: If you have your own presentation and Jamboard templates, replace the 'template_id' and 'kudos_jamboard_template_id', with the IDs of your templates.
+// 4. Save the script: Save the script and give it a descriptive name.
+// 5. Run the 'createNewPresentation()' function: Click the "Run" button or use the keyboard shortcut "Ctrl + Enter" (Windows) or "Cmd + Enter" (Mac) to execute the script.
+// 6. Grant permissions: The script will request permission to access your Google Calendar, Google Drive, and Google Slides. Click "Continue" and grant the necessary permissions.
+// 7. Enjoy the automation: The script will automatically create a new "Internal Planning Meeting Agenda" presentation and two Jamboards for the given PI. The presentation will be populated with relevant data, and the Jamboards will be hyperlinked in the slides as needed.
+// 8. Schedule the script (optional): If you want this process to run automatically, you can set up a time-based trigger to run the 'createNewPresentation()' function at specific intervals (e.g., weekly) to generate new agendas and Jamboards.
+// Please note that you need to be familiar with Google Apps Script and have the necessary permissions to access and modify Google Calendar, Google Drive, and Google Slides to use this script effectively. Make sure to review and customize the script to fit your specific use case before running it.
 
 ////////////////////////////////////////
 
-// Source Calendar ID
-var source_calendar_id = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com';
-// Welcome Template ID
-var template_id = '1JtnXgRM85G7fBJ0nbM4VlNQjCxvPmh8-6jH_e7JXPiM';
-// Placement Folder ID
-var placement_folder_id = '169W64yI042Q24q4socXa4GhiQ7iY4a1f'; //Placed in IMPACT Presentations>PI Planning for easy identification and error checking prior to being placed in appropriate FY folder.
+// Global variables
+var source_calendar_id = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com'; // IMPACT PI calendar
+var template_id = '1JtnXgRM85G7fBJ0nbM4VlNQjCxvPmh8-6jH_e7JXPiM'; // Welcome Template ID
+var placement_folder_id = '169W64yI042Q24q4socXa4GhiQ7iY4a1f'; // IMPACT Presentations>PI Planning for easy identification and error checking prior to being placed in appropriate FY folder.
 
 // Helper function to find and return the next "Welcome" event.
 function getNextWelcomeEvent() {
@@ -54,7 +66,6 @@ function formatDate(date) {
 
   return mm + '/' + dd + '/' + yy;
 }
-
 
 // Helper function to get the date of the next Monday after a given date for Slide 11
 function getNextMonday(date) {
