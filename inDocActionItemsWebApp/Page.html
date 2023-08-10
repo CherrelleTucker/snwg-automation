@@ -1,0 +1,78 @@
+/* Purpose: */
+/* 
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- Set base target for all relative URLs within the page to open in the same tab/window -->
+    <base target="_top">
+
+    <!-- Inline CSS styles for the page -->
+    <style>
+      h1, .center-content {
+        /* Center-align text for h1 and any element with the class "center-content" */
+        text-align: center;
+      }
+      /* Style the image: centered, with a fixed width */ 
+      img {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 500px; /* adjust the width as needed */
+      }
+      /* Ensure div elements inside center-content class display in a line, one after the other */
+      .center-content div {
+        display: inline-block;
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- Main title of the page -->
+    <h1>In-doc action item collection tool</h1>
+
+    <!-- Input field for Google Doc URL, a submit button, and a placeholder for messages -->
+    <div class="center-content">
+      <div>
+        Google Document URL: <input type="text" id="documentId">
+      </div>
+      <div>
+        <button onclick="submitId()">Collect Actions</button>
+      </div>
+      <div id="message"></div>
+    </div>
+
+    <!-- JavaScript function to handle the form submission -->
+    <script>
+      function submitId() {
+        // Get the value from the input field
+        var documentId = document.getElementById('documentId').value;
+
+        // Call the server-side function 'processDocumentId' and handle its success response
+        google.script.run.withSuccessHandler(function(response) {
+          document.getElementById('message').innerText = response;
+        }).processDocumentId(documentId);
+      }
+    </script>
+
+    <!-- Instructions for the user on how to use the tool -->
+    <p>Enter the the Document ID or URL of a Google Document that you would like to process.
+      Ensure that the document meets the following requirements:
+      <ul>
+        <li>The document should have a section for Attendees at the top, in the format "Attendees:" followed by names separated by a comma. This list is where the program collects the names associated with each action item. 
+        <li>The document must contain action items in the format "Action:" followed by the name of the person assigned, then the action. Ex: "Action: Amy email purchasing about req 385."" </li>
+        <li> Note: hyperlinked text with will be transferred to the table without the hyperlink. 
+      </ul>
+      Once the document is processed, the action items will be populated in a 3 column table at the end of the document with the column headers "Status" "Owner""Action". If such a table does not already exist, one will be generated and you may then apply your desired formatting. 
+    </p>
+    <p>Example of an acceptable document with collected action items populated in a table:</p>
+
+    <!-- Example image with a fallback link to a Google Document if the image doesn't load -->
+    <img src="https://drive.google.com/uc?id=1nn1Hxk3kHBpNUsEeSUBOnK7dTAAb4V76" 
+         alt="Example Document" 
+         onerror="window.location.href='https://docs.google.com/document/d/14-QREzyl-8I3EuVqW_L_-c1H5BQTQ7fHkA6xBlpXBfE/edit?usp=sharing';"  
+         width="500" />
+
+
+  </body>
+</html>
