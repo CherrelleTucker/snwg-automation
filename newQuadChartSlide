@@ -1,10 +1,19 @@
-// Purpose: The script automates the creation and updating of a presentation slide for business purposes. It computes various date-related values, including fiscal year, quarter, and sprint, considering any adjustment weeks. The script handles specific elements on the slide, such as populating a table with open action items from a Google Sheet, listing agenda files for the current and last weeks, and updating text placeholders for date ranges and other fiscal details. Additionally, it finds a specific DMPR file based on the current month and year and updates a shape's text and hyperlink within the slide. The generated slide is then inserted into the target presentation, providing an efficient way to manage regular updates.
+// Purpose: To automate the creation of slides for weekly project updates using a predefined template. This script calculates the current project iteration, adjusting for events like holidays, and populates the slide with data from Google Drive, including agendas from the current and previous weeks. Users can manually initiate slide creation via a custom Google Slides menu, and the script also interfaces with Google Sheets to manage open action items, streamlining the entire update process.
 
 // Future development: use file name instead of hyperlink text
 //  Consideration: limitations of Google Slides Object handling does not promote the hyperlinking of individual text strings within objects. 
 
-// To note: 
-// This script is developed as a Google Apps Script container script: i.e. a script that is bound to a specific file, such as a Google Sheets, Google Docs, or Google Forms file. This container script acts as the file's custom script, allowing users to extend the functionality of the file by adding custom functions, triggers, and menu items to enhance its behavior and automation.
+// To use:
+// 1. **Setting Up Google Drive Folders**: Before using the script, ensure you have folders set up in Google Drive to store the agendas and other related files. Note down the Folder IDs of these folders. You can find the Folder ID in the URL of the Google Drive folder.
+// 2. **Accessing Google Apps Script**: Open your Google Drive. Click on "New" > "More" > "Google Apps Script" to access the Google Apps Script editor.
+// 3. **Copying and Pasting Script**: In the script editor, erase any existing code and paste the provided script.
+// 4. **Configuring Folder IDs**: Locate the lines with folder ID assignments, such as `var DMPRfolderID = '...';` and `var agendasFolderID = '...';`. Replace the predefined Folder IDs with those from your Google Drive folders, as noted in Step 1.
+// 5. **Running the Script**: After saving your changes (using the floppy disk icon or pressing Ctrl + S/Cmd + S), close the script editor.
+// 6. **Setting up a Custom Menu Trigger**: The script provides a custom menu in Google Slides to manually create a new slide. To use this, open your target Google Slides presentation and look for the "Update Slides" menu. Clicking on it will give an option to "Create a New Slide".
+// 7. **Authorization and Permissions**: On the first run, you will be prompted for authorization. Navigate through the authorization process to grant the script the necessary permissions.
+// 8. **Viewing Logs**: To monitor the script's progress or diagnose any issues, access the logs in the script editor by clicking on the bug icon in the toolbar.
+// 9. **Review the Output**: The script will automatically create a new slide in the target presentation, fetching and populating relevant data. Ensure to inspect the generated slides to verify the accuracy of the data.
+// The script is now set up to facilitate the streamlined creation of project update slides. Remember to use the custom menu in Google Slides whenever you need to generate a new update.
 
 /////////////////////////////////
 
@@ -170,6 +179,7 @@ function duplicateTemplateSlide(quadTemplateId) {
     var quadTemplateFile = DriveApp.getFileById(quadTemplateId);
     var newSlideFile = quadTemplateFile.makeCopy();
     var newSlide = SlidesApp.openById(newSlideFile.getId()).getSlides()[0];
+    DriveApp.getFileById(newSlideFile.getId()).setTrashed(true);
     return newSlide;
   } catch (error) {
     Logger.log("Error duplicating template slide: " + error);
