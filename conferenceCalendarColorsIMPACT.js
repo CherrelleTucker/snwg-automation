@@ -1,9 +1,6 @@
 // Purpose: 
 // This script is a Google Apps Script designed to work with the IMPACT conference room Google Calendar. Its purpose is to recolor events on a specific calendar based on their locations. It does so by assigning different colors to events associated with specific room identifiers (such as 'mccarthy', '1063', 'teams', etc.) specified in the colorMap object. Meeting rooms that are double booked are flagged with the color Graphite.
 
-// Future development: 
-// none currently identified
-
 // To note:
 // This script is developed as a Google Apps Script standalone script. It is developed to operate independently and does not require any external application or service to function. It is a self-contained piece of code with a time-based daily trigger.
 
