@@ -1,9 +1,6 @@
 // Purpose: 
 // This script is a Google Apps Script designed to work with the IMPACT conference room Google Calendar. Its purpose is to recolor events on a specific calendar based on their locations. It does so by assigning different colors to events associated with specific room identifiers (such as 'mccarthy', '1063', 'teams', etc.) specified in the colorMap object. Meeting rooms that are double booked are flagged with the color Graphite.
 
-// Future development: 
-// none currently identified
-
 // To note:
 // This script is developed as a Google Apps Script standalone script. It is developed to operate independently and does not require any external application or service to function. It is a self-contained piece of code with a time-based daily trigger.
 
@@ -29,6 +26,8 @@
  
 ///////////////////////////////////////////////////////////////////////
 
+// Test calendar ID: c_8798ebb71e4f29ffc300845dabe847152b8c92e2afd062e0e31242d7fce780cd@group.calendar.google.com 
+// IMPACT Conference room calendar ID: mn9msmqj2nqobs0md4gmgfnabk@group.calendar.google.com
 // Global constant for Calendar ID
 var CALENDAR_ID = 'mn9msmqj2nqobs0md4gmgfnabk@group.calendar.google.com'; //<---replace with desired calendar id
 
@@ -86,6 +85,10 @@ function checkOverlapsForSameColorEvents(sameColorEvents, colorMap) {
     if (!isVirtualEvent(currentEvent, colorMap) && !isVirtualEvent(nextEvent, colorMap) && currentEvent.getEndTime() > nextEvent.getStartTime()) {
       currentEvent.setColor('8');
       nextEvent.setColor('8');
+
+    // Log the overlapping events
+    Logger.log("Overlap detected between the events: '" + currentEvent.getTitle() + "' and '" + nextEvent.getTitle() + "'. Both set to color '8'");
+
     }
   }
 }
@@ -105,7 +108,7 @@ function ColorEvents() {
     '4': ["teams"], // Flamingo
     '5': ["1062", "lovelace"], // Banana
     '6': ["hamilton", "1063a"], // Tangerine
-    '7': ["3098", "3rd", "CR3098", "CR3098:", "#3098"], // Peacock
+    '7': ["3098", "3rd", "CR3098", "CR3098:"], // Peacock
     '9': ["3084", "CR3084"], // Blueberry
     '10': ["1030", "turing"], // Basil
     '11': ["1034"], // Tomato
@@ -114,13 +117,17 @@ function ColorEvents() {
   var locationEventsMap = {};
   var eventsWithoutLocation = [];
 
-  for (var j = 0; j < events.length; j++) {
+for (var j = 0; j < events.length; j++) {
     var event = events[j];
-    var locationWords = event.getLocation().toLowerCase().trim().split(/\s+/);
+    var location = event.getLocation().toLowerCase().replace('#', ''); // Remove the '#' character
+    var locationWords = location.trim().split(/\s+/);
     var color = assignColorToLocation(locationWords);
 
     if (color !== '') {
       event.setColor(color);
+
+      // Log the color assignment
+      Logger.log("Event: '" + event.getTitle() + "' set to color '" + color + "'");
 
       if (!locationEventsMap[color]) {
         locationEventsMap[color] = [];
@@ -135,6 +142,9 @@ function ColorEvents() {
   for (var j = 0; j < eventsWithoutLocation.length; j++) {
     var event = eventsWithoutLocation[j];
     event.setColor('4');
+    
+    // Log the color assignment for events without location
+    Logger.log("Event without location: '" + event.getTitle() + "' set to color '4' (Flamingo)");
   }
   
   // Check overlaps within the same colored events
