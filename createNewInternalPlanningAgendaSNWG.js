@@ -1,5 +1,5 @@
 // Purpose: 
-// create and populate a new Internal Planning meeting agenda based on a template document. It accomplishes this by creating a copy of the template, fetching links to relevant files (past and future) from specific folders, calculating the current Program Increment (PI), and replacing placeholders in the document with the obtained data. It has an external trigger to execute each Sunday
+// create and populate a new Internal Planning meeting agenda based on a template document. It accomplishes this by creating a copy of the template, fetching links to relevant files (past and future) from specific folders, calculating the current Program Increment (PI), and replacing placeholders in the document with the obtained data, including Team Schedules. It has an external trigger to execute each Sunday
 
 // To Note: 
 // This script is developed as a Google Apps Script standalone script. It is designed to operate independently and does not require any external application or service to function. It is a self-contained piece of code with a time-based weekly trigger.
@@ -28,6 +28,14 @@ function getMondayFollowingDate(date) {
   var nextMonday = new Date(date.getTime() + diff * 24 * 60 * 60 * 1000);
   var formattedDate = Utilities.formatDate(nextMonday, Session.getScriptTimeZone(), "yyyy-MM-dd");
   return formattedDate;
+}
+
+// Helper Function: Replace a placeholder with a formatted date
+function replaceWithFormattedDate(documentBody, placeholderText, currentDate) {
+  var dateForInternal = new Date(currentDate);
+  dateForInternal.setDate(dateForInternal.getDate() + 1);
+  var formattedDate = Utilities.formatDate(dateForInternal, Session.getScriptTimeZone(), "EEEE, MMMM dd, yyyy");
+  documentBody.replaceText(placeholderText, formattedDate);
 }
 
 // Helper Function: Get the link of the most recent or next file from a folder
@@ -69,7 +77,7 @@ function getMostRecentFileLink(folderId, excludeId, isFuture) {
   return isFuture ? (relevantFutureFile ? relevantFutureFile.getUrl() : '') : (relevantPastFile ? relevantPastFile.getUrl() : '');
 }
 
-// Helper function to parse the date from the filename
+// Helper function: parse the date from the filename
 function parseDateFromFileName(fileName) {
   // Regular expression to match the date format "YYYY-MM-DD" at the beginning of the filename
   var dateRegex = /^(\d{4}-\d{2}-\d{2})/;
@@ -102,22 +110,43 @@ function getRelevantFile(isFuture, todayStr, fileName, fileId, excludeId, curren
   return currentRelevantFile;
 }
 
-// Helper Function: Get the link of the DMPR file corresponding to a given month
-function getDMPRLink(folderId, currentDate) {
-  var folder = DriveApp.getFolderById(folderId);
-  var files = folder.getFiles();
-  var dmprFile = null;
-  var dmprFileMonth = currentDate.substring(0, 7);
+// Helper function: Get Teeam Schedule events from the designated calendar
+function getCalendarEvents() {
+  var now = new Date();
+  var sixWeeksLater = new Date(now.getTime() + 42 * 24 * 60 * 60 * 1000); // Add 42 days to the current date
+  
+  var calendarId = 'c_365230bc41700e58e23f74b286db1773d395e4bc6807c81a4c78658df5db423e@group.calendar.google.com'; // SNWG Team Schedules Google Calendar
+  var calendar = CalendarApp.getCalendarById(calendarId);
+  var events = calendar.getEvents(now, sixWeeksLater);
+  
+  var eventDetails = [];
+  for (var i = 0; i < events.length; i++) {
+    var event = events[i];
+    
+    var startDate = event.getStartTime();
+    var endDate = event.getEndTime();
 
-  while (files.hasNext()) {
-    var file = files.next();
-    var fileName = file.getName();
-    if (fileName.startsWith(dmprFileMonth) && !fileName.includes("Template")) {
-      dmprFile = file;
-      break;
+    // Adjust for all-day events
+    if (event.isAllDayEvent()) {
+      endDate = new Date(endDate.getTime() - 24*60*60*1000); // Subtract one day from the end date
     }
+
+    var formattedStartDate = Utilities.formatDate(startDate, Session.getScriptTimeZone(), "MMMM d");
+    var formattedEndDate = Utilities.formatDate(endDate, Session.getScriptTimeZone(), "MMMM d");
+    
+    Logger.log("Event: " + event.getTitle());
+    Logger.log("Start Date: " + startDate + " Formatted: " + formattedStartDate);
+    Logger.log("End Date: " + endDate + " Formatted: " + formattedEndDate);
+    
+    // Check if start date and end date are the same
+    var dateRange = (formattedStartDate === formattedEndDate) ? formattedStartDate : (formattedStartDate + " - " + formattedEndDate);
+    
+    eventDetails.push({
+      title: event.getTitle(),
+      date: dateRange
+    });
   }
-  return dmprFile ? dmprFile.getUrl() : '';
+  return eventDetails;
 }
 
 // Helper Function: Replace placeholder text in a document with a hyperlink
@@ -139,12 +168,22 @@ function replaceWithHyperlink(documentBody, placeholderText, url) {
   }
 }
 
-// Helper Function: Replace a placeholder with a formatted date
-function replaceWithFormattedDate(documentBody, placeholderText, currentDate) {
-  var dateForInternal = new Date(currentDate);
-  dateForInternal.setDate(dateForInternal.getDate() + 1);
-  var formattedDate = Utilities.formatDate(dateForInternal, Session.getScriptTimeZone(), "EEEE, MMMM dd, yyyy");
-  documentBody.replaceText(placeholderText, formattedDate);
+// Helper Function: Get the link of the DMPR file corresponding to a given month
+function getDMPRLink(folderId, currentDate) {
+  var folder = DriveApp.getFolderById(folderId);
+  var files = folder.getFiles();
+  var dmprFile = null;
+  var dmprFileMonth = currentDate.substring(0, 7);
+
+  while (files.hasNext()) {
+    var file = files.next();
+    var fileName = file.getName();
+    if (fileName.startsWith(dmprFileMonth) && !fileName.includes("Template")) {
+      dmprFile = file;
+      break;
+    }
+  }
+  return dmprFile ? dmprFile.getUrl() : '';
 }
 
 // Primary function to create and populate a new Internal Planning meeting agenda
@@ -173,11 +212,27 @@ function createNewInternalAgenda() {
   var snwgMonthlyLink = getMostRecentFileLink(snwgMonthlyFolderId, newDocumentId, false);
   var dmprLink = getDMPRLink(dmprFolderId, currentDate);
 
+  // Get Team Schedules and replace {{Team Schedules}} placeholder
+  var sectionStart = documentBody.findText("{{Team Schedules}}");
+    if (sectionStart) {
+      Logger.log("Found placeholder {{Team Schedules}} in the document.");
+
+      var events = getCalendarEvents();
+      var eventsText = ""; // Text to replace the placeholder
+      for (var i = 0; i < events.length; i++) {
+        var event = events[i];
+        eventsText += event.title + " - " + event.date + "\n";
+      }
+
+      documentBody.replaceText("{{Team Schedules}}", eventsText.trim());
+    } else {
+      Logger.log("Did not find placeholder {{Team Schedules}} in the document.");
+    }
   // Get the current PI (Program Increment) for the document using the PI calculator library script
   var adjustedDate = new Date(); // Use a valid date object here or pass the required date
   var adjustedPI = adjustedPIcalculator.getPI(adjustedDate);
 
-  // Call the function to replace the placeholder text in the document
+  // Call the function to replace the placeholder texts in the document
   adjustedPIcalculator.replacePlaceholderWithPI(document, adjustedPI); // <-- Use the 'document' object here, not 'targetDocument'
 
   // Replace placeholders in the document body with the obtained links and PI information
