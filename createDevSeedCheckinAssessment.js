@@ -87,12 +87,12 @@ function getMeetingDate() {
 // Helper function: Rename to YYYY-MM-DD "SNWG/DevSeed Checkin" where YYYY-MM-DD is the meeting date
 function renameAgendaWithMeetingDate(agenda, meetingDate) {
   var formattedDate = Utilities.formatDate(meetingDate, Session.getScriptTimeZone(), "yyyy-MM-dd");
-  var newName = formattedDate + " SNWG/DevSeed Checkin";
+  var newName = formattedDate + " SNWG/DevSeed Checkin TEST";
   agenda.setName(newName);
 }
 
-// helpr function to update meeting date within the newly created document
-function updateAgendaDate(agendaFile, creationDate, newDate) {
+// helper function to update meeting date within the newly created document
+function updateAgendaDate(agendaFile,newDate) {
   var document = DocumentApp.openById(agendaFile.getId()); // Open the file as a Google Docs document
   var body = document.getBody();
   
@@ -115,36 +115,106 @@ function updateAgendaDate(agendaFile, creationDate, newDate) {
   }
 }
 
-// Helper function to clear and repopulate a specific cell in the table
-function clearAndRepopulateTableCell(agendaFile) {
-  var document = DocumentApp.openById(agendaFile.getId()); // Open the file as a Google Docs document
+// Helper function to update specific placeholders
+function updatePlaceholders(agendaFile) {
+  var document = DocumentApp.openById(agendaFile.getId());
   var body = document.getBody();
-  
-  // Get all tables in the document
-  var tables = body.getTables();
-  
-  if (tables.length > 0) {
-    var table = tables[0]; // Assuming the first table is the one you want to modify
-    var cell = table.getCell(2, 1); // Row 3, Cell 2 (0-indexed)
-    
-    // Clear the cell content
-    cell.clear();
-    
-    // Repopulate the cell with bullet points
-    var bulletPoints = [
-      "• IMPACT dev updates (Iksha)",
-      "• DevSeed updates (Will)",
-      "• DCD updates (Jenny)",
-      "• SNWG updates (Katrina)"
-    ];
-    
-    // Add bullet points to the cell
-    for (var i = 0; i < bulletPoints.length; i++) {
-      cell.appendParagraph(bulletPoints[i]);
+
+  var placeholders = [
+    { search: "IMPACT dev updates", replacement: "IMPACT dev updates (Iksha)" },
+    { search: "DevSeed updates", replacement: "DevSeed updates (Will)" },
+    { search: "DCD updates", replacement: "DCD updates (Essence)" }
+  ];
+
+  for (var i = 0; i < placeholders.length; i++) {
+    var placeholder = placeholders[i];
+    var textToSearch = placeholder.search;
+
+    var foundElement = null;
+    var searchResult = body.findText(textToSearch);
+
+    while (searchResult) {
+      if (searchResult.getElement().getParent().getType() === DocumentApp.ElementType.TABLE_CELL) {
+        foundElement = searchResult.getElement();
+        break;
+      }
+      searchResult = body.findText(textToSearch, searchResult);
     }
-    
-    // Save the changes to the document
-    document.saveAndClose();
+
+    if (foundElement) {
+      var textElement = foundElement.asText();
+      var startIndex = searchResult.getStartOffset();
+      var endIndex = startIndex + textToSearch.length;
+
+      textElement.deleteText(startIndex, endIndex);
+      textElement.insertText(startIndex, placeholder.replacement);
+    }
+  }
+
+  // No need for document.saveAndClose() here
+}
+
+// Helper function to get events for Katrina from the designated calendar
+function getKatrinasEvents() {
+  var now = new Date();
+  var sixWeeksLater = new Date(now.getTime() + 42 * 24 * 60 * 60 * 1000); // Add 42 days to the current date
+  sixWeeksLater.setMonth(now.getMonth() + 2);
+  
+  var calendarId = 'c_365230bc41700e58e23f74b286db1773d395e4bc6807c81a4c78658df5db423e@group.calendar.google.com';
+  var calendar = CalendarApp.getCalendarById(calendarId);
+  var events = calendar.getEvents(now, sixWeeksLater);
+  
+  var eventDetails = [];
+  for (var i = 0; i < events.length; i++) {
+    var event = events[i];
+
+    // Check if the event title includes "Katrina"
+    if (event.getTitle().includes("Katrina")) {
+      var startDate = event.getStartTime();
+      var endDate = event.getEndTime();
+
+      if (event.isAllDayEvent()) {
+        endDate = new Date(endDate.getTime() - 24*60*60*1000); // Subtract one day from the end date
+      }
+
+      var formattedStartDate = Utilities.formatDate(startDate, Session.getScriptTimeZone(), "MMMM d");
+      var formattedEndDate = Utilities.formatDate(endDate, Session.getScriptTimeZone(), "MMMM d");
+
+      var dateRange = (formattedStartDate === formattedEndDate) ? formattedStartDate : (formattedStartDate + " - " + formattedEndDate);
+      
+      eventDetails.push({
+        title: event.getTitle(),
+        date: dateRange
+      });
+    }
+  }
+  return eventDetails;
+}
+
+// Helper Function to populate Katrina's schedule in the agenda document
+function populateKatrinasScheduleInAgenda(agendaFile) {
+  var document = DocumentApp.openById(agendaFile.getId());
+  var body = document.getBody();
+
+  // This pattern matches "Katrina:" followed by any characters up to the end of the line
+  var pattern = "Katrina:.*";
+
+  var sectionStart = body.findText(pattern);
+  if (sectionStart) {
+    Logger.log("Found placeholder 'Katrina:' in the document.");
+
+    var events = getKatrinasEvents();
+    var eventsText = ""; // Start without "Katrina:"
+    for (var i = 0; i < events.length; i++) {
+      var event = events[i];
+      eventsText += event.title + " - " + event.date + "\n";
+    }
+
+    // Replace the pattern with the events text
+    body.replaceText(pattern, eventsText.trim());
+
+  } else {
+    Logger.log("Did not find placeholder 'Katrina:' in the document.");
   }
 }
 
@@ -152,7 +222,7 @@ function clearAndRepopulateTableCell(agendaFile) {
 function createAndPopulateNewAgenda() {
   // Find the most recent agenda
   var mostRecentAgenda = findMostRecentAgenda();
-  
+
   if (!mostRecentAgenda) {
     // No agenda found
     Logger.log("No agenda file found in the folder.");
@@ -177,6 +247,12 @@ function createAndPopulateNewAgenda() {
   updateAgendaDate(newAgenda, mostRecentAgenda.getDateCreated(), meetingDate);
   Logger.log("Agenda date updated.");
 
-  // Clear and repopulate specific cell in the table
-  clearAndRepopulateTableCell(newAgenda);
+  // Populate Katrina's schedule in the agenda
+  populateKatrinasScheduleInAgenda(newAgenda);
+  Logger.log("Katrina's schedule updated.");
+
+  // Update specific placeholders
+  updatePlaceholders(newAgenda);
+  Logger.log("Specific placeholders updated.");
+
 }
