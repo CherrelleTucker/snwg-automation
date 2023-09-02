@@ -87,34 +87,37 @@ function getMeetingDate() {
 // Helper function: Rename to YYYY-MM-DD "SNWG/DevSeed Checkin" where YYYY-MM-DD is the meeting date
 function renameAgendaWithMeetingDate(agenda, meetingDate) {
   var formattedDate = Utilities.formatDate(meetingDate, Session.getScriptTimeZone(), "yyyy-MM-dd");
-  var newName = formattedDate + " SNWG/DevSeed Checkin TEST";
+  var newName = formattedDate + " SNWG/DevSeed Checkin";
   agenda.setName(newName);
 }
 
 // helper function to update meeting date within the newly created document
-function updateAgendaDate(agendaFile,newDate) {
-  var document = DocumentApp.openById(agendaFile.getId()); // Open the file as a Google Docs document
+function updateAgendaDate(agendaFile) {
+  // Get the meeting date
+  var meetingDate = getMeetingDate();
+
+  // Open the file as a Google Docs document
+  var document = DocumentApp.openById(agendaFile.getId());
   var body = document.getBody();
-  
-  // Define a regular expression pattern to match dates in Month day, year format
-  var datePattern = /\b(January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}, \d{4}\b/;
-    
+
+  // Define a regular expression pattern to match dates in Month day, year or yyyy-MM-dd format
+  var datePattern = /\b\d{4}-\d{1,2}-\d{1,2}\b|\b(January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}, \d{4}\b/;
+
   // Iterate through the paragraphs in the body
   var paragraphs = body.getParagraphs();
   for (var i = 0; i < paragraphs.length; i++) {
-    var paragraph = paragraphs[i];
-    var text = paragraph.getText();
-    var match = text.match(datePattern);
-    
+  var paragraph = paragraphs[i];
+  var text = paragraph.getText();
+  var match = text.match(datePattern);
     if (match) {
       // Replace the matched text with the new formatted date
-      var formattedNewDate = Utilities.formatDate(newDate, Session.getScriptTimeZone(), "MMMM dd, yyyy");
+      var formattedNewDate = Utilities.formatDate(meetingDate, Session.getScriptTimeZone(), "MMMM dd, yyyy");
       var updatedText = text.replace(datePattern, formattedNewDate);
       paragraph.setText(updatedText);
     }
   }
 }
-
+  
 // Helper function to update specific placeholders
 function updatePlaceholders(agendaFile) {
   var document = DocumentApp.openById(agendaFile.getId());
