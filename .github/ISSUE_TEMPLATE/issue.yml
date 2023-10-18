@@ -1,43 +1,89 @@
-name: Issue
+name: New Issue Form 
 description: Create an Issue
-title: "ADD THE ISSUE TITLE HERE"
+title: ISSUE TITLE
+projects: NASA-IMPACT/# ##replace with desired project that you would like the issues to be automatically added to. Format as project/board number
 body:
   - type: markdown
+    attributes: 
+      value: | ##Replace <Project Name> with your project name
+        This is the Issue template! The values you add will be converted to a properly formatted Issue for the <Project Name> Project. 
+  - type: dropdown
+    id: Milestones
     attributes:
-      value: |
-        This is the Issue template! The values you add will be converted to a properly formatted Issue.
+      label: Milestone
+      description: What Milestone does this issue apply to? If issue is unrelated to previously listed Milestones, select External Work Request and provide full details and justification.
+      options: ## replace with desired milestones
+        - FY24 M1 (Milestone Title)
+        - FY24 M2 (Milestone Title)
+        - FY24 M3 (Milestone Title)
+        - FY24 M4 (Milestone Title)
+        - FY24 M5 (Milestone Title)
+        - External Work Request (No Milestone affiliation)
+      default: 0
+    validations:
+      required: true
+  - type: dropdown
+    id: Quarter
+    attributes:
+      label: Quarter
+      description: What Quarter does this issue apply to? If selecting multiple quarters, please include the expected task breakdown across quarters in your task description or implementation considerations. 
+      multiple: true
+      options:
+        - Q1 (1 Oct to 31 Dec)
+        - Q2 (1 Jan to 31 Mar)
+        - Q3 (1 Apr to 30 Jun)
+        - Q4 (1 Jul to 30 Sep)
+      default: 1
+    validations:
+      required: true
   - type: textarea
     id: description
     attributes:
       label: Description
       description: Add two to three sentences that explain the context of this issue and what it will achieve.
-      placeholder: your text goes here
+      placeholder: Questions to consider when completing this section...
+        - What is the motivation for this issue? 
+        - Is there any needed background knowledge that would be helpful to the assignee? 
+        - Is there a specific requestor for this issue? 
+        - Are there time constraints?
+        - What are the possible steps to completion? 
+        - Who are the anticipated assignees? 
+        - What problem will this issue solve?  
+    validations:
+      required: true
+  - type: textarea
+    id: Examples
+    attributes:
+      label: Examples or References
+      description: if applicable, include examples of work that the issue will result in or references to use in development.
+      placeholder: This type of document is what I am looking for...
+          Use these files when developing your solution...
+    validations:
+      required: false
+  - type: textarea
+    id: deliverable
+    attributes:
+      label: Deliverable
+      description: Acceptance Criteria in the form of a tasklist. Once the issue has been created, individual tasks can be converted to issues if needed. 
+      value: "- [ ] "
     validations:
       required: true
   - type: textarea
     id: implementation-considerations
     attributes:
-      label: Implementation Considerations
+      label: Implementation Blockers or Dependencies
       description: |
         Points that need to be considered when developing this feature/writing this doc
-      value: "- type your first consideration here"
-    validations:
-      required: true
-  - type: textarea
-    id: deliverable
-    attributes:
-      label: Deliverable
-      description: What will be shown to to team to demonstrate acceptance criteria are complete
-      placeholder: your text goes here
+      placeholder: Why have you selected multiple quarters? What other organizations or resources does this issue depend on to be completed?
     validations:
       required: true
   - type: textarea
     id: dependencies
     attributes:
-      label: Dependencies
+      label: Related Issues
       description: |
         Add cards on which this issue depends
         Github automatically provides a list of possible issues if you start by typing a `#`
-      value: depends on
+      placeholder: depends on
     validations:
       required: false
