@@ -21,7 +21,7 @@ body:
         - External Work Request (No Milestone affiliation)
       default: 0
     validations:
-      required: true
+      required: false
   - type: dropdown
     id: Quarter
     attributes:
@@ -35,7 +35,7 @@ body:
         - Q4 (1 Jul to 30 Sep)
       default: 1
     validations:
-      required: true
+      required: false
   - type: textarea
     id: description
     attributes:
