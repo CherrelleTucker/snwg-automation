@@ -62,7 +62,7 @@ body:
         Points that need to be considered when developing this feature/writing this doc
       placeholder: Why have you selected multiple quarters? What other organizations or resources does this issue depend on to be completed?
     validations:
-      required: true
+      required: false
   - type: textarea
     id: dependencies
     attributes:
