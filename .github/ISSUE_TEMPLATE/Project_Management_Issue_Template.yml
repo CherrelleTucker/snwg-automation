@@ -22,20 +22,6 @@ body:
       default: 0
     validations:
       required: false
-  - type: dropdown
-    id: Quarter
-    attributes:
-      label: Quarter
-      description: What Quarter does this issue apply to? If selecting multiple quarters, please include the expected task breakdown across quarters in your task description or implementation considerations. 
-      multiple: true
-      options:
-        - Q1 (1 Oct to 31 Dec)
-        - Q2 (1 Jan to 31 Mar)
-        - Q3 (1 Apr to 30 Jun)
-        - Q4 (1 Jul to 30 Sep)
-      default: 1
-    validations:
-      required: false
   - type: textarea
     id: description
     attributes:
