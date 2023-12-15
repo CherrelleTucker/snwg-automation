@@ -7,21 +7,6 @@ body:
     attributes: 
       value: | ##Replace <Project Name> with your project name
         This is the Issue template! The values you add will be converted to a properly formatted Issue for the <Project Name> Project. 
-  - type: dropdown
-    id: Milestones
-    attributes:
-      label: Milestone
-      description: What Milestone does this issue apply to? If issue is unrelated to previously listed Milestones, select External Work Request and provide full details and justification.
-      options: ## replace with desired milestones
-        - FY24 M1 (Milestone Title)
-        - FY24 M2 (Milestone Title)
-        - FY24 M3 (Milestone Title)
-        - FY24 M4 (Milestone Title)
-        - FY24 M5 (Milestone Title)
-        - External Work Request (No Milestone affiliation)
-      default: 0
-    validations:
-      required: false
   - type: textarea
     id: description
     attributes:
@@ -57,7 +42,7 @@ body:
   - type: textarea
     id: implementation-considerations
     attributes:
-      label: Implementation Blockers or Dependencies
+      label: Implementation Considerations
       description: |
         Points that need to be considered when developing this feature/writing this doc
       placeholder: Why have you selected multiple quarters? What other organizations or resources does this issue depend on to be completed?
