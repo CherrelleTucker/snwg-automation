@@ -1,6 +1,7 @@
 name: New Issue Form 
 description: Create an Issue
 title:   
+  placeholder: Issue Title
 projects: NASA-IMPACT/# ##replace with desired project that you would like the issues to be automatically added to. Format as project/board number
 body:
   - type: markdown
