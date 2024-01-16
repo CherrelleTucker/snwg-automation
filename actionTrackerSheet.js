@@ -1,46 +1,139 @@
-// Purpose: 
-// 1. Search agendas for action items to be completed and populate in the Action Tracking Google Sheet.
-// 2. Push status updates from from the Action Tracking Google sheet to the Action source agendas as changed.
+/* Purpose: 
+1. Search agendas for action items to be completed and populate in the Action Tracking Google Sheet.
+2. Push status updates from from the Action Tracking Google sheet to the Action source agendas as changed.
 
-// Future development: 
-// Preserve links in task items from the source documents. Will first require the same development in the inDocActionItems script, as the links are lost in that action first. 
+Future development: 
+Preserve links in task items from the source documents. Will first require the same development in the inDocActionItems script, as the links are lost in that action first. 
 
-// To note: 
-// This script is developed as a Google Apps Script container script: i.e. a script that is bound to a specific file, such as a Google Sheets, Google Docs, or Google Forms file. This container script acts as the file's custom script, allowing users to extend the functionality of the file by adding custom functions, triggers, and menu items to enhance its behavior and automation.
+To note: 
+This script is developed as a Google Apps Script container script: i.e. a script that is bound to a specific file, such as a Google Sheets, Google Docs, or Google Forms file. This container script acts as the file's custom script, allowing users to extend the functionality of the file by adding custom functions, triggers, and menu items to enhance its behavior and automation.
 
-// Instructions for Using this Script in your container file:
-// 1. Open a new or existing Google Sheets file where you want to use the script.
-// 2. Click on "Extensions" in the top menu and select "Apps Script" from the dropdown menu. This will open the Google Apps Script editor in a new tab.
-// 3. Copy and paste the provided script into the Apps Script editor, replacing the existing code (if any).
-// 4. In the MOPopulate function, replace the placeholder values for folderId and spreadsheetId with the actual IDs of your Google Drive folder containing the agendas and the Google Sheets spreadsheet where you want to track the actions, respectively.
-// 5. In the updateStatus function, replace the placeholder value for spreadsheetId with the actual ID of your Google Sheets spreadsheet.
-// 6. Save the script by clicking on the floppy disk icon or by pressing "Ctrl + S" (Windows) or "Cmd + S" (Mac).
-// 7. Go back to your Google Sheets file, refresh the page, and you'll see a new custom menu labeled "Action Items" in the top menu.
-// 8. Click on "Action Items" in the top menu to access the custom menu. You'll find two options:
-//    a. "Get Actions from Agendas": This option will pull actions from the specified agendas and populate them in the "MO" sheet in your Google Sheets file.
-//    b. "Update Status in Source Document": This option will push status updates from the "MO" sheet back to the corresponding action items in the source agendas.
-// 9. Whenever you want to get actions from the agendas or update status in the source documents, simply click on the corresponding option from the "Action Items" menu.
-// Note: Make sure to properly set up the correct folder structure in Google Drive and name your agendas and sheets according to the script's logic for pulling and updating actions. This documentation assumes you have some basic familiarity with Google Apps Script and how to run container-bound scripts within a Google Sheets file.
+Instructions for Using this Script in your container file:
+1. Open a new or existing Google Sheets file where you want to use the script.
+2. Click on "Extensions" in the top menu and select "Apps Script" from the dropdown menu. This will open the Google Apps Script editor in a new tab.
+3. Copy and paste the provided script into the Apps Script editor, replacing the existing code (if any).
+4. In the TablePullPopulate function, replace the placeholder values for folderId and spreadsheetId with the actual IDs of your Google Drive folder containing the agendas and the Google Sheets spreadsheet where you want to track the actions, respectively.
+5. In the updateStatus function, replace the placeholder value for spreadsheetId with the actual ID of your Google Sheets spreadsheet.
+6. Save the script by clicking on the floppy disk icon or by pressing "Ctrl + S" (Windows) or "Cmd + S" (Mac).
+7. Go back to your Google Sheets file, refresh the page, and you'll see a new custom menu labeled "Action Items" in the top menu.
+8. Click on "Action Items" in the top menu to access the custom menu. You'll find two options:
+  a. "Get Actions from Agendas": This option will pull actions from the specified agendas and populate them in the "Table Pull" sheet in your Google Sheets file.
+  b. "Update Status in Source Document": This option will push status updates from the "Table Pull" SEPack to the corresponding action items in the source agendas.
+9. Whenever you want to get actions from the agendas or update status in the source documents, simply click on the corresponding option from the "Action Items" menu.
+Note: Make sure to properly set up the correct folder structure in Google Drive and name your agendas and sheets according to the script's logic for pulling and updating actions. This documentation assumes you have some basic familiarity with Google Apps Script and how to run container-bound scripts within a Google Sheets file. */ 
 
 //////////////////////////////////////////////////
 
-// Global Variables: Replace 'folderId' and 'spreadsheetId' with your actual Google Drive folder ID and Google Sheets spreadsheet ID, respectively.
-// var folderId = '1WKYw4jnP6ejRkOLAIPoPvbEYClaLE4eR'; // SNWG MO Weekly Internal Planning > FY 23 Google Drive folder
-var folderId = '1SRIUs7CUEdGUw0r1PI52e0OJpfXYN0z8'; // SNWG MO Weekly Internal Planning > FY 24 Google Drive folder
-var spreadsheetId = '1uYgX660tpizNbIy44ddQogrRphfwZqn1D0Oa2RlSYKg'; // SNWG MO Action Tracking Spreadsheet
+// Testing function to verify Google Sheet ID, Google Sheet Name, Sheet tab names for all tabs
+function getSpreadsheetInfoTest() {
+  // Get the active spreadsheet
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
 
-// Secondary function to create custom menu on document open
-function onOpen() {
-  SpreadsheetApp.getUi()
-      .createMenu('Action Items')
-      .addItem('Get Actions from Agendas','MOPopulate')
-      .addItem('Push Status Updates to Source Document','updateStatus')
-      .addToUi();
-      // to open workbook with up-to-date All Open (Sort Only - Do not Edit) tab
-      copyDataToAllOpenSheet();
+  // Get the spreadsheet name
+  var spreadsheetName = spreadsheet.getName();
+
+  // Get the spreadsheet ID
+  var spreadsheetId = spreadsheet.getId();
+
+  // Get an array of sheet names
+  var sheetNames = spreadsheet.getSheets().map(function(sheet) {
+    return sheet.getName();
+  });
+
+  // Log the information
+  Logger.log("Spreadsheet Name: " + spreadsheetName);
+  Logger.log("Spreadsheet ID: " + spreadsheetId);
+  Logger.log("Sheet Names: " + sheetNames.join(", "));
 }
 
-// Helper function: Pull actions from documents
+// Helper function to log execution time in minutes, seconds, and milliseconds
+function logExecutionTime(func, functionName) {
+  var startTime = new Date();
+
+  func();
+
+  var endTime = new Date();
+  var executionTime = endTime - startTime;
+
+  var minutes = Math.floor(executionTime / 60000);
+  var seconds = ((executionTime % 60000) / 1000).toFixed(3);
+
+  Logger.log(functionName + ' execution time: ' + minutes + ' minutes, ' + seconds + ' seconds');
+}
+
+///////////////////Custom Menu//////////////////////////////////////////////
+
+// Add a custom menu to the spreadsheet
+function onOpen() {
+    var ui = SpreadsheetApp.getUi();
+    ui.createMenu('Action Items')
+      .addItem('Pull actions for ALL folders', 'pullActionsForAllFolders')
+      .addItem('Pull actions for MO', 'pullActionsForFolderMO')
+      .addItem('Pull actions for SEP', 'pullActionsForFolderSEP')
+      .addItem('Pull actions for DevSeed', 'pullActionsForFolderDevSeed')
+      .addSeparator()
+      .addItem('Push actions from ALL tabs', 'pushActionsFromAllTabs') 
+      .addItem('Push actions from MO', 'pushActionsFromTabMO') 
+      .addItem('Push actions from SEP', 'pushActionsFromTabSEP') 
+      .addItem('Push actions from DevSeed', 'pushActionsFromTabDevSeed') 
+      .addToUi();
+}
+
+// Global variables
+var spreadsheetId = '13xgmbfP8X8lu9tlD_cHVCF9RmQeKvToqtbiDSfp_Nfg'; // Testing ALL Action Tracking Sheet
+var folderIds = {
+  MO: '1SRIUs7CUEdGUw0r1PI52e0OJpfXYN0z8',
+  SEP: '1Cw_sdH_IleGbtW1mVoWnJ0yqoyzr4Oe0',
+  DevSeed: '1Bvj1b1u2LGwjW5fStQaLRpZX5pmtjHSj'
+};
+
+///////////////////Pull///////////////////////////////////////////////
+
+// Function to pull actions for all folders
+function pullActionsForAllFolders() {
+  logExecutionTime(function() {
+    pullActionsForFolder('MO');
+    pullActionsForFolder('SEP');
+    pullActionsForFolder('DevSeed');
+  }, 'pullActionsForAllFolders');
+}
+
+// Function to pull actions for MO folder
+function pullActionsForFolderMO() {
+  logExecutionTime(function() {
+    pullActionsForFolder('MO');
+  }, 'pullActionsForFolderMO');
+}
+
+// Function to pull actions for SEP folder
+function pullActionsForFolderSEP() {
+  logExecutionTime(function() {
+    pullActionsForFolder('SEP');
+  }, 'pullActionsForFolderSEP');
+}
+
+// Function to pull actions for DevSeed folder
+function pullActionsForFolderDevSeed() {
+  logExecutionTime(function() {
+    pullActionsForFolder('DevSeed');
+  }, 'pullActionsForFolderDevSeed');
+}
+
+// Helper function to pull actions from a specific folder
+function pullActionsForFolder(folderName) {
+  var folderId = folderIds[folderName];
+  var tablePullSheetName = folderName;
+
+  Logger.log('Step 1: Pulling actions from documents...');
+  var actions = pullActionsFromDocuments(folderId);
+  Logger.log('Step 1: Actions retrieved:', actions);
+
+  Logger.log('Step 2: Populating sheet with actions...');
+  populateSheetWithActions(spreadsheetId, tablePullSheetName, actions);
+  Logger.log('Step 2: Sheet populated with actions.');
+}
+
+// Pull helper function: Pull actions from documents
 function pullActionsFromDocuments(folderId) {
   var folder = DriveApp.getFolderById(folderId);
   var files = folder.getFilesByType(MimeType.GOOGLE_DOCS);
@@ -88,7 +181,7 @@ function pullActionsFromDocuments(folderId) {
   return allActions;
 }
 
-// Helper function: Find the second table with qualifying headers
+// Pull helper function: Find the second table with qualifying headers
 function findSecondTable(tables) {
   for (var i = 0; i < tables.length; i++) {
     var table = tables[i];
@@ -110,7 +203,7 @@ function findSecondTable(tables) {
   return null;
 }
 
-// Helper function: Convert table to 2D array for convenience and flexibility in data processing
+// Pull helper function: Convert table to 2D array for convenience and flexibility in data processing
 function tableTo2DArray(table) {
   var numRows = table.getNumRows();
   var numCols = table.getRow(0).getNumCells();
@@ -128,7 +221,7 @@ function tableTo2DArray(table) {
   return data;
 }
 
-// Helper function: Populate the Sheet with actions
+// Pull helper function: Populate the Sheet with actions
 function populateSheetWithActions(spreadsheetId, sheetName, actions) {
   var spreadsheet = SpreadsheetApp.openById(spreadsheetId);
   var sheet = spreadsheet.getSheetByName(sheetName);
@@ -136,7 +229,8 @@ function populateSheetWithActions(spreadsheetId, sheetName, actions) {
   if (!sheet) {
     sheet = spreadsheet.insertSheet(sheetName);
   } else {
-    sheet.clearContents();
+    // Clear only the contents of columns A to E
+    sheet.getRange(1, 1, sheet.getMaxRows(), 5).clearContent();
   }
 
   var headerRow = ['Action Source', 'Status', 'Assigned to', 'Task'];
@@ -146,17 +240,18 @@ function populateSheetWithActions(spreadsheetId, sheetName, actions) {
   var numCols = headerRow.length;
 
   if (numRows > 0 && numCols > 0) {
+    // Set values starting from cell A1
     var range = sheet.getRange(1, 1, numRows, numCols);
     range.setValues(actions);
   }
 }
 
-// Primary function: Pull action items from meeting notes to populate action tracking workbook
+// Primary Pull function: Pull action items from meeting notes to populate action tracking workbook
 function MOPopulate() {
   var tablePullSheetName = 'MO';
 
   Logger.log('Step 1: Pulling actions from documents...');
-  var actions = pullActionsFromDocuments(folderId);
+  var actions = pullActionsFromDocuments(folderIds.MO);
   Logger.log('Step 1: Actions retrieved:', actions);
 
   Logger.log('Step 2: Populating sheet with actions...');
@@ -164,164 +259,164 @@ function MOPopulate() {
   Logger.log('Step 2: Sheet populated with actions.');
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////// Pull Testing Log //////////////////////////////////////////
 
-// Helper function: Get actions from the Sheet
-function getActionsFromSheet(spreadsheetId, sheetName) {
-  var spreadsheet = SpreadsheetApp.openById(spreadsheetId);
-  var sheet = spreadsheet.getSheetByName(sheetName);
+/*
+pullActionsForFolderMO: success 2024-01-11 10:43:24 AM	pullActionsForFolderMO execution time: 0 minutes, 12.737 seconds
+pullActionsForFolderSEP: success 2024-01-10 10:46:01 AM	pullActionsForFolderSEP execution time: 0 minutes, 10.042 seconds
+pullActionsForFolderDevSeed: success 10:59:36 AM	pullActionsForFolderDevSeed execution time: 0 minutes, 9.670 seconds
+pullActionsForAllFolders: success 11:02:56 AM	pullActionsForAllFolders execution time: 0 minutes, 37.867 seconds
+*/
 
-  var data = sheet.getDataRange().getValues();
-  var actions = [];
+////////////////// Push ////////////////////////////////////////////////////////
 
-  for (var i = 1; i < data.length; i++) {
-    var row = data[i];
-    var status = row[1];
-    var task = row[3];
-
-    if (status.trim().toLowerCase() !== 'not started') {
-      actions.push({
-        status: status,
-        task: task
-      });
-    }
-  }
-
-  return actions;
+// Function to call the primary function on all named tabs
+function pushActionsFromAllTabs() {
+  logExecutionTime(function() {
+    updateStatusOnTab("MO");
+    updateStatusOnTab("SEP");
+    updateStatusOnTab("DevSeed");
+  }, 'pushActionsFromAllTabs');
 }
 
-// Helper function: Sync status to source document
-function syncStatusToSource(actions) {
-  for (var i = 0; i < actions.length; i++) {
-    var action = actions[i];
-    var status = action.status;
-    var task = action.task;
+// Function to call the primary function on the "MO" tab
+function pushActionsFromTabMO() {
+  logExecutionTime(function() {
+    updateStatusOnTab("MO");
+  }, 'pushActionsFromTabMO');
+}
 
-    var document = findDocumentWithTask(task);
+// Function to call the primary function on the "SEP" tab
+function pushActionsFromTabSEP() {
+  logExecutionTime(function() {
+    updateStatusOnTab("SEP");
+  }, 'pushActionsFromTabSEP');
+}
 
-    if (document) {
-      updateStatusInDocument(document, status, task); // Pass task as a parameter
+// Function to call the primary function on the "DevSeed" tab
+function pushActionsFromTabDevSeed() {
+  logExecutionTime(function() {
+    updateStatusOnTab("DevSeed");
+  }, 'pushActionsFromTabDevSeed');
+}
+
+function updateStatusOnTab(tabName) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(tabName);
+  var range = sheet.getRange("A:G"); // Assuming the URL is in Column G
+  var values = range.getValues();
+
+  // Loop through each row of the data
+  for (var i = 1; i < values.length; i++) {
+    var actionSourceUrl = values[i][6]; // Column G (assuming the URL is in Column G)
+    var status = values[i][1]; // Column B
+    var assignedTo = values[i][2]; // Column C
+    var task = values[i][3]; // Column D
+
+    // Check if the row is empty or if it's the header row
+    if (actionSourceUrl || status || assignedTo || task) {
+      // Log actionSourceUrl for investigation
+      console.log("Row:", i + 1, "actionSourceUrl:", actionSourceUrl);
+
+      // Call the function to update status in the source document
+      updateStatusInSourceDoc(actionSourceUrl, status, task);
     }
   }
 }
 
-// Helper function: Find document with the matching task
-function findDocumentWithTask(task) {
-  var folder = DriveApp.getFolderById(folderId);
-  var files = folder.getFilesByType(MimeType.GOOGLE_DOCS);
+function updateStatusInSourceDoc(actionSource, status, task) {
+  // Column G now contains the extracted URL
+  var actionSourceUrl = actionSource; // No need for extractUrlFromHyperlink
 
-  while (files.hasNext()) {
-    var file = files.next();
-    var docId = file.getId();
-    var doc = DocumentApp.openById(docId);
-
-    var documentFound = findTaskInDocument(doc, task);
-
-    if (documentFound) {
-      return doc;
-    }
+  if (!actionSourceUrl) {
+    console.error("Invalid URL in Column A:", actionSource);
+    return;
   }
 
+    try {
+      console.log("Attempting to open document with URL:", actionSourceUrl);
+      var sourceDoc = DocumentApp.openByUrl(actionSourceUrl);
+      } catch (error) {
+        console.error("Error opening document by URL:", error);
+        return;
+      }
+  // Get the body of the document
+  var body = sourceDoc.getBody();
+
+  // Find the table with the specified headings
+  var table = findTableByHeadings(body, ["Status", "Action"]);
+
+  if (table) {
+    // Find the row with the matching task in the "Action" column
+    var rowIndex = findRowIndexByColumnValue(table, "Action", task);
+
+    if (rowIndex !== -1) {
+      // Update the "Status" column with the status from the sheet
+      table.getCell(rowIndex, getColumnIndex(table, "Status")).setText(status);
+    }
+  }
+}
+
+function findTableByHeadings(body, headings) {
+  // Function to find a table in the document with specified headings
+  var tables = body.getTables();
+  
+  for (var i = 0; i < tables.length; i++) {
+    var table = tables[i];
+    var headerRow = table.getRow(0);
+    
+    // Check if the table has the specified headings
+    if (headings.every(function (heading) {
+      return headerRow.getText().indexOf(heading) !== -1;
+    })) {
+      return table;
+    }
+  }
+  
   return null;
 }
 
-// Helper function: Find task in the document
-function findTaskInDocument(doc, task) {
-  var tables = doc.getBody().getTables();
-
-  for (var i = 0; i < tables.length; i++) {
-    var table = tables[i];
-    var row1 = table.getRow(0);
-    var statusIndex = -1;
-    var ownerIndex = -1;
-    var actionIndex = -1;
-
-    for (var j = 0; j < row1.getNumCells(); j++) {
-      var cellText = row1.getCell(j).getText().toLowerCase();
-
-      if (cellText === 'status') {
-        statusIndex = j;
-      } else if (cellText === 'owner') {
-        ownerIndex = j;
-      } else if (cellText === 'action') {
-        actionIndex = j;
-      }
-    }
-
-    if (statusIndex !== -1 && ownerIndex !== -1 && actionIndex !== -1) {
-      var numRows = table.getNumRows();
-
-      for (var k = 1; k < numRows; k++) {
-        var row = table.getRow(k);
-        var action = row.getCell(actionIndex).getText();
-
-        if (action === task) {
-          return true;
-        }
+function findRowIndexByColumnValue(table, columnName, value) {
+  // Function to find the row index in the table with a specific column value
+  var columnIndex = getColumnIndex(table, columnName);
+  
+  if (columnIndex !== -1) {
+    var numRows = table.getNumRows();
+    
+    for (var i = 1; i < numRows; i++) {
+      if (table.getCell(i, columnIndex).getText() === value) {
+        return i;
       }
     }
   }
-
-  return false;
+  
+  return -1;
 }
 
-
-// Helper function: Update status in the document
-function updateStatusInDocument(document, status, task) { // Add task parameter
-  var tables = document.getBody().getTables();
-
-  for (var i = 0; i < tables.length; i++) {
-    var table = tables[i];
-    var row1 = table.getRow(0);
-    var statusIndex = -1;
-    var ownerIndex = -1;
-    var actionIndex = -1;
-
-    for (var j = 0; j < row1.getNumCells(); j++) {
-      var cellText = row1.getCell(j).getText().toLowerCase();
-
-      if (cellText === 'status') {
-        statusIndex = j;
-      } else if (cellText === 'owner') {
-        ownerIndex = j;
-      } else if (cellText === 'action') {
-        actionIndex = j;
-      }
-    }
-
-    if (statusIndex !== -1 && ownerIndex !== -1 && actionIndex !== -1) {
-      var numRows = table.getNumRows();
-
-      for (var k = 1; k < numRows; k++) {
-        var row = table.getRow(k);
-        var action = row.getCell(actionIndex).getText();
-
-        if (action === task) {
-          var existingStatus = row.getCell(statusIndex).getText();
-
-          if (existingStatus.trim().toLowerCase() !== status.trim().toLowerCase()) {
-            row.getCell(statusIndex).editAsText().setText(status);
-          }
-        }
-      }
+function getColumnIndex(table, columnName) {
+  // Function to get the index of a column in the table
+  var headerRow = table.getRow(0);
+  var numCells = headerRow.getNumCells();
+  
+  for (var i = 0; i < numCells; i++) {
+    if (headerRow.getCell(i).getText() === columnName) {
+      return i;
     }
   }
+  
+  return -1;
 }
 
-// Primary function: push status updates back to action tracking tables in meeting notes
-function updateStatus() {
-  var sheetName = 'MO'; // <--Replace with the name of your sheet
+////////////////// Push Testing Log //////////////////////////////////////////
 
-  Logger.log('Step 1: Fetching actions from the sheet...');
-  var actions = getActionsFromSheet(spreadsheetId, sheetName);
-  Logger.log('Step 1: Actions fetched:', actions);
+/* 
+'pushActionsFromTabMO':  success 3:59:02 PM	execution time: 0 minutes, 13.421 seconds
+'pushActionsFromTabSEP': success 4:02:31 PM	execution time: 0 minutes, 15.707 seconds
+'pushActionsFromTabDevSeed': success 4:12:57 PM execution time: 0 minutes, 11.042 seconds
+'pushActionsFromAllTabs': 4:16:43 PM execution time: 0 minutes, 31.064 seconds
+*/
 
-  Logger.log('Step 2: Syncing status to source documents...');
-  syncStatusToSource(actions);
-  Logger.log('Step 2: Status synced to source documents.');
-}
+///////////////Combine Open Actions///////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////
 // function to copy all rows of each sheet that do not contain "Done" in the "Status Column". Maintain column D formatting from source sheet to track length of time the action has been open.
 function copyDataToAllOpenSheet() {
 // Get a reference to the currently open spreadsheet
@@ -376,5 +471,3 @@ function copyDataToAllOpenSheet() {
     }
   });
 }
-
-
