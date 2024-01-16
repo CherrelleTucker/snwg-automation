@@ -1,0 +1,59 @@
+name: New Issue Form 
+description: Create an Issue
+projects: NASA-IMPACT/# ##replace with desired project that you would like the issues to be automatically added to. Format as project/board number
+body:
+  - type: markdown
+    attributes: 
+      value: | ##Replace <Project Name> with your project name
+        This is the Issue template! The values you add will be converted to a properly formatted Issue for the <Project Name> Project. 
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Add two to three sentences that explain the context of this issue and what it will achieve.
+      placeholder: Questions to consider when completing this section...
+        - What is the motivation for this issue? 
+        - Is there any needed background knowledge that would be helpful to the assignee? 
+        - Is there a specific requestor for this issue? 
+        - Are there time constraints?
+        - What are the possible steps to completion? 
+        - Who are the anticipated assignees? 
+        - What problem will this issue solve?  
+    validations:
+      required: true
+  - type: textarea
+    id: Examples
+    attributes:
+      label: Examples or References
+      description: if applicable, include examples of work that the issue will result in or references to use in development.
+      placeholder: This type of document is what I am looking for...
+          Use these files when developing your solution...
+    validations:
+      required: false
+  - type: textarea
+    id: deliverable
+    attributes:
+      label: Deliverable
+      description: Acceptance Criteria in the form of a tasklist. Once the issue has been created, individual tasks can be converted to issues if needed. 
+      value: "- [ ] "
+    validations:
+      required: true
+  - type: textarea
+    id: implementation-considerations
+    attributes:
+      label: Implementation Considerations
+      description: |
+        Points that need to be considered when developing this feature/writing this doc
+      placeholder: Why have you selected multiple quarters? What other organizations or resources does this issue depend on to be completed?
+    validations:
+      required: false
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Related Issues
+      description: |
+        Add cards on which this issue depends
+        Github automatically provides a list of possible issues if you start by typing a `#`
+      placeholder: depends on
+    validations:
+      required: false

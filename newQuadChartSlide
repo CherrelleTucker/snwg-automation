@@ -331,26 +331,26 @@ function getFilesForCurrentWeekFromSpecificFolder(specificFolderID, currentWeekD
 }
 
 // helper function to get dates for last week
-function getLastWeekDates() {
-  var currentDate = new Date();
-  var startOfLastWeek = new Date(currentDate);
-  startOfLastWeek.setDate(currentDate.getDate() - 7); // Go back one week to find the start
-  startOfLastWeek.setDate(startOfLastWeek.getDate() - startOfLastWeek.getDay() + 1); // Align to the start of the week (Monday)
+//function getLastWeekDates() {
+//  var currentDate = new Date();
+//  var startOfLastWeek = new Date(currentDate);
+// startOfLastWeek.setDate(currentDate.getDate() - 7); // Go back one week to find the start
+// startOfLastWeek.setDate(startOfLastWeek.getDate() - startOfLastWeek.getDay() + 1); // Align to the start of the week (Monday)
 
-  var endOfLastWeek = new Date(startOfLastWeek);
-  endOfLastWeek.setDate(startOfLastWeek.getDate() + 4); // Last week's end date (Friday)
+// var endOfLastWeek = new Date(startOfLastWeek);
+// endOfLastWeek.setDate(startOfLastWeek.getDate() + 4); // Last week's end date (Friday)
 
-  return {
-    start: startOfLastWeek,
-    end: endOfLastWeek
-  };
-}
+// return {
+//   start: startOfLastWeek,
+//   end: endOfLastWeek
+// };
+//}
 
 // helper function to find last week files
-function getFilesForLastWeek(folderID) {
-  var lastWeekDates = getLastWeekDates(); // Get the start and end dates for last week
-  return getFilesForCurrentWeek(folderID, lastWeekDates);
-}
+// function getFilesForLastWeek(folderID) {
+//  var lastWeekDates = getLastWeekDates(); // Get the start and end dates for last week
+//  return getFilesForCurrentWeek(folderID, lastWeekDates);
+//}
 
 // helper function to replace slide placeholders
 function replacePlaceholdersInSlide(slide, replacements) {
@@ -438,11 +438,11 @@ function handleCurrentDMPRShape(currentDMPRShape) {
 
 // helper function to update Open Action Items
 function updateOpenActionItems() {
-  // Open the Google Sheet by ID and get the sheet named 'Table Pull'
-  var sheet = SpreadsheetApp.openById(sheetID).getSheetByName('Table Pull');
+  // Open the Google Sheet by ID and get the sheet named 'MO'
+  var sheet = SpreadsheetApp.openById(sheetID).getSheetByName('MO');
 
   if (sheet === null) {
-    Logger.log('Could not find sheet with name Table Pull');
+    Logger.log('Could not find sheet with name MO');
     return null;
   }
 
@@ -527,18 +527,18 @@ function updatePresentationOptimized() {
   }
     
   // Get the "Last Week Agendas" shape
-  var lastWeekAgendasShape = findShapeByAltText(newSlide, "Last Week Agendas");
+  // var lastWeekAgendasShape = findShapeByAltText(newSlide, "Last Week Agendas");
 
   // Get files for the last week
-    var lastWeekFiles = getFilesForLastWeek(agendasFolderID);
+  //  var lastWeekFiles = getFilesForLastWeek(agendasFolderID);
 
     // Populate "Last Week Agendas" shape with files for the last week
-    if (lastWeekAgendasShape) {
-      var lastWeekAgendasText = lastWeekFiles.map(function(file) {
-        return file.url; // Format as you like
-      }).join('\n');
-      lastWeekAgendasShape.getText().setText(lastWeekAgendasText);
-    }
+  //  if (lastWeekAgendasShape) {
+  //    var lastWeekAgendasText = lastWeekFiles.map(function(file) {
+  //      return file.url; // Format as you like
+  //    }).join('\n');
+  //    lastWeekAgendasShape.getText().setText(lastWeekAgendasText);
+  //  }
 
   var currentPI = adjustedPIcalculator.getPI(new Date());
   var year = new Date().getFullYear();
