@@ -631,6 +631,51 @@ sourceSheetNames.forEach(function (sourceSheetName) {
 });
 }*/
 
+////////////////////////////Duplicate Action Update//////////////////////////////////
+
+/*
+Triggered when a cell in a Google Sheet is edited. This function updates the status of all tasks in the same sheet that match the task of the edited status cell.
+
+Structure assumptions:
+- Column A: Action Source
+- Column B: Status
+- Column C: Assigned To
+- Column D: Task
+
+@param {object} e The event object that contains information about the cell that was edited.
+ */
+function onEdit(e) {
+  // Extract necessary details from the event object
+  var range = e.range; // The range that was edited
+  var sheet = range.getSheet(); // The sheet where the edit happened
+  var editedRow = range.getRow(); // The row number of the edited cell
+  var editedCol = range.getColumn(); // The column number of the edited cell
+
+  var statusColumn = 2; // The column number where statuses are stored (B)
+  var taskColumn = 4;  // The column number where tasks are stored (D)
+
+  // Check if the edit was made in the status column
+  if (editedCol === statusColumn) {
+    var updatedStatus = e.value; // Get the new status value from the edited cell
+    var task = sheet.getRange(editedRow, taskColumn).getValue(); // Retrieve the task associated with the edited status
+
+    // Get all data in the sheet to search for matching tasks
+    var dataRange = sheet.getDataRange();
+    var values = dataRange.getValues();
+
+    // Iterate through each row in the sheet
+    values.forEach(function(row, index) {
+      // Check if the task in the current row matches the edited task and is not the same row that was edited
+      if (row[taskColumn - 1] === task && index !== (editedRow - 1)) {
+        // Update the status of the matching task to the new status
+        sheet.getRange(index + 1, statusColumn).setValue(updatedStatus);
+      }
+    });
+  }
+}
+
+
+
 /////////////////////Testing Functions////////////////////////////////
 
 // Testing function to verify Google Sheet ID, Google Sheet Name, Sheet tab names for all tabs
