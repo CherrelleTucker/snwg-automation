@@ -78,6 +78,7 @@
           document.getElementById('successMessage').innerText = response;
           document.getElementById('successMessage').style.display = 'block';
           hideSuccessMessage(); // Hide the message after 10 seconds
+          document.getElementById('documentId').value = ''; // Clear the input field
         }).processDocumentId(documentId);
       }
     </script>
@@ -129,3 +130,4 @@
     </div>
   </body>
 </html>
+
