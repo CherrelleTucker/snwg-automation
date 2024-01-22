@@ -34,6 +34,29 @@
         }, 5000); // 5000 milliseconds = 5 seconds
       }
     </script>
+    <style>
+      .chart-container {
+        width: 80%;
+        margin: auto;
+        text-align: center;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th, td {
+        border: 1px solid black;
+        padding: 8px;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+    </style>
+    <style>
+      .left-content{
+        text-align:left;
+      }
+    </style>
   </head>
   <body>
     
@@ -69,8 +92,41 @@
       Once the document is processed, the action items will be populated in a 3 column table at the end of the document with the column headers "Status" "Owner""Action". If such a table does not already exist, one will be generated and you may then apply your desired formatting. 
     </p>
     <p>Example of an acceptable document with collected action items populated in a table can be found here: <a href="https://drive.google.com/uc?id=1nn1Hxk3kHBpNUsEeSUBOnK7dTAAb4V76" target="_Example Agenda">Example Document </a>
+    <h2 style="text-align:center;">Sample Agenda Elements</h2>
+    <div class="left-content">
+      <p>Attendees: Carl Tompson, Sam Adams, Eric Northman, Elizabeth Taylor, Tanya, James, Chris, Grace, Ryan (mentioned, not attended) </p>
+      <p> Notes:</p>
+        <p>9:20 AM - Bureaucratic Acronym Creation Contest <br>
+        Crafting new, unnecessary acronyms for fun and non-profit. Action: Tanya record blurb “During the AGM, the CFO presented the FYI on ROI, EBITDA, and EPS to the SEC, IRS, and HR, while the PMO coordinated with IT to ensure GDPR compliance and a streamlined UX for KPI monitoring.
+        <p>11:00 AM -  The Great Pen Crisis of 2023<br>
+        Who keeps taking them, and why is it always Carl? Action: Carl stop taking our pens.</p>
+        <p>1:30 PM - Working Group: Streamlining Paper Shuffling <br>
+        Advanced course on connecting to a printer, generating too many copies, mixing them up, and never getting them put back in order. Elizabeth called HP to them their printer broke through no fault of our own. 
+        Action: Ryan scrape up the printer and window glass from the parking lot
 
-
+      </div>
+     <div class="chart-container">
+      <table>
+        <tr>
+          <th>Status</th>
+          <th>Owner</th>
+          <th>Action</th>
+        </tr>
+        <tr>
+          <td> Not Started</td>
+          <td> Tanya</td>
+          <td> record blurb “During the AGM, the CFO presented the FYI on ROI, EBITDA, and EPS to the SEC, IRS, and HR, while the PMO coordinated with IT to ensure GDPR compliance and a streamlined UX for KPI monitoring." </td>
+        </tr>
+        <tr>
+          <td> Never Gonna Start</td>
+          <td> Carl</td>
+          <td> stop taking our pens </td>
+        </tr>
+          <td> Not Started</td>
+          <td> Ryan</td>
+          <td> scrape up the printer and window glass from the parking lot.</td>
+      </table>
+    </div>
   </body>
 </html>
 
