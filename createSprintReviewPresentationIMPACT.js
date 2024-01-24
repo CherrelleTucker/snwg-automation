@@ -28,7 +28,18 @@ function getCurrentSprintEvent() {
   var now = new Date();
   var calendar = CalendarApp.getCalendarById(source_calendar_id);
   var events = calendar.getEventsForDay(now, { search: 'Sprint' });
-  return events.length > 0 ? events[0] : null;
+  Logger.log('Number of events found: ' + events.length); // Log the number of events found
+
+  if (events.length > 0) {
+    var event = events[0];
+    Logger.log('Selected event title: ' + event.getTitle()); // Log the title of the selected event
+    Logger.log('Event start time: ' + event.getStartTime()); // Log start time
+    Logger.log('Event end time: ' + event.getEndTime()); // Log end time
+    return event;
+  } else {
+    Logger.log('No events found for current day.');
+    return null;
+  }
 }
 
 // Helper function to: Duplicate the IMPACT Sprint Review Template in the Testing folder and return the newly created file.
@@ -73,6 +84,39 @@ function updateHyperlinkInPresentation(presentationId, slideIndex, shapeText, ja
   }
 }
 
+// Helper function to get today's date
+function getToday() {
+  return new Date();
+}
+
+// Helper function to calculate the next most recent blurb due date
+function getNextDueDate() {
+  const startDate = new Date("December 4, 2023 12:00:00");
+  const today = getToday();
+
+  // Calculate the difference in days from the start date
+  const daysDiff = Math.floor((today - startDate) / (24 * 60 * 60 * 1000));
+
+  // Calculate the number of bi-weeks since the start date
+  const biWeeksSinceStart = Math.floor(daysDiff / 14);
+
+  // Calculate the next due date
+  const nextDueDate = new Date(startDate);
+  nextDueDate.setDate(startDate.getDate() + (biWeeksSinceStart + 2) * 14);
+  nextDueDate.setHours(12, 0, 0, 0);
+
+  // Adjust the date to the previous Friday
+  nextDueDate.setDate(nextDueDate.getDate() - 3);
+
+  return nextDueDate;
+}
+
+// Helper function to format the blurb due date in the standard format
+function formatDate(date) {
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  return date.toLocaleDateString('en-US', options);
+}
+
 // Primary function to: Create a new presentation.
 function createNewPresentation() {
   var sprintEvent = getCurrentSprintEvent();
@@ -90,10 +134,13 @@ function createNewPresentation() {
 
     var presentation = SlidesApp.openById(newFile.getId());
 
+    var sprintEndDate = new Date(sprintEvent.getEndTime().getTime()); // calculate Sprint end date minus one day
+    sprintEndDate.setDate(sprintEndDate.getDate() - 1);
+
     // Slide 1
     var slide1 = presentation.getSlides()[0];
     slide1.replaceAllText('{{currentSprintNumber}}', currentSprintNumber);
-    slide1.replaceAllText('{{Date of Sprint Review}}', sprintEvent.getEndTime().toDateString());
+    slide1.replaceAllText('{{Date of Sprint Review}}', sprintEndDate.toDateString());
     slide1.replaceAllText('{{FY}}', new Date().getFullYear().toString().slice(-2));
 
     // Slide 3
@@ -114,11 +161,17 @@ function createNewPresentation() {
     var slide9 = presentation.getSlides()[8]; // because indexing starts at 0
     slide9.replaceAllText('{{FY.Q}}', fiscalYearQuarter);
     slide9.replaceAllText('{{S}}', sprintNumber);
+
+    // Slide 25
+    var nextDueDate = formatDate(getNextDueDate()); // Get the formatted next due date
+    var slideForDueDate = presentation.getSlides()[24]; // 
+    slideForDueDate.replaceAllText('{{Blurb due date}}', nextDueDate);
+
   }
 }
 
 // Trigger function to execute one week before the next Sprint Review event on the IMPACT PI Calendar
-function executeOneWeekBeforeSprintReview() {
+/*function executeOneWeekBeforeSprintReview() {
   var sourceCalendar = CalendarApp.getCalendarById(source_calendar_id);
   var today = new Date();
   var oneWeekFromToday = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -146,4 +199,4 @@ function executeOneWeekBeforeSprintReview() {
   } else {
     Logger.log("No upcoming Sprint Review event found within the next week.");
   }
-}
+}*/
