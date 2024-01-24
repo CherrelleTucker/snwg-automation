@@ -20,9 +20,14 @@
 // Global variables
 var quadTemplateId = '1iWm9oAJ-hFR_BJ-pEFGndhfFCLhWIigxJBvZM5xlf2M'; // SNWG MO Weekly Quad Chart Slide Template
 var targetPresentationId = '1wV26VGjZJ_P7hsnxdkub6PltQ3ZkedYb8yDviEYE4aE'; // SNWG MO Weekly Quad Chart presentation
-var DMPRfolderID = '1y2vjwf52HBJpTeSIg7sYPaLSSzGAnWZU'; // IMPACT/SNWG DMPR folder
+var dmprfolderID = '1NCH6-V9pMA8pOivX0XD5ZtGLT-8OQZ6A'; // IMPACT/SNWG DMPR folder FY24
 var agendasFolderID = '13zl2CvMNtDMFKcNZetAA00e5tkh3Eo_M'; // SNWG Meeting Notes folder 
-var sheetID = '1uYgX660tpizNbIy44ddQogrRphfwZqn1D0Oa2RlSYKg' // SNWG MO Action Tracking Sheet 
+var devSeedFolderID = '1Bvj1b1u2LGwjW5fStQaLRpZX5pmtjHSj'; // Assessment/DevSeed Weekly Meeting Agenda Folder
+var assessmentHQFolderID = '1dmN0oYQZwGFu83BwOGT90I_GFtGH1aup'; // Assessment/HQ Weekly MEeting Agenda Folder
+var operaFolderID = '1AX95NPrIYiLvn_1l8a6G4JwI6wW0viD8'; // FY24 OPERA Meeting Notes Folder
+var sheetID = '1uYgX660tpizNbIy44ddQogrRphfwZqn1D0Oa2RlSYKg'; // SNWG MO Action Tracking Sheet 
+var teamCalendar = 'c_365230bc41700e58e23f74b286db1773d395e4bc6807c81a4c78658df5db423e@group.calendar.google.com'; // SNWG Team Google Calendar
+var impactPiCalendar = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com'; // IMPACT PI calendar
 
 // helper function to create custom menu for manually updating slides
 function onOpen() {
@@ -32,146 +37,21 @@ function onOpen() {
       .addToUi();
 }
 
-// immediately invoked function expression - adjustedPIcalculator to calculate current PI  ****DO NOT TOUCH****
-var adjustedPIcalculator = (function(){
-  // Adjustment Weeks to account for holidays, vacations, etc. Add the first Sunday of the Adjustment Week at the bottom of the list in 'YYYY-MM-DD' format. 
-  var ADJUSTMENT_WEEKS = []; // Add adjustment week dates here.
-  ADJUSTMENT_WEEKS.push(new Date('2023-07-02')); // Innovation Week #2
-  ADJUSTMENT_WEEKS.push(new Date('2023-07-16')); // IGARSS 2023
-  // Add dates as 'yyyy-mm-dd'
+// function to get FY.PI.Sprint from IMPACT PI Calendar
+function getPiFromImpactPiCalendar() {
+    var calendar = CalendarApp.getCalendarById(impactPiCalendar);
+    var currentWeekDates = getCurrentWeekDates();
+    var events = calendar.getEvents(currentWeekDates.start, currentWeekDates.end);
+    var piRegex = /PI \d{2}\.\d Sprint \d/; // Regex to match "PI YY.Q Sprint S" format
 
-  ///////////////////////////////////////
-
-  // Global variables
-  var BASE_DATE = new Date('2023-04-16');  // The date for '23.3.1 Week 1', the beginning sprint of record for the purposes of this script. 
-  var BASE_FY = 23;
-  var BASE_PI = 3;
-  var BASE_SPRINT = 1;
-  var BASE_WEEK = 1;
-
-  // Helper function to convert a date to the number of milliseconds since Jan 1, 1970
-  function toMillis(date) {
-    return Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
-  }
-
-  // Helper function to calculate Adjustment Weeks
-  function adjustmentWeeks(date) {
-    var adjustmentWeeks = 0;
-    var currentTime = toMillis(date);
-    for(var i = 0; i < ADJUSTMENT_WEEKS.length; i++) {
-      if(toMillis(ADJUSTMENT_WEEKS[i]) <= currentTime) {
-        adjustmentWeeks++;
-      }
+    for (var i = 0; i < events.length; i++) {
+        var event = events[i];
+        if (piRegex.test(event.getTitle())) {
+            return event.getTitle();
+        }
     }
-    return adjustmentWeeks;
-  }
-
-  // Helper function to calculate the current fiscal year
-  function getFiscalYear(date) {
-    var year = date.getFullYear();
-    var month = date.getMonth();
-    
-    // The fiscal year starts in October (month index 9)
-    return month >= 9 ? year + 1 : year;
-  }
-
-  // Helper function to get current PI (Q) (1-4)
-  function getQuarter(date) {
-    // In JavaScript, months are 0-indexed, so October is 9 and September is 8
-    var month = date.getMonth();
-    
-    // The first quarter of the fiscal year starts in October
-    if (month >= 9) {
-      return ((month - 9) / 3 | 0) + 1;
-    } else {
-      return ((month + 3) / 3 | 0) + 1;
-    }
-  }
-
-  // Helper function to get current Sprint (1-6)
-  function getSprint(date) {
-    var fiscalYearStart = new Date(getFiscalYear(date), 9, 1);
-    var diffWeeks = Math.ceil(((date - fiscalYearStart + 1) / (24 * 60 * 60 * 1000)) / 7);
-    
-    // Subtract adjustment weeks
-    diffWeeks -= adjustmentWeeks(date);
-    
-    // Subtract the base week of the quarter
-    var baseWeek = (getQuarter(date) - 1) * 13;
-    diffWeeks -= baseWeek;
-    
-    // Calculate the sprint based on the week of the fiscal year, after accounting for adjustment weeks
-    var sprint = Math.ceil(diffWeeks / 2);
-    
-    return sprint;
-  }
-
-  // Helper function to get current week (1-2)
-  function getWeek(date) {
-    return Math.ceil(((date - new Date(getFiscalYear(date), 9, 1) + 1) / (24 * 60 * 60 * 1000)) / 7) % 2 === 0 ? 2 : 1;
-  }
-
-  // Helper function to get week of the year
-  function getWeekOfYear(date) {
-    var start = new Date(date.getFullYear(), 0, 1);
-    var diff = date - start + (start.getTimezoneOffset() - date.getTimezoneOffset()) * 60 * 1000;
-    var oneDay = 1000 * 60 * 60 * 24;
-    var day = Math.floor(diff / oneDay);
-    return Math.ceil(day / 7);
-  }
-
-  // Helper function to rename FY.Q.6.1 to "Innovation Week"
-  function renameInnovation(pi) {
-    return pi.endsWith(".6.1") ? "Innovation Week" : pi;
-  }
-
-  // Helper function to rename FY.Q.6.2 to "Next PI Planning"
-  function renameNextPiPlanning(pi) {
-    return pi.endsWith(".6.2") ? "Next PI Planning" : pi;
-  }
-
-  // Helper function to calculate the Adjusted PI
-  function getPI(inputDate) {
-    if (!(inputDate instanceof Date)) {
-      // Attempt to parse the inputDate as a string and convert it to a Date object
-      inputDate = new Date(inputDate);
-
-      // Check if the parsed inputDate is valid
-      if (isNaN(inputDate.getTime())) {
-        throw new Error("Invalid date provided to getPI function.");
-      }
-    }
-
-    var daysPassed = (toMillis(inputDate) - toMillis(BASE_DATE)) / (24 * 60 * 60 * 1000) - adjustmentWeeks(inputDate) * 7;
-    var weeksPassed = Math.floor(daysPassed / 7);
-    
-    // calculate the total two week periods passed since the BASE_DATE
-    var totalTwoWeekPeriods = Math.floor(weeksPassed / 2);
-    
-    var week = weeksPassed % 2 + 1;
-    var sprint = totalTwoWeekPeriods % 6 + 1;
-    var pi = Math.floor(totalTwoWeekPeriods / 6) % 4 + BASE_PI;
-    var fy = BASE_FY + Math.floor(totalTwoWeekPeriods / (6 * 4));
-    var piStr = "FY" + fy + "." + pi + "." + sprint + " Week " + week;  // Format result as FY.Q.S Week W
-    piStr = renameInnovation(piStr);
-    piStr = renameNextPiPlanning(piStr);
-
-    return piStr;
-  }
-
-  // Primary function to replace placeholder text {{Adjusted PI}} with the calculated Adjusted PI
-  function replacePlaceholderWithPI(document, adjustedPI) {
-    var body = document.getBody();
-    var text = body.editAsText();
-    text.replaceText("{{Adjusted PI}}", adjustedPI);
-  }
-
-  // Make the getPI function accessible outside the IIFE
-  return {
-    getPI: getPI,
-    replacePlaceholderWithPI: replacePlaceholderWithPI
-  };
-})();
+    return "No PI Event Found"; // Return this if no matching event is found
+}
 
 // helper function to duplicate template slide with placeholders
 function duplicateTemplateSlide(quadTemplateId) {
@@ -225,132 +105,87 @@ function extractDateFromFileName(fileName) {
   }
 }
 
-// helper function to find current week files
-function getFilesForCurrentWeek(folderID, currentWeekDates) {
-  var filesWithLinks = [];
-  var foldersToProcess = [folderID];
+// Helper function to find current week files, including from subfolders, with certain exclusions
+function getFilesForCurrentWeek(folderIDs, currentWeekDates) {
+    var filesWithLinks = [];
+    var adjustedStartDate = new Date(currentWeekDates.start);
+    adjustedStartDate.setDate(adjustedStartDate.getDate() - 1);
+    var adjustedEndDate = new Date(currentWeekDates.end);
+    adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
 
-  // Additional code to get files from a specific folder
-  var specificFolderID = "1M3EMWLCxhkqcPKLmH7grDu2zhSEuOvmc"; // Replace with the specific folder ID
-  var specificFilesWithLinks = getFilesForCurrentWeekFromSpecificFolder(specificFolderID, currentWeekDates);
-  filesWithLinks = filesWithLinks.concat(specificFilesWithLinks);
+    folderIDs.forEach(function(folderID) {
+        try {
+            var foldersToProcess = [folderID];
 
-  // Subtract one day from the start date
-  var adjustedStartDate = new Date(currentWeekDates.start);
-  adjustedStartDate.setDate(adjustedStartDate.getDate() - 1);
+            while (foldersToProcess.length > 0) {
+                var currentFolderID = foldersToProcess.pop();
+                var folder = DriveApp.getFolderById(currentFolderID);
+                Logger.log("Processing folder: " + folder.getName());
 
-  // Add one day to the end date
-  var adjustedEndDate = new Date(currentWeekDates.end);
-  adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
+                var files = folder.getFiles();
+                while (files.hasNext()) {
+                    var file = files.next();
+                    var fileName = file.getName();
+                    Logger.log("Found file: " + fileName);
+                    var fileDate = extractDateFromFileName(fileName);
 
-  while (foldersToProcess.length > 0) {
-    var currentFolderID = foldersToProcess.pop();
-    var folder = DriveApp.getFolderById(currentFolderID);
-    var folderName = folder.getName(); // Get the name of the current folder
+                    if (fileDate && fileDate >= adjustedStartDate && fileDate <= adjustedEndDate) {
+                        filesWithLinks.push({
+                            name: fileName,
+                            url: file.getUrl()
+                        });
+                    }
+                }
 
+                var subfolders = folder.getFolders();
+                while (subfolders.hasNext()) {
+                    var subfolder = subfolders.next();
+                    var subfolderName = subfolder.getName();
 
-    var files = folder.getFiles();
+                    if (!["2020", "2021", "FY21", "2022", "FY22", "2023", "FY23", "Archived Notes"].includes(subfolderName)) {
+                        foldersToProcess.push(subfolder.getId());
+                    }
+                }
+            }
+        } catch (e) {
+            Logger.log("Error accessing folder with ID: " + folderID + ". Error: " + e.message);
+        }
+    });
 
-    while (files.hasNext()) {
-      var file = files.next();
-      var fileName = file.getName();
-      var fileDate = extractDateFromFileName(fileName);
-
-      // Check if the file name starts with 2023 or 2024
-      if (fileName.startsWith("2023") || fileName.startsWith("2024")) {
-        var fileDate = extractDateFromFileName(fileName);
-
-      if (fileDate && fileDate >= adjustedStartDate && fileDate <= adjustedEndDate) {
-        filesWithLinks.push({
-          name: fileName,
-          url: file.getUrl()
-        });
-      }
-    } // else skip this file
-  }
-
-    var subfolders = folder.getFolders();
-    while (subfolders.hasNext()) {
-      var subfolder = subfolders.next();
-      var subfolderName = subfolder.getName();
-
-      // Exclude subfolders with specific names
-      if (subfolderName !== "2020" && subfolderName !== "2021" && subfolderName !== "FY21" && subfolderName !== "2022" && subfolderName !== "FY22" && subfolderName !== "Archived Notes") {
-        foldersToProcess.push(subfolder.getId());
-      }
-    }
-  }
-
-  return filesWithLinks;
+    return filesWithLinks;
 }
 
-// sub-helper function to get JPL-hosted files for current week (Shared, deeply-nested folder structure)
-function getFilesForCurrentWeekFromSpecificFolder(specificFolderID, currentWeekDates) {
-  var filesWithLinks = [];
-  var specificFolderID = '1M3EMWLCxhkqcPKLmH7grDu2zhSEuOvmc';
-  var foldersToProcess = [specificFolderID]; // Start with the specific folder ID
+// Helper function: Get Team Schedule events from the designated calendar
+function getCalendarEventsForCurrentWeek() {
+  var currentWeek = getCurrentWeekDates(); // Assuming this returns an object with 'start' and 'end' Date objects
+  var calendar = CalendarApp.getCalendarById(teamCalendar); // Using global variable teamCalendar
+  var events = calendar.getEvents(currentWeek.start, currentWeek.end);
 
-  while (foldersToProcess.length > 0) {
-    var currentFolderID = foldersToProcess.pop();
-    var folder = DriveApp.getFolderById(currentFolderID);
-    var folderName = folder.getName(); // Get the name of the current folder
-
-    // Log the name and ID of the current folder being processed
-    Logger.log("Processing folder: " + folderName + " (ID: " + currentFolderID + ")");
-
-    var files = folder.getFiles();
+  var eventDetails = [];
+  for (var i = 0; i < events.length; i++) {
+    var event = events[i];
     
-    while (files.hasNext()) {
-      var file = files.next();
-      var fileName = file.getName();
-      var fileDate = extractDateFromFileName(fileName);
-      // Log the file name for debugging
+    var startDate = event.getStartTime();
+    var endDate = event.getEndTime();
 
-      if (fileDate && fileDate >= currentWeekDates.start && fileDate <= currentWeekDates.end) {
-        filesWithLinks.push({
-          name: fileName,
-          url: file.getUrl()
-        });
-      }
+    // Adjust for all-day events
+    if (event.isAllDayEvent()) {
+      endDate = new Date(endDate.getTime() - 24 * 60 * 60 * 1000); // Subtract one day from the end date
     }
 
-    var subfolders = folder.getFolders();
-    while (subfolders.hasNext()) {
-      var subfolder = subfolders.next();
-      var subfolderName = subfolder.getName();
+    var formattedStartDate = Utilities.formatDate(startDate, Session.getScriptTimeZone(), "MMMM d");
+    var formattedEndDate = Utilities.formatDate(endDate, Session.getScriptTimeZone(), "MMMM d");
 
-      // Exclude subfolders with specific names
-      if (subfolderName !== "2020" && subfolderName !== "2021" && subfolderName !== "FY21" && subfolderName !== "2022" && subfolderName !== "FY22" && subfolderName !== "Archived Notes") {
-        foldersToProcess.push(subfolder.getId());
-      } else {
-      }
-    }
+    // Check if start date and end date are the same
+    var dateRange = (formattedStartDate === formattedEndDate) ? formattedStartDate : (formattedStartDate + " - " + formattedEndDate);
+    
+    eventDetails.push({
+      title: event.getTitle(),
+      date: dateRange
+    });
   }
-
-  return filesWithLinks;
+  return eventDetails;
 }
-
-// helper function to get dates for last week
-//function getLastWeekDates() {
-//  var currentDate = new Date();
-//  var startOfLastWeek = new Date(currentDate);
-// startOfLastWeek.setDate(currentDate.getDate() - 7); // Go back one week to find the start
-// startOfLastWeek.setDate(startOfLastWeek.getDate() - startOfLastWeek.getDay() + 1); // Align to the start of the week (Monday)
-
-// var endOfLastWeek = new Date(startOfLastWeek);
-// endOfLastWeek.setDate(startOfLastWeek.getDate() + 4); // Last week's end date (Friday)
-
-// return {
-//   start: startOfLastWeek,
-//   end: endOfLastWeek
-// };
-//}
-
-// helper function to find last week files
-// function getFilesForLastWeek(folderID) {
-//  var lastWeekDates = getLastWeekDates(); // Get the start and end dates for last week
-//  return getFilesForCurrentWeek(folderID, lastWeekDates);
-//}
 
 // helper function to replace slide placeholders
 function replacePlaceholdersInSlide(slide, replacements) {
@@ -369,6 +204,15 @@ function replacePlaceholdersInSlide(slide, replacements) {
   } catch (error) {
     Logger.log("Error replacing placeholders in slide: " + error);
     throw error;
+  }
+
+    // Special handling for Team Schedules
+  if (replacements['{{Team Schedules}}']) {
+    var teamScheduleEvents = getCalendarEventsForCurrentWeek();
+    var scheduleString = teamScheduleEvents.map(function(event) {
+      return event.title + ": " + event.date;
+    }).join('\n');
+    replacements['{{Team Schedules}}'] = scheduleString;
   }
 }
 
@@ -395,13 +239,14 @@ function findCurrentDMPRFile() {
   var searchPattern = year + "-" + month + "_SNWG_DMPR";
 
   // Get the files in the folder with the given folder ID
-  var folder = DriveApp.getFolderById(DMPRfolderID);
+  var folder = DriveApp.getFolderById(dmprfolderID);
   var files = folder.getFiles();
 
   // Loop through the files and look for the one with the correct name format
   while (files.hasNext()) {
     var file = files.next();
     if (file.getName().startsWith(searchPattern)) {
+      Logger.log("DMPR file found: " + file.getName()); // Log for debugging
       return file; // Return the found file
     }
   }
@@ -436,127 +281,122 @@ function handleCurrentDMPRShape(currentDMPRShape) {
   }
 }
 
-// helper function to update Open Action Items
+// Get the current month's DMPR file and format the text
+function getFormattedDmprText() {
+    var dmprFile = findCurrentDMPRFile();
+    if (dmprFile) {
+        var year = new Date().getFullYear();
+        var month = ("0" + (new Date().getMonth() + 1)).slice(-2);
+        return year + "-" + month + " DMPR";
+    }
+    return ""; // Return an empty string if no DMPR file is found
+}
+
+// helper function to pull Open Action Items from the Action Tracking workbook
 function updateOpenActionItems() {
-  // Open the Google Sheet by ID and get the sheet named 'MO'
   var sheet = SpreadsheetApp.openById(sheetID).getSheetByName('MO');
 
   if (sheet === null) {
     Logger.log('Could not find sheet with name MO');
-    return null;
+    return [];
   }
 
   // Define the columns
-  var statusColumn = 2; // Column B
-  var assignedToColumn = 3; // Column C
-  var taskColumn = 4; // Column D
+  var statusColumn = 2; // Column B for status
+  var assignedToColumn = 3; // Column C for assigned to
+  var taskColumn = 4; // Column D for task
 
   // Get the values from the Sheet
-  var statuses = sheet.getRange('B2:B' + sheet.getLastRow()).getValues();
-  var assignedToTasks = [];
-  for (var i = 0; i < statuses.length; i++) {
-    if (statuses[i][0].toLowerCase() != 'done') {
-      assignedToTasks.push([
-        sheet.getRange(i + 2, assignedToColumn).getValue(),
-        sheet.getRange(i + 2, taskColumn).getValue()
-      ]);
-    }
-  }
+  var dataRange = sheet.getRange(2, 1, sheet.getLastRow(), taskColumn).getValues(); // Adjust range to include all necessary columns
+  var openActionItems = dataRange.filter(function(row) {
+    return row[statusColumn - 1].toLowerCase() != 'done'; // Filter out rows where status is 'done'
+  }).map(function(row) {
+    return [row[assignedToColumn - 1], row[taskColumn - 1]]; // Return the assigned to and task columns
+  });
 
-  return assignedToTasks; // Return the data to be used in the primary function
+  return openActionItems;
+}
+
+// function to fetch the list generated in updateOpenActionItems to update the table in the slide
+function updateActionItemsTable(newSlide, assignedToTasks) {
+  var tables = newSlide.getTables();
+
+  if (tables.length > 0) {
+    var table = tables[0];
+    var currentNumRows = table.getNumRows();
+    var numRowsNeeded = assignedToTasks.length;
+
+    // Remove excess rows if needed
+    while (currentNumRows > numRowsNeeded) {
+      table.removeRow(currentNumRows - 1);
+      currentNumRows--;
+    }
+
+    // Add new rows or update existing rows with action items
+    for (var row = 0; row < numRowsNeeded; row++) {
+      if (row >= currentNumRows) {
+        table.appendRow(); // Append a new row if needed
+      }
+      table.getCell(row, 0).getText().setText(assignedToTasks[row][0]); // Assigned To
+      table.getCell(row, 1).getText().setText(assignedToTasks[row][1]); // Task
+    }
+  } else {
+    Logger.log("No table found for action items on the slide.");
+  }
 }
 
 // Primary function to create and populate new slide
 function updatePresentationOptimized() {
-
-  // Duplicate the template and get the new presentation
+  // Duplicate the template slide
   var newSlide = duplicateTemplateSlide(quadTemplateId);
 
-  // Get dates and current PI
-  var currentWeekDates = getCurrentWeekDates(); // No need to reformat the dates, use the formatted version directly
-  Logger.log("currentWeekDates value: " + currentWeekDates);
-  Logger.log("currentWeekDates type: " + typeof currentWeekDates);
+  // Get Current PI
+  var currentPI = getPiFromImpactPiCalendar();
 
-  // Call the updateOpenActionItems function and store the result
+  // Update DMPR
+  var dmprShape = findShapeByAltText(newSlide, "DMPR Placeholder");
+  handleCurrentDMPRShape(dmprShape);
+  var dmprText = getFormattedDmprText();
+
+  // Get the current week's dates
+  var currentWeekDates = getCurrentWeekDates();
+  var weekDatesString = currentWeekDates.formatted;
+
+  // Fetch the team schedule events for the current week
+  var teamScheduleEvents = getCalendarEventsForCurrentWeek();
+  var teamSchedulesString = teamScheduleEvents.map(function(event) {
+    return event.title + ": " + event.date;
+  }).join('\n');
+
+  // Fetch agenda files for the current week
+  var folderIDsToSearch = [agendasFolderID, 
+      // '1AX95NPrIYiLvn_1l8a6G4JwI6wW0viD8', // OPERA FY24 Monthly Meeting Agenda Folder
+      // '1dmN0oYQZwGFu83BwOGT90I_GFtGH1aup', // Assessment/HQ Weekly Meeting Agenda Folder
+      '1Bvj1b1u2LGwjW5fStQaLRpZX5pmtjHSj']; // DevSeed Folder ID
+  var currentWeekAgendas = getFilesForCurrentWeek(folderIDsToSearch, currentWeekDates);
+  var agendaString = currentWeekAgendas.map(function(file) {
+    return file.url;
+  }).join('\n');
+
+  // Fetch the open action items
   var assignedToTasks = updateOpenActionItems();
 
-  // Get all tables in the slide
-  var tables = newSlide.getTables();
+  // Update the Open Action Items table
+  updateActionItemsTable(newSlide, assignedToTasks);
 
-  // If there's a table, let's assume it's the "Open Action Items" table
-  if (tables.length > 0) {
-    var table = tables[0]; // Get the first table
-    var numRows = assignedToTasks.length;
-    var numColumns = assignedToTasks[0].length;
+  // Placeholder replacements
+  var placeholders = {
+    '{{Current Mon to Fri}}': weekDatesString,  // Current week's Monday to Friday dates
+    '{{Team Schedules}}': teamSchedulesString, // Team schedules for the current week
+    '{{Current Week Agenda}}': agendaString, // Agendas for the current week
+    '{{Adjusted PI}}': currentPI,// Update PI
+    '{{Current DMPR}}': dmprText, // Update current DMPR
+  };
 
-    // Ensure the table has enough rows, add if necessary
-    while (table.getNumRows() < numRows) {
-      table.appendRow();
-    }
+  // Replace placeholders in the new slide
+  replacePlaceholdersInSlide(newSlide, placeholders);
 
-    // Ensure the table has enough columns, add if necessary
-    while (table.getNumColumns() < numColumns) {
-      table.appendColumn();
-    }
-
-    // Populate the table with assigned tasks
-    for (var row = 0; row < numRows; row++) {
-      for (var col = 0; col < numColumns; col++) {
-        table.getCell(row, col).getText().setText(assignedToTasks[row][col]);
-      }
-    }
-  } else {
-    Logger.log("No table found on the slide.");
-  } 
-
-  // Use the currentWeekDates directly since it already contains the formatted dates and the start and end dates
-  var weekDatesString = currentWeekDates.formatted;
-  
-  // Get files for the current week
-  var currentWeekFiles = getFilesForCurrentWeek(agendasFolderID, currentWeekDates);
-
-  // Get the "This Week Agendas" shape
-  var thisWeekAgendasShape = findShapeByAltText(newSlide, "This Week Agendas");
-
-  // Populate "This Week Agendas" shape with files for the current week
-  if (thisWeekAgendasShape) {
-    var thisWeekAgendasText = currentWeekFiles.map(function(file) {
-      return file.url; // Format as you like
-    }).join('\n');
-    thisWeekAgendasShape.getText().setText(thisWeekAgendasText);
-  }
-    
-  // Get the "Last Week Agendas" shape
-  // var lastWeekAgendasShape = findShapeByAltText(newSlide, "Last Week Agendas");
-
-  // Get files for the last week
-  //  var lastWeekFiles = getFilesForLastWeek(agendasFolderID);
-
-    // Populate "Last Week Agendas" shape with files for the last week
-  //  if (lastWeekAgendasShape) {
-  //    var lastWeekAgendasText = lastWeekFiles.map(function(file) {
-  //      return file.url; // Format as you like
-  //    }).join('\n');
-  //    lastWeekAgendasShape.getText().setText(lastWeekAgendasText);
-  //  }
-
-  var currentPI = adjustedPIcalculator.getPI(new Date());
-  var year = new Date().getFullYear();
-  var month = ("0" + (new Date().getMonth() + 1)).slice(-2);
-  var dmprText = year + "-" + month + " DMPR";
-  var currentDMPRShape = findShapeByAltText(newSlide, "DMPR Placeholder");
-  handleCurrentDMPRShape(currentDMPRShape);
-
-  updateOpenActionItems();
-
-  // Replace placeholders with corresponding dates and PI in the new slide
-  replacePlaceholdersInSlide(newSlide, {
-    '{{Current Mon to Fri}}': weekDatesString, // Use the formatted date string directly
-    '{{Adjusted PI}}': currentPI,
-    '{{Current DMPR}}': dmprText
-  });
-
-  // Insert the new slide at the beginning
+  // Insert the new slide at the beginning of the target presentation
   var targetPresentation = SlidesApp.openById(targetPresentationId);
   targetPresentation.insertSlide(0, newSlide);
 }
