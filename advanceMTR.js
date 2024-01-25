@@ -70,6 +70,10 @@ function updateTabName(currentMonth) {
   ];
   var nextMonth = (currentMonth + 1) % 12;
   var year = new Date().getFullYear();
+  // Increment the year if the current month is December
+  if (currentMonth === 11) {  // December is index 11
+    year++;
+  }
   var tabName = months[nextMonth] + " " + year;
   return tabName;
 }
@@ -98,4 +102,41 @@ function createNewTab() {
   moveNewSheet(ss, newSheet);
   replaceCellText(newSheet, nextMonth);
   clearUniqueWorkText(newSheet);
+}
+
+
+
+///////////Testing Functions///////////////
+
+testCreateNewTabOnDate("12/31/2023")
+
+function testCreateNewTabOnDate(inputDateString) {
+  // Parse the input date string
+  var simulatedCurrentDate = new Date(inputDateString);
+  var simulatedCurrentMonth = simulatedCurrentDate.getMonth();
+  var simulatedCurrentYear = simulatedCurrentDate.getFullYear();
+
+  // Simulate finding the current month and year as if the script is run on the given date
+  var nextTabName = simulateUpdateTabName(simulatedCurrentMonth, simulatedCurrentYear);
+
+  // Print the result to the console
+  console.log("If run on " + inputDateString + ", the new tab name would be: " + nextTabName);
+}
+
+function simulateUpdateTabName(currentMonth, currentYear) {
+  var months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  var nextMonth = (currentMonth + 1) % 12;
+  var nextYear = currentYear;
+
+  // Increment year if the current month is December
+  if (currentMonth === 11) {
+    nextYear++;
+  }
+
+  var tabName = months[nextMonth] + " " + nextYear;
+  return tabName;
 }
