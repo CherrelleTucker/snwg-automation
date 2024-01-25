@@ -37,6 +37,21 @@ function extractCurrentPINumber(eventTitle) {
   return eventTitle.split(' ')[1]; // "PI 23.4 IMPACT PI Planning Welcome" -> "23.4"
 }
 
+// helper function to calculate the previous fiscal year and quarter
+function calculatePreviousFYQ(fiscalYear, quarter) {
+  var previousQuarter, previousFiscalYear;
+
+  if (quarter === '1') {
+    previousQuarter = '4';
+    previousFiscalYear = (parseInt(fiscalYear) - 1).toString(); // Decrement the fiscal year
+  } else {
+    previousQuarter = (parseInt(quarter) - 1).toString(); // Decrement the quarter
+    previousFiscalYear = fiscalYear;
+  }
+
+  return previousFiscalYear + '.' + previousQuarter;
+}
+
 // Helper function to: Duplicate the IMPACT Welcome Template in the Placement folder and return the newly created file.
 function duplicateTemplate(currentPINumber) {
   var templateFile = DriveApp.getFileById(template_id);
@@ -130,15 +145,19 @@ function createNewPresentation() {
     var currentPINumber = title.split(' ')[1]; // e.g., "23.4"
     var fiscalYear = currentPINumber.split('.')[0]; // e.g., "23"
     var quarter = currentPINumber.split('.')[1]; // e.g., "4"
+
+    // Calculate the previous fiscal year and quarter
+    var previousFYQ = calculatePreviousFYQ(fiscalYear, quarter);
     
     var newFile = duplicateTemplate(currentPINumber);
     
     var presentation = SlidesApp.openById(newFile.getId());
     var slides = presentation.getSlides();
     
-    // Global Placeholder
+    // Update placeholders in the presentation
     for (var i = 0; i < slides.length; i++) {
-      slides[i].replaceAllText('{{FY.Q}}',fiscalYear + '.' + quarter);
+      slides[i].replaceAllText('{{FY.Q}}', fiscalYear + '.' + quarter);
+      slides[i].replaceAllText('{{FY.Q-1}}', previousFYQ); // Replace the new placeholder
     }
     
     // Slide 1
@@ -161,3 +180,26 @@ function createNewPresentation() {
     }
   }
 }
+
+/////////////Testing//////////////////
+
+// Testing function to console log output for specific placeholders
+function testSprintDateCalculations(testDate) {
+  var simulatedWelcomeEventStart = new Date(testDate);
+  var simulatedWelcomeEventEnd = new Date(testDate); // You can adjust this if the end date is different
+
+  var sprintDates = calculateSprintDates(simulatedWelcomeEventStart, simulatedWelcomeEventEnd);
+
+  // Log the outputs for the placeholders
+  console.log('Test Date: ' + testDate);
+  console.log('{{Week 1-2}}: ' + sprintDates[0]);
+  console.log('{{Week 3-4}}: ' + sprintDates[1]);
+  console.log('{{Week 5-6}}: ' + sprintDates[2]);
+  console.log('{{Week 7-8}}: ' + sprintDates[3]);
+  console.log('{{Week 9-10}}: ' + sprintDates[4]);
+  console.log('{{Week 11}}: ' + sprintDates[5]);
+  console.log('{{Week 12}}: ' + sprintDates[6]);
+}
+
+// Example usage of the testing function
+testSprintDateCalculations('2024-012-15'); // Replace with any date you want to test
