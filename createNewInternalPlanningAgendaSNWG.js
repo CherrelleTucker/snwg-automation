@@ -16,6 +16,99 @@
 
 ////////////////////////////////////////////////
 
+// Dev Seed folder:https://drive.google.com/drive/folders/1Bvj1b1u2LGwjW5fStQaLRpZX5pmtjHSj; {{link to Assessment DevSeed Agenda}}
+// Assessment folder: https://drive.google.com/drive/folders/1dmN0oYQZwGFu83BwOGT90I_GFtGH1aup; {{link to Assessment HQ Agenda}}
+// SEP folder: https://drive.google.com/drive/folders/1Cw_sdH_IleGbtW1mVoWnJ0yqoyzr4Oe0; {{link to SEP Agenda}}
+// OPERA folder: https://drive.google.com/drive/folders/1AX95NPrIYiLvn_1l8a6G4JwI6wW0viD8; {{link to last OPERA tag up}} {{link to next OPERA tag up}} 
+// DMPR folder: https://drive.google.com/drive/folders/1NCH6-V9pMA8pOivX0XD5ZtGLT-8OQZ6A; {{link to current DMPR}}
+// NASA SNWG folder: https://drive.google.com/drive/folders/1r52FELtJWytcp5Iw7F01wSxuXeRYcm78; {{link to last SNWG/NASA monthly}} 
+// SNWG Internal folder: https://drive.google.com/drive/folders/1SRIUs7CUEdGUw0r1PI52e0OJpfXYN0z8; {{Link to Previous Agenda}} 
+// Team Schedules calendar: c_365230bc41700e58e23f74b286db1773d395e4bc6807c81a4c78658df5db423e@group.calendar.google.com; {{Team Schedules}}
+// IMPACT PI calendar = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com'; // IMPACT Project Increment Google Calendar
+
+var impactPIcalendar = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com'; // IMPACT Project Increment Google Calendar
+
+// helper function to get current week Mon-Fri dates
+function getCurrentWeekDates() {
+  try {
+    var today = new Date();
+    var startOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 1));
+    var endOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 5));
+    return {
+      start: startOfWeek,
+      end: endOfWeek,
+      formatted: Utilities.formatDate(startOfWeek, 'GMT', 'MM/dd/yy') + " - " + Utilities.formatDate(endOfWeek, 'GMT', 'MM/dd/yy')
+    };
+  } catch (error) {
+    Logger.log("Error getting current week dates: " + error);
+    throw error;
+  }
+}
+
+// Helper function to find and return the Current Sprint event.
+function getCurrentSprintEvent() {
+  var now = new Date();
+  var calendar = CalendarApp.getCalendarById(impactPIcalendar);
+  var events = calendar.getEventsForDay(now, { search: 'Sprint' });
+  Logger.log('Number of events found: ' + events.length); // Log the number of events found
+
+  if (events.length > 0) {
+    var event = events[0];
+    Logger.log('Selected event title: ' + event.getTitle()); // Log the title of the selected event
+    Logger.log('Event start time: ' + event.getStartTime()); // Log start time
+    Logger.log('Event end time: ' + event.getEndTime()); // Log end time
+    return event;
+  } else {
+    Logger.log('No events found for the current day.');
+    return null;
+  }
+}
+
+// Function to get FY.PI.Sprint from IMPACT PI Calendar with Week Number
+function getPiFromImpactPiCalendar(internalDate) {
+  var calendar = CalendarApp.getCalendarById(impactPIcalendar);
+  var weekStart = new Date(internalDate.getTime());
+  weekStart.setDate(internalDate.getDate() - internalDate.getDay() + 1); // Set to Monday of the week
+  var weekEnd = new Date(weekStart.getTime());
+  weekEnd.setDate(weekStart.getDate() + 4); // Set to Friday of the week
+
+  var events = calendar.getEvents(weekStart, weekEnd);
+  var piRegex = /PI \d{2}\.\d Sprint \d/; // Regex to match "PI YY.Q Sprint S" format
+
+  for (var i = 0; i < events.length; i++) {
+    var event = events[i];
+    if (piRegex.test(event.getTitle())) {
+      var eventTitle = event.getTitle();
+      var eventStartDate = event.getStartTime();
+      var weekNumber = determineWeekNumber(eventStartDate, internalDate);
+      return eventTitle + " Week " + weekNumber;
+    }
+  }
+  return "No PI Event Found";
+}
+
+// Adjusted function to determine the week number based on the internal date
+function determineWeekNumber(eventStartDate, internalDate) {
+  var oneWeekDuration = 7 * 24 * 60 * 60 * 1000; // One week in milliseconds
+  var timeDifference = internalDate.getTime() - eventStartDate.getTime();
+
+  if (timeDifference < oneWeekDuration) {
+    return 1; // First week of the sprint
+  } else {
+    return 2; // Second week of the sprint
+  }
+}
+
+
+// Modified helper function to populate {{Adjusted PI}} with the current PI information.
+function populateAdjustedPI(document, internalDate) {
+  var piInfo = getPiFromImpactPiCalendar(internalDate);
+
+  // Replace the placeholder text in the document with the obtained PI information
+  var documentBody = document.getBody();
+  documentBody.replaceText('{{Adjusted PI}}', piInfo);
+}
+
 // Helper Function: Create a copy of a template document
 function createCopyOfTemplate(templateId) {
   return DriveApp.getFileById(templateId).makeCopy();
@@ -100,6 +193,117 @@ function parseDateFromFileName(fileName) {
   return null;
 }
 
+// Helper Function: Get the link of the Assessment HQ file within the same week
+function getAssessmentHQLink(folderId, currentDate) {
+  var folder = DriveApp.getFolderById(folderId);
+  var files = folder.getFiles();
+  var assessmentHQFile = null;
+
+  while (files.hasNext()) {
+    var file = files.next();
+    var fileName = file.getName();
+
+    // Extract the date part from the filename (assuming it's in YYYY-MM-DD format)
+    var fileDateStr = fileName.match(/\d{4}-\d{2}-\d{2}/);
+
+    if (fileDateStr && !fileName.includes("Template")) {
+      // Check if the file date falls within the same week as the current date
+      var fileDate = new Date(fileDateStr[0]);
+      var weekStartDate = new Date(currentDate);
+      var weekEndDate = new Date(currentDate);
+      weekEndDate.setDate(weekEndDate.getDate() + 6); // Add 6 days to get the end of the week
+
+      if (fileDate >= weekStartDate && fileDate <= weekEndDate) {
+        Logger.log("Found Assessment HQ file for Date: " + currentDate);
+        assessmentHQFile = file;
+        break;
+      }
+    }
+  }
+
+  if (assessmentHQFile) {
+    Logger.log("Assessment HQ File Found for Date: " + currentDate);
+    return assessmentHQFile.getUrl();
+  } else {
+    Logger.log("Assessment HQ File Not Found for Date: " + currentDate);
+    return '';
+  }
+}
+
+// Helper Function: Get the link of the Assessment DevSeed file within the same week
+function getAssessmentDevSeedLink(folderId, currentDate) {
+  var folder = DriveApp.getFolderById(folderId);
+  var files = folder.getFiles();
+  var assessmentDevSeedFile = null;
+
+  while (files.hasNext()) {
+    var file = files.next();
+    var fileName = file.getName();
+
+    // Extract the date part from the filename (assuming it's in YYYY-MM-DD format)
+    var fileDateStr = fileName.match(/\d{4}-\d{2}-\d{2}/);
+
+    if (fileDateStr && !fileName.includes("Template")) {
+      // Check if the file date falls within the same week as the current date
+      var fileDate = new Date(fileDateStr[0]);
+      var weekStartDate = new Date(currentDate);
+      var weekEndDate = new Date(currentDate);
+      weekEndDate.setDate(weekEndDate.getDate() + 6); // Add 6 days to get the end of the week
+
+      if (fileDate >= weekStartDate && fileDate <= weekEndDate) {
+        Logger.log("Found Assessment DevSeed file for Date: " + currentDate);
+        assessmentDevSeedFile = file;
+        break;
+      }
+    }
+  }
+
+  if (assessmentDevSeedFile) {
+    Logger.log("Assessment DevSeed File Found for Date: " + currentDate);
+    return assessmentDevSeedFile.getUrl();
+  } else {
+    Logger.log("Assessment DevSeed File Not Found for Date: " + currentDate);
+    return '';
+  }
+}
+
+// Helper Function: Get the link of the SEP file within the same week
+function getSEPLink(folderId, currentDate) {
+  var folder = DriveApp.getFolderById(folderId);
+  var files = folder.getFiles();
+  var sepFile = null;
+
+  while (files.hasNext()) {
+    var file = files.next();
+    var fileName = file.getName();
+
+    // Extract the date part from the filename (assuming it's in YYYY-MM-DD format)
+    var fileDateStr = fileName.match(/\d{4}-\d{2}-\d{2}/);
+
+    if (fileDateStr && !fileName.includes("Template")) {
+      // Check if the file date falls within the same week as the current date
+      var fileDate = new Date(fileDateStr[0]);
+      var weekStartDate = new Date(currentDate);
+      var weekEndDate = new Date(currentDate);
+      weekEndDate.setDate(weekEndDate.getDate() + 6); // Add 6 days to get the end of the week
+
+      if (fileDate >= weekStartDate && fileDate <= weekEndDate) {
+        Logger.log("Found SEP file for Date: " + currentDate);
+        sepFile = file;
+        break;
+      }
+    }
+  }
+
+  if (sepFile) {
+    Logger.log("SEP File Found for Date: " + currentDate);
+    return sepFile.getUrl();
+  } else {
+    Logger.log("SEP File Not Found for Date: " + currentDate);
+    return '';
+  }
+}
+
 // Helper Function: Get the relevant file based on the specified conditions
 function getRelevantFile(isFuture, todayStr, fileName, fileId, excludeId, currentRelevantFile, currentRelevantFileName) {
   var fileIsRelevant = (isFuture && fileName.localeCompare(todayStr) > 0) || (!isFuture && fileName.localeCompare(todayStr) <= 0);
@@ -110,14 +314,14 @@ function getRelevantFile(isFuture, todayStr, fileName, fileId, excludeId, curren
   return currentRelevantFile;
 }
 
-// Helper function: Get Teeam Schedule events from the designated calendar
+// Helper function: Get Team Schedule events from the designated calendar
 function getCalendarEvents() {
   var now = new Date();
-  var sixWeeksLater = new Date(now.getTime() + 42 * 24 * 60 * 60 * 1000); // Add 42 days to the current date
+  var fourWeeksLater = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // Add 30 days to the current date
   
   var calendarId = 'c_365230bc41700e58e23f74b286db1773d395e4bc6807c81a4c78658df5db423e@group.calendar.google.com'; // SNWG Team Schedules Google Calendar
   var calendar = CalendarApp.getCalendarById(calendarId);
-  var events = calendar.getEvents(now, sixWeeksLater);
+  var events = calendar.getEvents(now, fourWeeksLater);
   
   var eventDetails = [];
   for (var i = 0; i < events.length; i++) {
@@ -133,11 +337,7 @@ function getCalendarEvents() {
 
     var formattedStartDate = Utilities.formatDate(startDate, Session.getScriptTimeZone(), "MMMM d");
     var formattedEndDate = Utilities.formatDate(endDate, Session.getScriptTimeZone(), "MMMM d");
-    
-    Logger.log("Event: " + event.getTitle());
-    Logger.log("Start Date: " + startDate + " Formatted: " + formattedStartDate);
-    Logger.log("End Date: " + endDate + " Formatted: " + formattedEndDate);
-    
+        
     // Check if start date and end date are the same
     var dateRange = (formattedStartDate === formattedEndDate) ? formattedStartDate : (formattedStartDate + " - " + formattedEndDate);
     
@@ -186,6 +386,46 @@ function getDMPRLink(folderId, currentDate) {
   return dmprFile ? dmprFile.getUrl() : '';
 }
 
+// Helper function to get today's date
+function getToday() {
+  return new Date();
+}
+
+// Helper function to calculate the next most recent Integrated Master Schedule(IMS) meeting date
+function getNextIMSDate() {
+  const startDate = new Date("January 16, 2024 11:30:00");
+  const today = getToday();
+
+  // Calculate the difference in days from the start date
+  const daysDiff = Math.floor((today - startDate) / (24 * 60 * 60 * 1000));
+
+  // Calculate the number of bi-weeks since the start date
+  const biWeeksSinceStart = Math.floor(daysDiff / 14);
+
+  // Calculate the next due date, ensuring it's on Tuesday
+  const nextIMSDate = new Date(startDate);
+  nextIMSDate.setDate(startDate.getDate() + (biWeeksSinceStart * 14)); 
+ // nextIMSDate.setHours(11, 30, 0, 0); // Set the time to 11:30 AM
+
+ // Check if the next IMSDate is before today, if so, add 14 days to get the next bi-weekly date
+  if (nextIMSDate < today) {
+    nextIMSDate.setDate(nextIMSDate.getDate() + 13);
+  }
+
+  // If the calculated date is not a Tuesday (2 corresponds to Tuesday), adjust it
+  /*while (nextIMSDate.getDay() !== 2) { // 2 corresponds to Tuesday
+    nextIMSDate.setDate(nextIMSDate.getDate()); // Subtract one day until it's Tuesday
+  }*/
+
+  return nextIMSDate;
+}
+
+// Helper function to format a date in the standard format
+function formatDate(date) {
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  return date.toLocaleDateString('en-US', options);
+}
+
 // Primary function to create and populate a new Internal Planning meeting agenda
 function createNewInternalAgenda() {
   var templateId = "1tE6xNFeMLVpcGwWMB9GuYpGom5F4Bi_81dUsp_W3jDQ"; // Template: YYYY-MM-DD Internal SNWG Meeting Agenda
@@ -200,17 +440,37 @@ function createNewInternalAgenda() {
   document.setName(newDocumentName);
 
   // IDs of folders where specific files are stored
-  var previousAgendaFolderId = "1WKYw4jnP6ejRkOLAIPoPvbEYClaLE4eR"; // Weekly Internal Planning>FY23 SNWG MO Google Drive Folder
-  var operaTagUpFolderId = "1M3EMWLCxhkqcPKLmH7grDu2zhSEuOvmc"; // OPERA> FY23 SNWG MO Google Drive Folder 
-  var snwgMonthlyFolderId = "1HPjhc2LADvS9j3W_K3riq4RQPBngfqGY"; // Monthly Project Status Update> FY23 SNWG MO Google Drive Folder
-  var dmprFolderId = "1y2vjwf52HBJpTeSIg7sYPaLSSzGAnWZU"; // ST10 DMPR> FY23 IMPACT Google Drive Folder
+  var previousAgendaFolderId = "1SRIUs7CUEdGUw0r1PI52e0OJpfXYN0z8"; // Weekly Internal Planning>FY24 SNWG MO Google Drive Folder
+  var operaTagUpFolderId = "1AX95NPrIYiLvn_1l8a6G4JwI6wW0viD8"; // OPERA> FY24 SNWG MO Google Drive Folder 
+  var snwgMonthlyFolderId = "1r52FELtJWytcp5Iw7F01wSxuXeRYcm78"; // Monthly Project Status Update> FY24 SNWG MO Google Drive Folder
+  var dmprFolderId = "1NCH6-V9pMA8pOivX0XD5ZtGLT-8OQZ6A"; // ST10 DMPR> FY24 IMPACT Google Drive Folder
+  var assessmentDevSeedFolderID = "1Bvj1b1u2LGwjW5fStQaLRpZX5pmtjHSj" // DevSeed FY24 Google Drive Folder
+  var assessmentHQFolderID = "1dmN0oYQZwGFu83BwOGT90I_GFtGH1aup"; // AssessmentHQ Weekly CY24 Google Drive Folder
+  var sepFolderID = "1Cw_sdH_IleGbtW1mVoWnJ0yqoyzr4Oe0"; // Stakeholder Engagement Program FY24 Google Drive folder
 
   // Get links to specific files from their respective folders
-  var nextOperaTagUpLink = getMostRecentFileLink(operaTagUpFolderId, newDocumentId, true);
   var previousAgendaLink = getMostRecentFileLink(previousAgendaFolderId, newDocumentId, false);
-  var previousOperaTagUpLink = getMostRecentFileLink(operaTagUpFolderId, newDocumentId, false);
   var snwgMonthlyLink = getMostRecentFileLink(snwgMonthlyFolderId, newDocumentId, false);
+  var sepLink = getSEPLink(sepFolderID, currentDate);
+  var assessmentHQLink = getAssessmentHQLink(assessmentHQFolderID, currentDate);
+  var assessmentDevSeedLink = getAssessmentDevSeedLink(assessmentDevSeedFolderID, currentDate);
+  var nextOperaTagUpLink = getMostRecentFileLink(operaTagUpFolderId, newDocumentId, true);
+  var previousOperaTagUpLink = getMostRecentFileLink(operaTagUpFolderId, newDocumentId, false);
   var dmprLink = getDMPRLink(dmprFolderId, currentDate);
+
+    // Get the next IMS meeting date using getNextIMSDate() function
+  var nextIMSDate = getNextIMSDate();
+
+  // Format the next IMS meeting date using the formatDate() function
+  var formattedNextIMSDate = formatDate(nextIMSDate);
+
+  // Replace the placeholder text {{Next IMS Meeting Date}} with the formatted date
+  replaceWithFormattedDate(documentBody, "{{Next IMS Meeting Date}}", formattedNextIMSDate);
+
+  // Replace the placeholder text {{Adjusted PI}}
+  // Convert string to Date object
+  var internalDate = new Date(currentDate);
+  populateAdjustedPI(document, internalDate);
 
   // Get Team Schedules and replace {{Team Schedules}} placeholder
   var sectionStart = documentBody.findText("{{Team Schedules}}");
@@ -228,12 +488,7 @@ function createNewInternalAgenda() {
     } else {
       Logger.log("Did not find placeholder {{Team Schedules}} in the document.");
     }
-  // Get the current PI (Program Increment) for the document using the PI calculator library script
-  var adjustedDate = new Date(); // Use a valid date object here or pass the required date
-  var adjustedPI = adjustedPIcalculator.getPI(adjustedDate);
-
-  // Call the function to replace the placeholder texts in the document
-  adjustedPIcalculator.replacePlaceholderWithPI(document, adjustedPI); // <-- Use the 'document' object here, not 'targetDocument'
+    
 
   // Replace placeholders in the document body with the obtained links and PI information
   replaceWithHyperlink(documentBody, "{{Link to Previous Agenda}}", previousAgendaLink);
@@ -241,8 +496,9 @@ function createNewInternalAgenda() {
   replaceWithHyperlink(documentBody, "{{link to next OPERA tag up}}", nextOperaTagUpLink);
   replaceWithHyperlink(documentBody, "{{link to last SNWG/NASA monthly}}", snwgMonthlyLink);
   replaceWithHyperlink(documentBody, "{{link to current DMPR}}", dmprLink);
-
-  //documentBody.replaceText("{{Adjusted PI}}", adjustedPI); 
+  replaceWithHyperlink(documentBody, "{{link to Assessment DevSeed Agenda}}", assessmentDevSeedLink);
+  replaceWithHyperlink(documentBody, "{{link to SEP Agenda}}", sepLink);
+  replaceWithHyperlink(documentBody, "{{link to Assessment HQ Agenda}}", assessmentHQLink);
 
   replaceWithFormattedDate(documentBody, "{{Internal Date}}", currentDate);
 }
