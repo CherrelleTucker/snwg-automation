@@ -28,6 +28,14 @@ var templateId = '1nZN2y09ad2V7CqK0QIqrFXB_lZvv4XyXtefbOzdpdpE'; // SNWG MO Temp
 var targetFolderId = '16oXc4f1Rlvwk0vsXa27Dvy-niH1E1IOr'; // Meeting Notes> Auto generated New Agendas SNWG MO Google drive folder
 var specificOwnerEmail = 'cherrelle.j.tucker@nasa.gov'; // specific owner's email address
 
+// Helper function: Check if the specific owner is an attendee of the event
+function isOwnerAnAttendee(event, ownerEmail) {
+  var attendees = event.getGuestList();
+  return attendees.some(function(attendee) {
+    return attendee.getEmail() === ownerEmail;
+  });
+}
+
 // Helper function: Get future events from a Google Calendar
 function getFutureEvents(calendarId) {
   var today = new Date();
@@ -90,7 +98,11 @@ function createDocFromFutureEvents() {
     var event = events[i];
     var eventId = event.getId();
 
-    if (processedEvents[eventId] || isEventRecurring(event)) { // <<--Remove "|| isEventRecurring(event)" if not exculding routine events with custom agendas
+    if (processedEvents[eventId] || isEventRecurring(event)) {
+      continue;
+    }
+
+    if (!isOwnerAnAttendee(event, specificOwnerEmail)) {
       continue;
     }
 
