@@ -19,4 +19,3 @@ function processDocumentId(input) {
   processDocument(documentId); 
   return 'Success!'; // Or an appropriate message
 }
-

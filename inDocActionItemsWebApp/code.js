@@ -1,9 +1,52 @@
-// Purpose: 
-// Search an input document for action items to be completed and populate in the Action Tracking table.
+/*
+Script Name: inDocActionItemsWebApp
 
-// Future development: 
-// Preserve links in task items when copying to action table
+Description: 
+This script is designed to parse a Google Document to identify and extract action items, then populate them in an Action Tracking table within the document. It processes action items mentioned in both paragraph text and existing tables, sorts them by the owner's name, and ensures no duplication in the final action item table.
 
+Prerequisites: 
+- A Google Document containing action items in paragraphs or tables.
+- The Google Document should have a section with attendees listed, starting with 'Attendees:'.
+
+Setup:
+1. Open the Google Apps Script editor linked to the Google Document.
+2. Paste this entire script into the script editor.
+3. Save the script.
+
+Execution: 
+To run the script, either use the `testScriptWithDocumentUrl` function with a valid Google Document URL or call the `processDocument` function with a specific document ID.
+
+Script Functions: 
+- `extractAttendees(body)`: Extracts attendees' names from the document.
+- `createSecondTable(body)`: Creates a new action item table.
+- `getExistingActions(table)`: Retrieves existing action items from a table.
+- `checkIfActionExistsInTable(existingActions, actionItem)`: Checks for the existence of an action item in the table.
+- `populateActionInTable(table, actionItem)`: Populates an action item into the table.
+- `extractActionsFromTable(table)`: Extracts action items from an existing table.
+- `findExistingActionTable(body)`: Searches for an existing action item table.
+- `sortActionItemsByName(actionItems)`: Sorts action items by the owner's name.
+- `actionsFromTable(documentId)`: Extracts action items from a table and populates them into the Action Items table.
+- `actionsFromParagraphs(documentId)`: Extracts action items from paragraphs and populates them into the Action Items table.
+- `runBothActionItems(documentId)`: Runs both `actionsFromParagraphs` and `actionsFromTable`.
+- `processDocument(documentId)`: Main function to process the document.
+- `extractDocumentIdFromUrl(url)`: Extracts the document ID from a Google Docs URL.
+- `testScriptWithDocumentUrl(url)`: Test function for running the script with a document URL.
+
+Outputs: 
+- An updated Google Document with an Action Tracking table containing sorted action items from both paragraphs and tables.
+
+Post-Execution: 
+- Review the populated Action Tracking table in the Google Document for accuracy.
+
+Troubleshooting:
+- Ensure the Google Document contains the 'Attendees:' section.
+- Check for proper formatting of action items in the document.
+- Use logging statements (`Logger.log`) to debug issues with specific functions.
+
+Notes:
+- Future development includes preserving links in task items when copying to the action table.
+- The script currently assumes a specific format for action items and attendees.
+*/
 
 ///////////////////////////////////////////////////
 
@@ -138,7 +181,7 @@ function sortActionItemsByName(actionItems) {
   return actionItems.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-// Primary function that extracts action items from an existing table in the document and populates them into the Action Items table.
+// function to extract action items from an existing table in the document and populate them into the Action Items table.
 function actionsFromTable(documentId) {
   const document = DocumentApp.openById(documentId);
   const body = document.getBody();
@@ -146,15 +189,15 @@ function actionsFromTable(documentId) {
 
   if (existingTable) {
     let actionList = extractActionsFromTable(existingTable);
-    actionList = sortActionItemsByName(actionList); // sort action items by name
 
+    // Sort the action list by name before returning
+    actionList = sortActionItemsByName(actionList);
 
     if (actionList.length > 0) {
       const existingActions = getExistingActions(existingTable);
 
       for (const actionItem of actionList) {
         const isDuplicate = checkIfActionExistsInTable(existingActions, actionItem);
-
         if (!isDuplicate) {
           populateActionInTable(existingTable, actionItem);
         }
@@ -169,7 +212,7 @@ function actionsFromTable(documentId) {
   }
 }
 
-// Primary function that extracts action items from paragraphs in the document and populates them into an action item table.
+// function to extract action items from paragraphs in the document and populate them into an action item table.
 function actionsFromParagraphs(documentId) {
   const document = DocumentApp.openById(documentId);
   const body = document.getBody();
@@ -178,56 +221,41 @@ function actionsFromParagraphs(documentId) {
   const names = extractAttendees(body);
 
   const paragraphs = body.getParagraphs();
-  let isActionParagraph = false;
   paragraphs.forEach(paragraph => {
     const text = paragraph.getText();
-    const startIndex = text.indexOf(actionsPhrase);
+    const actionIndex = text.indexOf(actionsPhrase);
 
-    if (startIndex !== -1) {
-      isActionParagraph = true;
-      const sentence = text.substring(startIndex + actionsPhrase.length);
-      const words = sentence.split(" ");
-      let foundName;
+    if (actionIndex !== -1) {
+      const actionText = text.substring(actionIndex + actionsPhrase.length).trim();
+      const words = actionText.split(' ');
 
-      if (names) {
-        foundName = names.find(name => words.join(' ').includes(name));
-      }
-
-      if (foundName) {
-        const nameIndex = words.indexOf(foundName.split(' ')[0]);
-        const action = words.slice(nameIndex + foundName.split(' ').length).join(' ');
-
-        const isDuplicate = actionList.some(item => item.name === foundName && item.action === action);
-        if (!isDuplicate) {
-          actionList.push({ name: foundName, action });
+      if (words.length > 0) {
+        const potentialOwner = words[0];
+        if (names.includes(potentialOwner)) {
+          const actionDescription = words.slice(1).join(' ').trim();
+          const isDuplicate = actionList.some(item => item.name === potentialOwner && item.action === actionDescription);
+          if (!isDuplicate) {
+            actionList.push({ name: potentialOwner, action: actionDescription });
+          }
         }
       }
     }
   });
 
-  if (isActionParagraph) {
-    actionList = sortActionItemsByName(actionList); // sort action items by name
-    
-    const existingTable = findExistingActionTable(body);
-    if (existingTable) {
-      const existingActions = getExistingActions(existingTable);
-      for (const actionItem of actionList) {
-        const isDuplicate = checkIfActionExistsInTable(existingActions, actionItem);
-        if (!isDuplicate) {
-          populateActionInTable(existingTable, actionItem);
-        }
-      }
-      Logger.log('Actions populated from paragraphs.');
-    } else {
-      const secondTable = createSecondTable(body);
-      for (const actionItem of actionList) {
-        populateActionInTable(secondTable, actionItem);
-      }
-      Logger.log('Actions populated from paragraphs. New action item table created.');
+  // Sort the action list by name
+  actionList = sortActionItemsByName(actionList);
+
+  // Populate the actions in the table
+  const existingTable = findExistingActionTable(body) || createSecondTable(body);
+  actionList.forEach(actionItem => {
+    const existingActions = getExistingActions(existingTable);
+    const isDuplicate = checkIfActionExistsInTable(existingActions, actionItem);
+    if (!isDuplicate) {
+      populateActionInTable(existingTable, actionItem);
     }
-  } else {
-    Logger.log('No action items found in paragraphs.');
-  }
+  });
+
+  Logger.log('Actions populated from paragraphs.');
 }
 
 // function to run both actionsFromParagraphs and actionsFromTable functions for the "Populate Actions" button.
@@ -263,5 +291,5 @@ function testScriptWithDocumentUrl(url) {
   }
 }
 
-testScriptWithDocumentUrl('https://docs.google.com/document/d/1eQUgeYo7uiWxu6oyZoyazDkni01Omf17JhgiN8sIgmc/edit');
+testScriptWithDocumentUrl('https://docs.google.com/document/d/1TklfjJCp4tt8scjSOlQn7pxrByI_6KTf0JMnD8y7bl8/edit');
 
