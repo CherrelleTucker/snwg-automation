@@ -95,10 +95,17 @@
     <p>Enter the the Document ID or URL of a Google Document that you would like to process.
       Ensure that the document meets the following requirements:
       <ul>
-       <p> <li>The document should have a section for Attendees at the top, in the format "Attendees:" followed by names separated by a comma. This list is where the program collects the names associated with each action item. </p> 
-        <p> <li>The document must contain action items in the format "Action:" followed by the name of the person assigned, then the action. Ex: "Action: Amy email purchasing about req 385."" </li></p>
-        <p> <li> Note: Text with hyperlinks is transferred as plain text to the table. 
-      </ul></p>
+        <li>
+          The document must contain action items in the format "Action:". The script assumes that the first word following the name of the person assigned, then the action is the paragraph following.
+          <p>Example 1: "Action: <span style="color:green;">Amy</span> <span style="color:blue;">email purchasing about req 385.</span>" <br>
+          Owner = "<span style="color:green;">Amy</span>" Action Item = "<span style="color:blue;">email purchasing about req 385.</span>" </p>
+          <p>Example 2: Action:"<span style="color:green;">Copy</span> <span style="color:blue;">2024 boards as 20XX boards and update screenshots/demo videos.</span>" <br>
+          Owner = "<span style="color:green;">Copy</span>" Action = "<span style="color:blue;">2024 boards as 20XX boards and update screenshots/demo videos.</span>"</p>
+        </li>
+        <li>
+          Note: Text with hyperlinks is transferred as plain text to the table.
+        </li>
+      </ul>
       Once the document is processed, the action items will be populated in a 3 column table at the end of the document with the column headers "Status" "Owner""Action". If such a table does not already exist, one will be generated and you may then apply your desired formatting. 
     </p>
     <p>Example of an acceptable document with collected action items populated in a table can be found here: <a href="https://drive.google.com/uc?id=1nn1Hxk3kHBpNUsEeSUBOnK7dTAAb4V76" target="_Example Agenda">Example Document </a>
