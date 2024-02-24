@@ -5,7 +5,17 @@ It incorporates with a Slack WORKFLOW, not a Slack App.
 Prerequisites
 1. Access to Google Sheets where the action items are tracked.
 2. A Slack Workspace with an incoming webhook set up for the target channel/user. This is generally limited to paid accounts only.
-3. Google Apps Script environment linked to the Google Sheet.
+3. A Slack Workflow set up with: 
+  A. "Starts with a webhook"
+    - Set up Variables: Key: "Action" Data type: text
+        Example HTTP body in Google Apps Script:   
+        {
+            "Actions": "Example text"
+          }
+    - Web request URL (Generated in the Slack Workflow)
+  B. "Send a message to @User"
+    -"Add a message": "Insert a Variable" - "Actions"<- Set up in previous step. Save.
+4. Google Apps Script environment linked to the Google Sheet.
 
 Script Functions
 1. prepareName(name): Normalizes a name string by removing specific characters and converting to lowercase.
