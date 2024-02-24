@@ -50,8 +50,8 @@ Notes:
 
 ///////////////////////////////////////////////////
 
-// Helper function that extracts attendees' names from the document.
-function extractAttendees(body) {
+// Former helper function that extracts attendees' names from the document. Updates to streamline process by identifying the word following "Action:" as the Action Owner name regardless of inclusion in the Attendees list have rendered this function obsolete.
+/*function extractAttendees(body) {
   const attendees = [];
   const paragraphs = body.getParagraphs();
 
@@ -69,7 +69,7 @@ function extractAttendees(body) {
   }
 
   return attendees;
-}
+}*/
 
 // Helper function that creates a new action item table in the document.
 function createSecondTable(body) {
@@ -131,7 +131,6 @@ function populateActionInTable(table, actionItem) {
   newRow.appendTableCell().setText(actionItem.name); // Owner cell
   newRow.appendTableCell().setText(actionItem.action); // Action cell
 }
-
 
 // Helper function: extractActionsFromTable
 function extractActionsFromTable(table) {
@@ -218,7 +217,6 @@ function actionsFromParagraphs(documentId) {
   const body = document.getBody();
   const actionsPhrase = 'Action:';
   let actionList = [];
-  const names = extractAttendees(body);
 
   const paragraphs = body.getParagraphs();
   paragraphs.forEach(paragraph => {
@@ -230,13 +228,11 @@ function actionsFromParagraphs(documentId) {
       const words = actionText.split(' ');
 
       if (words.length > 0) {
-        const potentialOwner = words[0];
-        if (names.includes(potentialOwner)) {
-          const actionDescription = words.slice(1).join(' ').trim();
-          const isDuplicate = actionList.some(item => item.name === potentialOwner && item.action === actionDescription);
-          if (!isDuplicate) {
-            actionList.push({ name: potentialOwner, action: actionDescription });
-          }
+        const potentialOwner = words[0]; // Assuming the first word is always the owner
+        const actionDescription = words.slice(1).join(' ').trim();
+        const isDuplicate = actionList.some(item => item.name === potentialOwner && item.action === actionDescription);
+        if (!isDuplicate) {
+          actionList.push({ name: potentialOwner, action: actionDescription });
         }
       }
     }
@@ -292,4 +288,3 @@ function testScriptWithDocumentUrl(url) {
 }
 
 testScriptWithDocumentUrl('https://docs.google.com/document/d/1TklfjJCp4tt8scjSOlQn7pxrByI_6KTf0JMnD8y7bl8/edit');
-
