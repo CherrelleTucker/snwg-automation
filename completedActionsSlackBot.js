@@ -33,12 +33,16 @@ Notes
 */ 
 
 // Constants for the Google Sheet and sheet names to search
-const SHEET_ID = '1c6_2S-Lw_ygapT3gx5-s8VBAuwZ9Y8_5zU1TP1F-ev8';
-const SHEET_NAMES = ["MO", "DevSeed", "SEP", "AssessmentHQ", "AdHoc", "Testing"];
+const SHEET_ID = '1uYgX660tpizNbIy44ddQogrRphfwZqn1D0Oa2RlSYKg'; // SNWG MO Action Tracker Sheet Google Sheet ID
+const SHEET_NAMES = ["MO", "DevSeed", "SEP", "AssessmentHQ", "AdHoc"];
 
 // This function listens to POST requests from the Slack command
 function doPost(e) {
   var text = e.parameter.text;
+
+  // Remove any leading numbering, "Assigned to All:", and trim whitespace
+  text = text.replace(/^\d+\.\s*/, '').replace(/^Assigned to All:\s*/i, '').trim();
+
   var parts = text.split(" ");
   var status = parts[parts.length - 1].toLowerCase();
   
@@ -82,14 +86,14 @@ function updateSheetWithActionItem(actionItem, status) {
     var lastRow = sheet.getLastRow();
     if (lastRow < 1) return; // Skip empty sheets
     
-    var actionItemsRange = sheet.getRange(1, 4, lastRow, 1);
+    var actionItemsRange = sheet.getRange(1, 4, lastRow, 1); // Assuming the action items are in column 4
     var actionItems = actionItemsRange.getValues();
     
     var updatesCount = 0; // Track the number of updates made in the current sheet
     
     for (var i = 0; i < actionItems.length; i++) {
       if (actionItems[i][0].toLowerCase() === actionItem.toLowerCase()) {
-        sheet.getRange(i + 1, 2).setValue(status);
+        sheet.getRange(i + 1, 2).setValue(status); // Assuming the status should be set in column 2
         updatesCount++; // Increment updates count
         totalUpdatesCount++;
       }
@@ -104,6 +108,8 @@ function updateSheetWithActionItem(actionItem, status) {
   if (totalUpdatesCount > 0) {
     return `Found and updated ${totalUpdatesCount} instance(s) of "${actionItem}" to "${status}". ${sheetUpdates || ""}`;
   } else {
-    return `No instances of "${actionItem}" found across sheets. Consider adding it manually.`;
+    // If no matching action items were found, check that you have correctly typed or copied the item.
+    // This step is not implemented in the given script but can be added as needed
+    return `No instances of "${actionItem}" found across sheets. check that you have correctly typed or copied the item.`;
   }
 }
