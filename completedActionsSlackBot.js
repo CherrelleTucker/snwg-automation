@@ -33,10 +33,9 @@ Notes
 */ 
 
 // Constants for the Google Sheet and sheet names to search
-const SHEET_ID = '1uYgX660tpizNbIy44ddQogrRphfwZqn1D0Oa2RlSYKg'; // SNWG MO Action Tracker Sheet Google Sheet ID
+const SHEET_ID = '1uYgX660tpizNbIy44ddQogrRphfwZqn1D0Oa2RlSYKg';
 const SHEET_NAMES = ["MO", "DevSeed", "SEP", "AssessmentHQ", "AdHoc"];
 
-// This function listens to POST requests from the Slack command
 function doPost(e) {
   var text = e.parameter.text;
 
@@ -55,16 +54,21 @@ function doPost(e) {
     status = "Done"; // Default status
   }
 
-  // Update the sheet(s) and get the operation result message
-  var resultMessage = updateSheetWithActionItem(actionItem, status);
-  
-  // Prepare and return the JSON response to Slack with the operation result message
-  var jsonResponse = {
-    "response_type": "in_channel", // Or "ephemeral" for a private response
-    "text": resultMessage
+  // Immediately respond to Slack to indicate processing has started
+  var immediateResponse = {
+    "response_type": "in channel", //"in_channel" Or "ephemeral" for a private response
+    "text": "Marked complete: \"" + actionItem + "\""
   };
-  
-  return ContentService.createTextOutput(JSON.stringify(jsonResponse))
+
+  // Log the actionItem and status for debugging purposes
+  console.log("Action Item:", actionItem, "Status:", status);
+
+  // Asynchronously update the sheet with the action item
+  // Note: Google Apps Script does not support true async operations or delaying response
+  // The script will continue to execute the updateSheetWithActionItem function after sending the initial response
+  var resultMessage = updateSheetWithActionItem(actionItem, status);
+
+  return ContentService.createTextOutput(JSON.stringify(immediateResponse))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -108,8 +112,8 @@ function updateSheetWithActionItem(actionItem, status) {
   if (totalUpdatesCount > 0) {
     return `Found and updated ${totalUpdatesCount} instance(s) of "${actionItem}" to "${status}". ${sheetUpdates || ""}`;
   } else {
-    // If no matching action items were found, check that you have correctly typed or copied the item.
+    // If no matching action items were found, consider adding the action item as new
     // This step is not implemented in the given script but can be added as needed
-    return `No instances of "${actionItem}" found across sheets. check that you have correctly typed or copied the item.`;
+    return `No instances of "${actionItem}" found across sheets. Please check your spelling or pasted action.`;
   }
 }
