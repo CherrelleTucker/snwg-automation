@@ -1,27 +1,46 @@
-// Purpose: 
-// To automate the creation of a presentation and Jamboard (a collaborative whiteboard tool) for Sprint Review events in the "IMPACT Project Increment" Google Calendar. The script is triggered one week before each Sprint Review, saving time and ensuring consistency in the document creation process for the IMPACT Project Increment team.
+/*
+Google Apps Script for Sprint Review Notifications
 
-// To note: 
-// This script is developed as a Google Apps Script standalone script. It is designed to operate independently and does not require any external application or service to function. It is a self-contained piece of code with a time-based daily trigger.
+This script automates the creation of Sprint Review presentations from a template, tailored for the IMPACT project. It is designed to replace specific placeholders within the presentation with dynamic content related to the Sprint Review meeting.
 
-// To use: 
-// Instructions for Using the "IMPACT Sprint Review Automation" Script
-// Make a Copy of the Script:
-// Open the IMPACT Sprint Review Automation Script. Click "File" > "Make a copy..." and rename it as desired.
-// Configure Global Variables: Replace the source_calendar_id, template_id, jamboard_template_id, and placement_folder_id with your own Google Calendar and Drive IDs.
-// Update Slide numbering to match your template numbering in the primary function createNewPresentation if needed.
-// Save and Run the Script: Click the floppy disk icon (or press Ctrl + S) to save the script. Click the play button (▶) in the toolbar to run the script manually for the first time.
-// Grant Necessary Permissions: If prompted, grant the script the necessary permissions to access your Google Calendar and Drive.
-// Test the Script (Optional): To test the script functionality, manually call the createNewPresentation function by clicking the play button (▶) again.
-// Set Up the Trigger (Optional): The script will automatically create and manage a time-driven trigger to run one week before each upcoming Sprint Review event in your Google Calendar.
+Prerequisites:
+1. Google Calendar with scheduled Sprint Review events.
+2. Google Drive with a folder containing the presentation template.
+3. Proper permissions set for the script to access Google Calendar and Google Drive.
+
+Script Functions:
+1. getCurrentSprintEvent - Fetches the current or next Sprint event from Google Calendar.
+2. duplicateTemplate - Creates a copy of the Sprint Review presentation template.
+3. populatePresentation - Fills in dynamic content in the copied template.
+4. formatSprintReviewTitle - Formats the title of the Sprint Review presentation.
+5. main - The main function to run the script.
+
+Outputs:
+1. A new Sprint Review presentation file in Google Drive.
+2. The presentation is populated with details specific to the upcoming Sprint Review.
+
+Post-Execution:
+After execution, the script:
+1. Logs the creation of the new presentation.
+2. Provides a link to the newly created presentation in Google Drive.
+
+Troubleshooting:
+1. Ensure the script has the necessary permissions to access Google Calendar and Google Drive.
+2. Check that the Sprint Review events are correctly named and scheduled in Google Calendar.
+3. Verify that the presentation template contains the correct placeholders.
+
+Notes:
+1. This script should be run before each Sprint Review meeting.
+2. Adjust the placeholders and date formats as necessary to match your template and locale.
+3. Consider setting up a time-driven trigger to automate the execution of this script.
+*/
 
 ///////////////////////////////////////////////////
 
 // Global variables
 var source_calendar_id = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com'; // IMPACT Project Increment Google Calendar
 var template_id = '1UxcyJtzCgDWnJc0Nr3UxtMKESU1cMowblvgq6I_jf0U'; // Sprint Review Template ID
-var jamboard_template_id = '1fxtfrJKvVMwOHhQkZNXkSc5KMB-gafinTDtefz-htBs'; // Jamboard Template ID
-var placement_folder_id = '1UmjkjY5RTRYFOQEt10mwU8trJQ389Jum'; // IMPACT Team Meetings Google Drive folder
+var placement_folder_id = '1_sfpauI_Py-iXARaSqyKCYHOCT_jP3Cy'; // IMPACT Team Meetings Google Drive folder
 
 // Helper function to: Find and return the Current Sprint event.
 function getCurrentSprintEvent() {
@@ -49,13 +68,14 @@ function duplicateTemplate(currentSprintNumber) {
   return newFile;
 }
 
+// Jamboard functions removed 02/2024. Google is discontinuing the product later this year. 
 // Helper function to: Duplicate the Jamboard Template in the Testing folder and return the newly created file.
-function duplicateJamboardTemplate(currentSprintNumber) {
+/*function duplicateJamboardTemplate(currentSprintNumber) {
+  var jamboard_template_id = '1fxtfrJKvVMwOHhQkZNXkSc5KMB-gafinTDtefz-htBs'; // Jamboard Template ID
   var jamboardTemplateFile = DriveApp.getFileById(jamboard_template_id);
   var newJamboardTitle = 'IMPACT-Kudos-Board _' + currentSprintNumber;
   var newJamboard = jamboardTemplateFile.makeCopy(newJamboardTitle, DriveApp.getFolderById(placement_folder_id));
   return newJamboard;
-}
 
 // Helper function to: Update the title of the newly created Jamboard.
 function updateJamboardTitle(jamboardId, currentSprintNumber) {
@@ -82,7 +102,7 @@ function updateHyperlinkInPresentation(presentationId, slideIndex, shapeText, ja
       }
     }
   }
-}
+}*/
 
 // Helper function to get today's date
 function getToday() {
@@ -129,13 +149,13 @@ function createNewPresentation() {
     var sprintNumber = currentSprintNumber.split('.')[2]; // e.g., "4"
 
     var newFile = duplicateTemplate(currentSprintNumber);
-    var newJamboard = duplicateJamboardTemplate(currentSprintNumber);
-    var jamboardUrl = 'https://jamboard.google.com/d/' + newJamboard.getId();
+//    var newJamboard = duplicateJamboardTemplate(currentSprintNumber);
+//    var jamboardUrl = 'https://jamboard.google.com/d/' + newJamboard.getId();
 
     var presentation = SlidesApp.openById(newFile.getId());
 
     var sprintEndDate = new Date(sprintEvent.getEndTime().getTime()); // calculate Sprint end date minus one day
-    sprintEndDate.setDate(sprintEndDate.getDate() - 1);
+    sprintEndDate.setDate(sprintEndDate.getDate());
 
     // Slide 1
     var slide1 = presentation.getSlides()[0];
@@ -154,49 +174,65 @@ function createNewPresentation() {
     twoMonthsLater.setMonth(twoMonthsLater.getMonth() + 2);
     slide3.replaceAllText('{{2 Month}}', monthNames[twoMonthsLater.getMonth()]);
 
-    // Slide 4
-    updateHyperlinkInPresentation(newFile.getId(), 3, "IMPACT Jamboard for Kudos", jamboardUrl); // Example usage to set the hyperlink for the shape on Slide 4
+    /* Slide 4
+    updateHyperlinkInPresentation(newFile.getId(), 3, "IMPACT Jamboard for Kudos", jamboardUrl); // Example usage to set the hyperlink for the shape on Slide 4*/
 
-    // Slide 9
-    var slide9 = presentation.getSlides()[8]; // because indexing starts at 0
-    slide9.replaceAllText('{{FY.Q}}', fiscalYearQuarter);
-    slide9.replaceAllText('{{S}}', sprintNumber);
+    // Slide 10
+    var slide10 = presentation.getSlides()[9]; // because indexing starts at 0
+    slide10.replaceAllText('{{FY.Q}}', fiscalYearQuarter);
+    slide10.replaceAllText('{{S}}', sprintNumber);
 
-    // Slide 25
+    // Slide 27
     var nextDueDate = formatDate(getNextDueDate()); // Get the formatted next due date
-    var slideForDueDate = presentation.getSlides()[24]; // 
+    var slideForDueDate = presentation.getSlides()[26]; // 
     slideForDueDate.replaceAllText('{{Blurb due date}}', nextDueDate);
 
   }
 }
 
-// Trigger function to execute one week before the next Sprint Review event on the IMPACT PI Calendar
-/*function executeOneWeekBeforeSprintReview() {
-  var sourceCalendar = CalendarApp.getCalendarById(source_calendar_id);
+// Trigger function to check if Sprint Review event exists in the calendar and run createNewPresentation if it does. 
+function checkForSprintReviewAndCreateFiles() {
   var today = new Date();
-  var oneWeekFromToday = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-  var events = sourceCalendar.getEvents(today, oneWeekFromToday);
+  // Check if today is Friday; 5 represents Friday in getDay() where Sunday is 0, Monday is 1, and so on.
+  if (today.getDay() === 5) { 
+    var calendar = CalendarApp.getCalendarById(source_calendar_id);
+    var events = calendar.getEventsForDay(today, {
+      search: 'Sprint Review'
+    });
 
-  // Find the next Sprint Review event
-  var nextSprintReviewEvent = null;
-  for (var i = 0; i < events.length; i++) {
-    var event = events[i];
-    if (event.getTitle().toLowerCase().indexOf('sprint review') !== -1) {
-      nextSprintReviewEvent = event;
-      break;
+    if (events.length > 0) {
+      Logger.log('Sprint Review found for today. Creating new presentation.');
+      createNewPresentation();
+    } else {
+      Logger.log('No Sprint Review found for today. No presentation created.');
     }
-  }
-
-  if (nextSprintReviewEvent) {
-    // Calculate the date one week before the Sprint Review event
-    var oneWeekBeforeSprintReview = new Date(nextSprintReviewEvent.getStartTime().getTime() - 7 * 24 * 60 * 60 * 1000);
-
-    // Set up the time-driven trigger to call the libraries one week before the PI Welcome event
-    ScriptApp.newTrigger(createNewPresentation)
-      .timeBased()
-      .at(oneWeekBeforeSprintReview)
-      .create();
   } else {
-    Logger.log("No upcoming Sprint Review event found within the next week.");
+    Logger.log('Today is not Friday. No need to check for Sprint Review.');
   }
-}*/
+}
+
+//////////////////////Testing///////////////////////////////////
+
+function testCheckForSprintReviewAndCreateFilesOnSpecificDate(testDate) {
+  var testDateObj = new Date(testDate);
+  Logger.log('Testing for date: ' + testDateObj.toDateString());
+  
+  // Simulate as if the test date is the current date
+  if (testDateObj.getDay() === 5) { // Check if the test date is a Friday
+    var calendar = CalendarApp.getCalendarById(source_calendar_id);
+    var events = calendar.getEventsForDay(testDateObj, {
+      search: 'Sprint Review'
+    });
+
+    if (events.length > 0) {
+      Logger.log('Sprint Review found for the test date. Would create new presentation.');
+      // Uncomment the next line to actually create the presentation during testing
+      // createNewPresentation();
+    } else {
+      Logger.log('No Sprint Review found for the test date. Would not create presentation.');
+    }
+  } else {
+    Logger.log('Test date is not Friday. Script checks for Sprint Reviews only on Fridays.');
+  }
+}
+testCheckForSprintReviewAndCreateFilesOnSpecificDate('2024-02-17'); // Replace with the date you want to test, format YYY-MM-DD
