@@ -3,7 +3,7 @@
 ///////////////////////////////////////////////
 
 // Global variable
-var calendarId = 'c_8798ebb71e4f29ffc300845dabe847152b8c92e2afd062e0e31242d7fce780cd@group.calendar.google.com';  // IMPACT PI calendar
+var calendarId = 'xxxxxxxxxxxxxxxxxxxxxx@group.calendar.google.com';  // IMPACT PI calendar
 
 // Helper function to fetch events within a specified date range
 function getEventsWithinDateRange(startDate, endDate) {
