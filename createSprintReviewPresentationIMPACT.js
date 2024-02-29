@@ -38,9 +38,9 @@ Notes:
 ///////////////////////////////////////////////////
 
 // Global variables
-var source_calendar_id = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com'; // IMPACT Project Increment Google Calendar
-var template_id = '1UxcyJtzCgDWnJc0Nr3UxtMKESU1cMowblvgq6I_jf0U'; // Sprint Review Template ID
-var placement_folder_id = '1_sfpauI_Py-iXARaSqyKCYHOCT_jP3Cy'; // IMPACT Team Meetings Google Drive folder
+var source_calendar_id = 'xxxxxxxxxxxx@group.calendar.google.com'; // IMPACT Project Increment Google Calendar
+var template_id = 'xxxxxxxxxxxxxxxxx'; // Sprint Review Template ID
+var placement_folder_id = 'xxxxxxxxxxxxxxxxxxxxxxxx'; // IMPACT Team Meetings Google Drive folder
 
 // Helper function to: Find and return the Current Sprint event.
 function getCurrentSprintEvent() {
