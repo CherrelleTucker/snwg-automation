@@ -48,7 +48,7 @@ Note: This script is intended for project management purposes and should be cust
 // "c_8798ebb71e4f29ffc300845dabe847152b8c92e2afd062e0e31242d7fce780cd@group.calendar.google.com"; Test calendar ID
 
 // Global variables
-var calendarId = "c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com"; // IMPACT PI Calendar ID
+var calendarId = "xxxxxxxxxxxx@group.calendar.google.com"; // IMPACT PI Calendar ID
 var startingFY; // Fiscal Year
 var startingPI; // Project Increment
 var startDate; // Start Date for PI
