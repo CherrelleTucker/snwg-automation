@@ -39,7 +39,7 @@ Notes
 */
 
 // Required global variables
-var TOKEN = 'xoxb-xxxxxxxxxxxxxxxxxxxxxxx-xxxxxxxxxxxxxxxX'; // Slack Bot User OAuth Access Token
+var TOKEN = 'xoxb-andSomeOtherNumbers'; // Slack Bot User OAuth Access Token
 var KUDOS_CHANNEL_ID = 'XXXXXXX'; // #kudos IMPACT channel id
 var calendarId = 'xxxxxxx'; // IMPACT PI Google Calendar ID
 var folderId = 'xxxxxxxx'; // IMPACT Sprint Review FY24 Google Drive Folder
