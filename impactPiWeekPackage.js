@@ -6,7 +6,7 @@
 ///////////////////////////////////////////////////
 
 // source calendar ID
-var sourceCalendarId = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com';
+var sourceCalendarId = 'xxxxxxxxxxxxxxxxxxxx@group.calendar.google.com';
 
 
 // helper function to call the Welcome Library that creates the PI Welcome slide presentation
