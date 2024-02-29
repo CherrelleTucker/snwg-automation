@@ -48,9 +48,9 @@ Notes
 // Global variables for action owner's name components and Slack webhook URL
 var sheetId = "xxxxxxxxxxxxxxxxxxxxx"; //SNWG MO Action Tracking Google Sheet
 var tabName = "All Open Action Items";
-var firstName = "Katrina";
-var lastName = "Virts";
-var projectName = "Assessment";
+var firstName = "First";
+var lastName = "Last";
+var projectName = "Project";
 var slackWebhookUrl = "xxxxxxxxxxxxxxxxxxxxx";
 
 // Keep track of processed action descriptions
