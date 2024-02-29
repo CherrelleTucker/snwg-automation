@@ -56,7 +56,7 @@ Notes:
 /////////////////////////////////////////////////////////////////////
 
 // Global constant for Calendar ID
-var CALENDAR_ID = 'mn9msmqj2nqobs0md4gmgfnabk@group.calendar.google.com'; // IMPACT Conference Room Schedule shared Google Calendar 
+var CALENDAR_ID = 'xxxxxxxx@group.calendar.google.com'; // IMPACT Conference Room Schedule shared Google Calendar 
 
 // Main function to recolor events, check for overlaps, check for missing locations, and send conflict found emails for the next week.
 function colorEvents() {
