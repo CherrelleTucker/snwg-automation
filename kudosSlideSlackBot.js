@@ -39,10 +39,10 @@ Notes
 */
 
 // Required global variables
-var TOKEN = 'xoxb-xxxxxxxxxxxxxxxxxxxxxxx-xxxxxxxxxxxxxxxX'; // Slack Bot User OAuth Access Token
-var KUDOS_CHANNEL_ID = 'C010PUCLQJF'; // #kudos IMPACT channel id
-var calendarId = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com'; // IMPACT PI Google Calendar ID
-var folderId = '1_sfpauI_Py-iXARaSqyKCYHOCT_jP3Cy'; // IMPACT Sprint Review FY24 Google Drive Folder
+var TOKEN = 'xoxb-andSomeOtherNumbers'; // Slack Bot User OAuth Access Token
+var KUDOS_CHANNEL_ID = 'XXXXXXX'; // #kudos IMPACT channel id
+var calendarId = 'xxxxxxx'; // IMPACT PI Google Calendar ID
+var folderId = 'xxxxxxxx'; // IMPACT Sprint Review FY24 Google Drive Folder
 var SLIDES_ID = ''; // This will be dynamically set based on the sprint file found
 var currentSprintEvent = null;
 var currentSprintFileId = null;

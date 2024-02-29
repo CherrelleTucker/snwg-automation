@@ -18,16 +18,16 @@
 /////////////////////////////////
 
 // Global variables
-var quadTemplateId = '1iWm9oAJ-hFR_BJ-pEFGndhfFCLhWIigxJBvZM5xlf2M'; // SNWG MO Weekly Quad Chart Slide Template
-var targetPresentationId = '1wV26VGjZJ_P7hsnxdkub6PltQ3ZkedYb8yDviEYE4aE'; // SNWG MO Weekly Quad Chart presentation
-var dmprfolderID = '1NCH6-V9pMA8pOivX0XD5ZtGLT-8OQZ6A'; // IMPACT/SNWG DMPR folder FY24
-var agendasFolderID = '13zl2CvMNtDMFKcNZetAA00e5tkh3Eo_M'; // SNWG Meeting Notes folder 
-var devSeedFolderID = '1Bvj1b1u2LGwjW5fStQaLRpZX5pmtjHSj'; // Assessment/DevSeed Weekly Meeting Agenda Folder
-var assessmentHQFolderID = '1dmN0oYQZwGFu83BwOGT90I_GFtGH1aup'; // Assessment/HQ Weekly MEeting Agenda Folder
-var operaFolderID = '1AX95NPrIYiLvn_1l8a6G4JwI6wW0viD8'; // FY24 OPERA Meeting Notes Folder
-var sheetID = '1uYgX660tpizNbIy44ddQogrRphfwZqn1D0Oa2RlSYKg'; // SNWG MO Action Tracking Sheet 
-var teamCalendar = 'c_365230bc41700e58e23f74b286db1773d395e4bc6807c81a4c78658df5db423e@group.calendar.google.com'; // SNWG Team Google Calendar
-var impactPiCalendar = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com'; // IMPACT PI calendar
+var quadTemplateId = 'xxxxxxxxxxxxxxxxxxxx'; // SNWG MO Weekly Quad Chart Slide Template
+var targetPresentationId = 'xxxxxxxxxxxx'; // SNWG MO Weekly Quad Chart presentation
+var dmprfolderID = 'xxxxxxxxxxxxx'; // IMPACT/SNWG DMPR folder FY24
+var agendasFolderID = 'xxxxxxxxxxxxxxx'; // SNWG Meeting Notes folder 
+var devSeedFolderID = 'xxxxxxxxxxxxxxxx'; // Assessment/DevSeed Weekly Meeting Agenda Folder
+var assessmentHQFolderID = 'xxxxxxxxxx'; // Assessment/HQ Weekly MEeting Agenda Folder
+var operaFolderID = 'xxxxxxxxxxxx'; // FY24 OPERA Meeting Notes Folder
+var sheetID = 'xxxxxxxxxxx'; // SNWG MO Action Tracking Sheet 
+var teamCalendar = 'xxxxxxxxxxxxx@group.calendar.google.com'; // SNWG Team Google Calendar
+var impactPiCalendar = 'xxxxxxxxxxxxxxxxxx@group.calendar.google.com'; // IMPACT PI calendar
 
 // helper function to create custom menu for manually updating slides
 function onOpen() {

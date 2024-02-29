@@ -23,10 +23,10 @@
 ///////////////////////////////////////////////
 
 // Global variables
-var calendarId = 'mn9msmqj2nqobs0md4gmgfnabk@group.calendar.google.com'; // IMPACT conference room calendar
-var templateId = '1nZN2y09ad2V7CqK0QIqrFXB_lZvv4XyXtefbOzdpdpE'; // SNWG MO Template: YYYY-MM-DD Meeting Agenda
-var targetFolderId = '16oXc4f1Rlvwk0vsXa27Dvy-niH1E1IOr'; // Meeting Notes> Auto generated New Agendas SNWG MO Google drive folder
-var specificOwnerEmail = 'cherrelle.j.tucker@nasa.gov'; // specific owner's email address
+var calendarId = 'xxxxxxxxxxxxxxxxx@group.calendar.google.com'; // IMPACT conference room calendar
+var templateId = 'xxxxxxxxxxxxxx'; // SNWG MO Template: YYYY-MM-DD Meeting Agenda
+var targetFolderId = 'xxxxxxxxxx-xxxx'; // Meeting Notes> Auto generated New Agendas SNWG MO Google drive folder
+var specificOwnerEmail = 'aaaaaaaaaaa.b.cccccccccc@nasa.gov'; // specific owner's email address
 
 // Helper function: Check if the specific owner is an attendee of the event
 function isOwnerAnAttendee(event, ownerEmail) {

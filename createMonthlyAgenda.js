@@ -30,8 +30,8 @@
 ////////////////////////////////////////////
 
 // Global variables
-var templateId = "1J1hij-_8Bh9ygQdt7mBeDDk-p6DsZm2njKoPrtnqBvc"; // Template: YYYY-MM-DD SNWG MO Monthly Project Update Meeting
-var snwgMonthlyFolderId = "1HPjhc2LADvS9j3W_K3riq4RQPBngfqGY"; // Monthly Project Status Update>FY23 SNWG MO Google Drive folder
+var templateId = "xxxxxxxxxxxxxxxxxx"; // Template: YYYY-MM-DD SNWG MO Monthly Project Update Meeting
+var snwgMonthlyFolderId = "xxxxxxxxxxxxxxxxx"; // Monthly Project Status Update>FY23 SNWG MO Google Drive folder
 
 // helper function to return the date of the fourth Monday of a given month, or the current month if not specified.
 function getFourthMonday(date) {

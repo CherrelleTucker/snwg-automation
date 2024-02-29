@@ -46,12 +46,12 @@ Notes
 */
 
 // Global variables for action owner's name components and Slack webhook URL
-var sheetId = "1uYgX660tpizNbIy44ddQogrRphfwZqn1D0Oa2RlSYKg"; //SNWG MO Action Tracking Google Sheet
+var sheetId = "xxxxxxxxxxxxxxxxxxxxx"; //SNWG MO Action Tracking Google Sheet
 var tabName = "All Open Action Items";
-var firstName = "Katrina";
-var lastName = "Virts";
-var projectName = "Assessment";
-var slackWebhookUrl = "https://hooks.slack.com/triggers/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";
+var firstName = "First";
+var lastName = "Last";
+var projectName = "Project";
+var slackWebhookUrl = "xxxxxxxxxxxxxxxxxxxxx";
 
 // Keep track of processed action descriptions
 var processedActionDescriptions = {};

@@ -45,15 +45,15 @@ function onOpen() {
 
 ///////////////////// Global variables//////////////////////////////////
 
-var spreadsheetId = '1uYgX660tpizNbIy44ddQogrRphfwZqn1D0Oa2RlSYKg'; // Action Tracking Sheet
+var spreadsheetId = 'xxxxxxxxxxxxxxxxxxxxx'; // Action Tracking Sheet
 var folderIds = {
-MO: '1SRIUs7CUEdGUw0r1PI52e0OJpfXYN0z8', // SNWG Management Office Weekly Internal Planning Meeting folder 
-SEP: '1Cw_sdH_IleGbtW1mVoWnJ0yqoyzr4Oe0', // Stakeholder Engagement Program Weekly Tag Up folder
-DevSeed: '1Bvj1b1u2LGwjW5fStQaLRpZX5pmtjHSj',// Assessment/DevSeed Weekly Tag up Folder
-AssessmentHQ: '1dmN0oYQZwGFu83BwOGT90I_GFtGH1aup' // Assessment HQ CY2024 Folder Id  
+MO: 'xxxxxxxxxxxxxxxxxxxxx', // SNWG Management Office Weekly Internal Planning Meeting folder 
+SEP: 'xxxxxxxxxxxxxxxxxxxxx', // Stakeholder Engagement Program Weekly Tag Up folder
+DevSeed: 'xxxxxxxxxxxxxxxxxxxxx',// Assessment/DevSeed Weekly Tag up Folder
+AssessmentHQ: 'xxxxxxxxxxxxxxxxxxxxx' // Assessment HQ CY2024 Folder Id  
 };
-var originalFolderId = '1dmN0oYQZwGFu83BwOGT90I_GFtGH1aup'; // AssessmentHQ folder that contains .docx files (Katrina prefers to work offline in MS Word, then upload to Drive)
-var conversionFolderId = '1V40h1Df4TMuuGzTMiLHxyBRPC-XJhQ10'; // Testing Folder ID for file conversion
+var originalFolderId = 'xxxxxxxxxxxxxxxxxxxxx'; // AssessmentHQ folder that contains .docx files (Katrina prefers to work offline in MS Word, then upload to Drive)
+var conversionFolderId = 'xxxxxxxxxxxxxxxxxxxxx-XJhQ10'; // Testing Folder ID for file conversion
 
 ///////////////////Pull///////////////////////////////////////////////
 
@@ -702,8 +702,8 @@ Logger.log("Sheet Names: " + sheetNames.join(", "));
 
 // Testing function for docx conversion
 function testDocxConversion() {
-var originalFolderId = '1dmN0oYQZwGFu83BwOGT90I_GFtGH1aup'; // AssessmentHQ Weekly FY 2024 folder
-var conversionFolderId = '1V40h1Df4TMuuGzTMiLHxyBRPC-XJhQ10'; // Cherrelle Testing Folder
+var originalFolderId = 'xxxxxxxxxxxxxxxxxxxxx'; // AssessmentHQ Weekly FY 2024 folder
+var conversionFolderId = 'xxxxxxxxxxxxxxxxxxxxx-xxxxxxx'; // Testing Folder
 
 var originalFolder = DriveApp.getFolderById(originalFolderId);
 var conversionFolder = DriveApp.getFolderById(conversionFolderId);

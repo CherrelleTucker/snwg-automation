@@ -19,9 +19,9 @@
 /////////////////////////////
 
 // Global constants
-var CALENDAR_ID = "c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com"; // IMPACT PI calendar
-var SPRINT_SEARCH_FOLDER_ID = "1UmjkjY5RTRYFOQEt10mwU8trJQ389Jum"; // IMPACT Sprint search folder with subfolders
-var PI_SEARCH_FOLDER_ID = "169W64yI042Q24q4socXa4GhiQ7iY4a1f";
+var CALENDAR_ID = "xxxxxxxxxxxxxxxxxxxxx@group.calendar.google.com"; // IMPACT PI calendar
+var SPRINT_SEARCH_FOLDER_ID = "xxxxxxxxxxxxxxxxxxxxx"; // IMPACT Sprint search folder with subfolders
+var PI_SEARCH_FOLDER_ID = "xxxxxxxxxxxxxxxxxxxxx";
 var FY_FOLDERS = ['FY23', 'FY24']; // IMPACT PI Planning search folder with subfolders
 
 // Helper function to return all sprint review events from the past six months to the next three months

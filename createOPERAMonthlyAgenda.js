@@ -30,9 +30,9 @@
 ////////////////////////////////////////////
 
 // Global variables
-var templateId = "1vr50ZU0skOM7_UOYaFKQtfDkFlkE5O7KzlItsdP4BOM"; // Template: YYYY-MM-DD SNWG/OPERA Tag-Up
-var operaMonthlyFolderId = "1M3EMWLCxhkqcPKLmH7grDu2zhSEuOvmc"; // SNWG-OPERA Tag-up Folder>Meeting-Notes>2023
-var snwgMonthlyFolder = '1HPjhc2LADvS9j3W_K3riq4RQPBngfqGY'; // SNWG Monthly Project Updates
+var templateId = "xxxxxxxxxxxxxxxxx"; // Template: YYYY-MM-DD SNWG/OPERA Tag-Up
+var operaMonthlyFolderId = "xxxxxxxxxxxxxxxxx"; // SNWG-OPERA Tag-up Folder>Meeting-Notes>2023
+var snwgMonthlyFolder = 'xxxxxxxxxxxxxxxxxxxxxxx'; // SNWG Monthly Project Updates
 
 // helper function to return the date of the second Thursday of a given month, or the current month if not specified.
 function getsecondThursday(date) {

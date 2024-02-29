@@ -30,8 +30,8 @@ function customMenu() {
 }
 
 //Global variables
-var PRIMARY_FOLDER_ID ='13zl2CvMNtDMFKcNZetAA00e5tkh3Eo_M';// SNWG MO Meeting Notes folder
-var SECONDARY_FOLDER_ID ='1l8gVfZqse5AWTfbVxVCwRcL84hf2XBc7'; // SNWG MO Monthly Project Status Updates folder
+var PRIMARY_FOLDER_ID ='xxxxxxxxxxxxxxxx';// SNWG MO Meeting Notes folder
+var SECONDARY_FOLDER_ID ='xxxxxxxxxxxxxxxxxxxxxx'; // SNWG MO Monthly Project Status Updates folder
 
 // helper funtion to return the ID of the active document
 function getActiveDocumentId(){

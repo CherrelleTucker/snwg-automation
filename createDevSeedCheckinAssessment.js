@@ -30,7 +30,7 @@
 //////////////////////////////////////////////////////
 
 // Global constant for Agenda Destination Folder ID
-var AGENDA_FOLDER_ID = "1Bvj1b1u2LGwjW5fStQaLRpZX5pmtjHSj"; // Assessment SCRIPT Development>SCRIPT RGT Meeting Notes Google Drive folder
+var AGENDA_FOLDER_ID = "xxxxxxxx"; // Assessment SCRIPT Development>SCRIPT RGT Meeting Notes Google Drive folder
 
 // Helper function: Find the most recent agenda file
 function findMostRecentAgenda() {

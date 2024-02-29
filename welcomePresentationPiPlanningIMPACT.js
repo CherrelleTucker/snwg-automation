@@ -20,9 +20,9 @@
 ////////////////////////////////////////
 
 // Global variables
-var source_calendar_id = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com'; // IMPACT PI calendar
-var template_id = '1JtnXgRM85G7fBJ0nbM4VlNQjCxvPmh8-6jH_e7JXPiM'; // Welcome Template ID
-var placement_folder_id = '169W64yI042Q24q4socXa4GhiQ7iY4a1f'; // IMPACT Presentations>PI Planning for easy identification and error checking prior to being placed in appropriate FY folder.
+var source_calendar_id = 'xxxxxxxxxxxxx@group.calendar.google.com'; // IMPACT PI calendar
+var template_id = 'xxxxx-xxxxxxxxxxx'; // Welcome Template ID
+var placement_folder_id = 'xxxxxxxxxxxxxxxxxxx'; // IMPACT Presentations>PI Planning for easy identification and error checking prior to being placed in appropriate FY folder.
 
 // Helper function to find and return the next "Welcome" event.
 function getNextWelcomeEvent() {

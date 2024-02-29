@@ -28,9 +28,9 @@
 //////////////////////////////////////////
 
 // Global variables
-var source_calendar_id = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com'; // IMPACT PI Google calendar
-var template_id = '1M9R_Yds6OO6TAmEtmsXrtOSmeaCyDh7NBIYswRmIhwI'; // Management Review Template ID
-var placement_folder_id = '169W64yI042Q24q4socXa4GhiQ7iY4a1f'; // IMPACT PI Planning Google Drive folder
+var source_calendar_id = 'xxxxxxxxxxxxxxxxxxxxxxxxxxx@group.calendar.google.com'; // IMPACT PI Google calendar
+var template_id = 'xxxxxxxxxxxxxxxx'; // Management Review Template ID
+var placement_folder_id = 'xxxxxxxxxxxxxxxxxxxxx'; // IMPACT PI Planning Google Drive folder
 
 // Helper function to: Find and return the next "Management Review" event.
 function getNextManagementReviewEvent() {

@@ -26,7 +26,7 @@
 // Team Schedules calendar: c_365230bc41700e58e23f74b286db1773d395e4bc6807c81a4c78658df5db423e@group.calendar.google.com; {{Team Schedules}}
 // IMPACT PI calendar = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com'; // IMPACT Project Increment Google Calendar
 
-var impactPIcalendar = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com'; // IMPACT Project Increment Google Calendar
+var impactPIcalendar = 'xxxxxxxxxxxx@group.calendar.google.com'; // IMPACT Project Increment Google Calendar
 
 // helper function to get current week Mon-Fri dates
 function getCurrentWeekDates() {
@@ -319,7 +319,7 @@ function getCalendarEvents() {
   var now = new Date();
   var fourWeeksLater = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // Add 30 days to the current date
   
-  var calendarId = 'c_365230bc41700e58e23f74b286db1773d395e4bc6807c81a4c78658df5db423e@group.calendar.google.com'; // SNWG Team Schedules Google Calendar
+  var calendarId = 'xxxxxxxxxxxxxxx@group.calendar.google.com'; // SNWG Team Schedules Google Calendar
   var calendar = CalendarApp.getCalendarById(calendarId);
   var events = calendar.getEvents(now, fourWeeksLater);
   
@@ -428,7 +428,7 @@ function formatDate(date) {
 
 // Primary function to create and populate a new Internal Planning meeting agenda
 function createNewInternalAgenda() {
-  var templateId = "1tE6xNFeMLVpcGwWMB9GuYpGom5F4Bi_81dUsp_W3jDQ"; // Template: YYYY-MM-DD Internal SNWG Meeting Agenda
+  var templateId = "xxxxxxxxxxxxxxxx"; // Template: YYYY-MM-DD Internal SNWG Meeting Agenda
   var newDocument = createCopyOfTemplate(templateId);
   var newDocumentId = newDocument.getId();
   var document = DocumentApp.openById(newDocumentId);
@@ -440,13 +440,13 @@ function createNewInternalAgenda() {
   document.setName(newDocumentName);
 
   // IDs of folders where specific files are stored
-  var previousAgendaFolderId = "1SRIUs7CUEdGUw0r1PI52e0OJpfXYN0z8"; // Weekly Internal Planning>FY24 SNWG MO Google Drive Folder
-  var operaTagUpFolderId = "1AX95NPrIYiLvn_1l8a6G4JwI6wW0viD8"; // OPERA> FY24 SNWG MO Google Drive Folder 
-  var snwgMonthlyFolderId = "1r52FELtJWytcp5Iw7F01wSxuXeRYcm78"; // Monthly Project Status Update> FY24 SNWG MO Google Drive Folder
-  var dmprFolderId = "1NCH6-V9pMA8pOivX0XD5ZtGLT-8OQZ6A"; // ST10 DMPR> FY24 IMPACT Google Drive Folder
-  var assessmentDevSeedFolderID = "1Bvj1b1u2LGwjW5fStQaLRpZX5pmtjHSj" // DevSeed FY24 Google Drive Folder
-  var assessmentHQFolderID = "1dmN0oYQZwGFu83BwOGT90I_GFtGH1aup"; // AssessmentHQ Weekly CY24 Google Drive Folder
-  var sepFolderID = "1Cw_sdH_IleGbtW1mVoWnJ0yqoyzr4Oe0"; // Stakeholder Engagement Program FY24 Google Drive folder
+  var previousAgendaFolderId = "xxxxxxxxxxxx"; // Weekly Internal Planning>FY24 SNWG MO Google Drive Folder
+  var operaTagUpFolderId = "xxxxxxxxxxxxxxx"; // OPERA> FY24 SNWG MO Google Drive Folder 
+  var snwgMonthlyFolderId = "xxxxxxxxxxxx"; // Monthly Project Status Update> FY24 SNWG MO Google Drive Folder
+  var dmprFolderId = "xxxxxxxxxxxxxxxxx"; // ST10 DMPR> FY24 IMPACT Google Drive Folder
+  var assessmentDevSeedFolderID = "xxxxxxxxxxxxxxxx" // DevSeed FY24 Google Drive Folder
+  var assessmentHQFolderID = "xxxxxxxxxxxxxxxx"; // AssessmentHQ Weekly CY24 Google Drive Folder
+  var sepFolderID = "xxxxxxxxxxxxxxxxxxx"; // Stakeholder Engagement Program FY24 Google Drive folder
 
   // Get links to specific files from their respective folders
   var previousAgendaLink = getMostRecentFileLink(previousAgendaFolderId, newDocumentId, false);

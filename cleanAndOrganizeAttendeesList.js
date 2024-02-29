@@ -65,15 +65,9 @@ function removeEmails(attendees) {
 // Helper function to map email addresses to names
 function mapEmailsToNames(attendees) {
   var emailToName = {
-    'raw0037@uah.edu': 'Rachel Wyatt',
-    'ksv0003@uah.edu': 'Katrina Virts',
-    'jeanne.leroux@nsstc.uah.edu': "Jeanne' le Roux",
-    'jeanne.leroux@uah.edu': "Jeanne' le Roux",
-    'jr0020@uah.edu': "Jeanne' le Roux",
-    'al0001@uah.edu': 'Anita Leroy',
-    'olofsson76@gmail.com': 'Pontus Olofsson',
-    'Charley@wayforagers.org': 'Charley Haley',
-    'nasaldh@gmail.com': 'Larry Hill'    
+    'name@doman.com': 'First Last',
+    'name@doman.com': 'First Last',
+    'name@doman.com': 'First Last'
   };
 
   var mappedNames = {}; // Object to store the mapped names
