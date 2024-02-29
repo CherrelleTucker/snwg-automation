@@ -29,11 +29,11 @@
 ////////////////////////////////////////////
 
 // Global variables
-var source_calendar_id = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com'; // IMPACT PI Calendar
-var template_id = '1j5KLp01q8pI89E3PN2QIGlvmA0-rD2O8bONWwG21IMY'; // Final Presentation Template ID
-var kudos_jamboard_template_id = '1fxtfrJKvVMwOHhQkZNXkSc5KMB-gafinTDtefz-htBs'; // Kudos Jamboard template ID
-var ssc_jamboard_template_id = '1rQBgG43-PKWj2OOIl3G_Pocb7hHQRWOH46RVGK-XD-c'; // SSC Jamboard template ID
-var placement_folder_id = '169W64yI042Q24q4socXa4GhiQ7iY4a1f'; // IMPACT PI Planning Google Drive folder
+var source_calendar_id = 'xxxxxxxxxxx@group.calendar.google.com'; // IMPACT PI Calendar
+var template_id = 'xxxxxxxxxxxxxxx'; // Final Presentation Template ID
+var kudos_jamboard_template_id = 'xxxxxxxxxxxxx-x-x'; // Kudos Jamboard template ID
+var ssc_jamboard_template_id = 'x-xxxxxxxxxxxxx-xxx-c'; // SSC Jamboard template ID
+var placement_folder_id = 'xxxxxxxxxxxxxxxxxxxxx'; // IMPACT PI Planning Google Drive folder
 
 // Helper function to: Find and return the next "Final Presentation" event.
 function getNextFinalPresentationEvent() {
