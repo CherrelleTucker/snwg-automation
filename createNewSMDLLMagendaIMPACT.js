@@ -18,8 +18,8 @@
 //////////////////////////////////////////////////////
 
 // Global constant for Agenda Template ID and Agenda Destination Folder ID
-var AGENDA_TEMPLATE_ID = "1NbArx4AptMdFYTeLHaFx2LiKCKYpoSsOrreHY8EaamY"; // Template Agenda for SMD {{short date}}
-var AGENDA_FOLDER_ID = "1ReHobNb95r5oLKXabg2JC5Zgg0ZmJLfH"; // SMD Large Language Model WG Google Drive folder
+var AGENDA_TEMPLATE_ID = "xxxxxxxxxxxxxxxx"; // Template Agenda for SMD {{short date}}
+var AGENDA_FOLDER_ID = "xxxxxxxxxxxxxxxxxxxxxx"; // SMD Large Language Model WG Google Drive folder
 
 // Helper Function: Get the next meeting date (Wednesday)
 function getNextWednesday() {
