@@ -9,7 +9,7 @@
 ///////////////////////////////////////
 
 // Global variables
-// var calendarId = "c_8798ebb71e4f29ffc300845dabe847152b8c92e2afd062e0e31242d7fce780cd@group.calendar.google.com"; // Test calendar ID; update to preferred calendar ID before deployment
+// var calendarId = "xxxxxxx@group.calendar.google.com"; // Test calendar ID; update to preferred calendar ID before deployment
 
 // immediately invoked function expression - adjustedPIcalculator to calculate current PI  ****DO NOT TOUCH****
 var adjustedPIcalculator = (function(){
@@ -237,7 +237,7 @@ function createEvent(eventTitle, eventStartDateTime, eventEndDateTime, calendarI
 
 // Primary function to create events for each PI increment
 function populatePIEvents() {
-  var calendarId = "c_8798ebb71e4f29ffc300845dabe847152b8c92e2afd062e0e31242d7fce780cd@group.calendar.google.com"; // Test calendar ID; update to preferred calendar ID before deployment
+  var calendarId = "xxxxxxxxxx@group.calendar.google.com"; // Test calendar ID; update to preferred calendar ID before deployment
 
   // Get the current Adjusted PI using the adjustedPIcalculator library
   var currentPI = adjustedPIcalculator.getPI(new Date());
