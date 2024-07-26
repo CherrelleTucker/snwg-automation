@@ -1,5 +1,5 @@
 const SLACK_WEBHOOK_URL = "SLACK_WEBHOOK"; // Replace with your Slack webhook URL
-const CALENDAR_ID = "CALENDAR URL";
+const CALENDAR_ID = "CALENDAR_ID";
 
 class SlackCalendarBot {
   constructor(calendarId, slackWebhookUrl) {
@@ -119,7 +119,9 @@ class SlackCalendarBot {
     if (event.isAllDayEvent() || start.toDateString() !== end.toDateString()) {
       formattedEvent = `• ${event.getTitle()} (${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})`;
     } else {
-      formattedEvent = `• ${event.getTitle()} (${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ${start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })})`;
+      formattedEvent = event.getTitle().startsWith("PI") 
+        ? `• ${event.getTitle()} (${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ${start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })})`
+        : `   ${event.getTitle()} (${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ${start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })})`;
     }
 
     return formattedEvent;
@@ -161,6 +163,26 @@ class SlackCalendarBot {
     return sunday;
   }
 
+  getCurrentPI() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start of the day
+    const endOfDay = new Date(today);
+    endOfDay.setHours(23, 59, 59, 999); // End of the day
+
+    const events = this.calendar.getEvents(today, endOfDay);
+    const currentPIEvent = events.find(event => {
+      const title = event.getTitle();
+      return this.isMultiDayEvent(event, today, endOfDay) && /PI \d+\.\d+ Sprint \d+/.test(title);
+    });
+
+    if (currentPIEvent) {
+      const match = currentPIEvent.getTitle().match(/PI (\d+\.\d+)/);
+      return match ? match[1] : null;
+    }
+
+    return null;
+  }
+
   doPost(e) {
     try {
       const slackData = this.parseFormData(e.postData.contents);
@@ -171,15 +193,20 @@ class SlackCalendarBot {
       Logger.log(`Search term: ${searchTerm}`); // Log the search term for debugging
 
       if (commandText === '/picalendar') {
-        if (searchTerm) {
-          const events = this.searchEventsByTitle(searchTerm);
-          Logger.log(`Filtered events: ${JSON.stringify(events.map(event => event.getTitle()))}`); // Log the event titles for debugging
-          const message = this.buildEventMessage(events, `Events matching "${searchTerm}":`, this.formatWeeklyEvent) || `No event found for ${searchTerm}`;
-
-          return ContentService.createTextOutput(JSON.stringify({ text: message }))
-            .setMimeType(ContentService.MimeType.JSON);
+        let termToSearch = searchTerm;
+        if (!termToSearch) {
+          termToSearch = this.getCurrentPI();
+          if (!termToSearch) {
+            return ContentService.createTextOutput(JSON.stringify({ text: "No current PI found." }))
+              .setMimeType(ContentService.MimeType.JSON);
+          }
         }
-        return ContentService.createTextOutput(JSON.stringify({ text: "Invalid command. Please use the format: /picalendar [search term]" }))
+
+        const events = this.searchEventsByTitle(termToSearch);
+        Logger.log(`Filtered events: ${JSON.stringify(events.map(event => event.getTitle()))}`); // Log the event titles for debugging
+        const message = this.buildEventMessage(events, `Events matching "${termToSearch}":`, this.formatWeeklyEvent) || `No event found for ${termToSearch}`;
+
+        return ContentService.createTextOutput(JSON.stringify({ text: message }))
           .setMimeType(ContentService.MimeType.JSON);
       } else if (commandText === '/pidocs') {
         const message = this.getDocsForRecentAndUpcomingEvents();
@@ -233,7 +260,7 @@ class SlackCalendarBot {
       channel_name: "test",
       user_id: "U2147483697",
       user_name: "Steve",
-      command: "/picurrent",
+      command: "/picalendar",
       text: "",
       response_url: "https://hooks.slack.com/commands/1234/5678",
       trigger_id: "13345224609.738474920.8088930838d88f008e0"
@@ -254,14 +281,19 @@ class SlackCalendarBot {
       Logger.log(`Search term: ${searchTerm}`); // Log the search term for debugging
 
       if (commandText === '/picalendar') {
-        if (searchTerm) {
-          const events = this.searchEventsByTitle(searchTerm);
-          Logger.log(`Filtered events: ${JSON.stringify(events.map(event => event.getTitle()))}`); // Log the event titles for debugging
-          const message = this.buildEventMessage(events, `Events matching "${searchTerm}":`, this.formatWeeklyEvent) || `No event found for ${searchTerm}`;
-          Logger.log(`Message: ${message}`); // Log the message for debugging
-        } else {
-          Logger.log("Invalid command. Please use the format: /picalendar [search term]");
+        let termToSearch = searchTerm;
+        if (!termToSearch) {
+          termToSearch = this.getCurrentPI();
+          if (!termToSearch) {
+            Logger.log("No current PI found.");
+            return;
+          }
         }
+
+        const events = this.searchEventsByTitle(termToSearch);
+        Logger.log(`Filtered events: ${JSON.stringify(events.map(event => event.getTitle()))}`); // Log the event titles for debugging
+        const message = this.buildEventMessage(events, `Events matching "${termToSearch}":`, this.formatWeeklyEvent) || `No event found for ${termToSearch}`;
+        Logger.log(`Message: ${message}`); // Log the message for debugging
       } else if (commandText === '/pidocs') {
         const message = this.getDocsForRecentAndUpcomingEvents();
         Logger.log(`Message: ${message}`); // Log the message for debugging
