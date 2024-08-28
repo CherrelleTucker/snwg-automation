@@ -24,17 +24,6 @@
         font-weight: bold;
         font-size: 20px;
       }
-    </style>
-    <script>
-      // Function to hide the success message after 5 seconds
-      function hideSuccessMessage() {
-        setTimeout(function() {
-          document.getElementById('successMessage').style.display = 'none';
-          document.getElementById('submitButton').innerText = 'Collect More Actions';
-        }, 5000); // 5000 milliseconds = 5 seconds
-      }
-    </script>
-    <style>
       .chart-container {
         width: 80%;
         margin: auto;
@@ -51,13 +40,9 @@
       th {
         background-color: #f2f2f2;
       }
-    </style>
-    <style>
       .left-content{
-        text-align:left;
+        text-align: left;
       }
-    </style>
-    <style>
       hr {
         border: 0;
         height: 5px;
@@ -66,6 +51,37 @@
         margin-bottom: 20px; /* Space below the line */
       }
     </style>
+    <script>
+      // Function to hide the success message after 5 seconds
+      function hideSuccessMessage() {
+        setTimeout(function() {
+          document.getElementById('successMessage').style.display = 'none';
+          document.getElementById('submitButton').innerText = 'Collect More Actions';
+        }, 5000); // 5000 milliseconds = 5 seconds
+      }
+
+      // Function to handle the submission
+      function submitId() {
+        var documentId = document.getElementById('documentId').value;
+        google.script.run.withSuccessHandler(function(response) {
+          document.getElementById('successMessage').innerText = response;
+          document.getElementById('successMessage').style.display = 'block';
+          hideSuccessMessage(); // Hide the message after 5 seconds
+          document.getElementById('documentId').value = ''; // Clear the input field
+        }).processDocumentId(documentId);
+      }
+
+      // Function to detect "Enter" key press in the input field
+      document.addEventListener('DOMContentLoaded', function () {
+        var inputField = document.getElementById('documentId');
+        inputField.addEventListener('keypress', function(event) {
+          if (event.key === 'Enter') {
+            event.preventDefault(); // Prevent the default form submission
+            submitId(); // Call the submit function
+          }
+        });
+      });
+    </script>
   </head>
   <body>
     
@@ -80,19 +96,8 @@
       </div>
       <div id="successMessage" class="successMessageStyle" style="display:none;"></div> <!-- Success message -->
     </div>
-    <script>
-      function submitId() {
-        var documentId = document.getElementById('documentId').value;
-        google.script.run.withSuccessHandler(function(response) {
-          document.getElementById('successMessage').innerText = response;
-          document.getElementById('successMessage').style.display = 'block';
-          hideSuccessMessage(); // Hide the message after 10 seconds
-          document.getElementById('documentId').value = ''; // Clear the input field
-        }).processDocumentId(documentId);
-      }
-    </script>
 
-    <p>Enter the the Document ID or URL of a Google Document that you would like to process.
+    <p>Enter the Document ID or URL of a Google Document that you would like to process.
       Ensure that the document meets the following requirements:
       <ul>
         <li>
@@ -116,11 +121,10 @@
         <p>9:20 AM - Bureaucratic Acronym Creation Contest <br>
         Crafting new, unnecessary acronyms for fun and non-profit. Action: Tanya record blurb “During the AGM, the CFO presented the FYI on ROI, EBITDA, and EPS to the SEC, IRS, and HR, while the PMO coordinated with IT to ensure GDPR compliance and a streamlined UX for KPI monitoring.
         <p>11:00 AM -  The Great Pen Crisis of 2023<br>
-        Who keeps taking them, and why is it always Carl? Action: Carl stop taking our pens.</p>
+        Who keeps taking them? Action: Stop taking our pens.</p>
         <p>1:30 PM - Working Group: Streamlining Paper Shuffling <br>
         Advanced course on connecting to a printer, generating too many copies, mixing them up, and never getting them put back in order. Elizabeth called HP to them their printer broke through no fault of our own. 
         Action: Ryan scrape up the printer and window glass from the parking lot
-
       </div>
      <div class="chart-container">
       <table>
@@ -136,22 +140,23 @@
         </tr>
         <tr>
           <td> Never Gonna Start</td>
-          <td> Carl</td>
-          <td> stop taking our pens </td>
+          <td> Stop </td>
+          <td> taking our pens </td>
         </tr>
+        <tr>
           <td> Not Started</td>
           <td> Ryan</td>
           <td> scrape up the printer and window glass from the parking lot.</td>
+        </tr>
       </table>
     </div>
     
     <hr>
 
-     <h2 style="text-align:center;">Known Issues</h2>
+    <h2 style="text-align:center;">Known Issues</h2>
     <div class="left-content">
       <p><s>Lines with multiple names can (but won't always) populate with the incorrect name identified as the action owner. It appears that enclosing the correct name with parentheses ( ) can work around this issue</s> Resolved 2023-02-01</p>
       <p> Send screenshots or snips of found errors to <a href="mailto: cherrelle.j.tucker@nasa.gov">cherrelle.j.tucker@nasa.gov</a></p> 
     </div>
   </body>
 </html>
-
