@@ -215,16 +215,16 @@ function actionsFromTable(documentId) {
 function actionsFromParagraphs(documentId) {
   const document = DocumentApp.openById(documentId);
   const body = document.getBody();
-  const actionsPhrase = 'Action:';
+  const actionsPhrase = /Action:/i; // Regular expression for case-insensitive match
   let actionList = [];
 
   const paragraphs = body.getParagraphs();
   paragraphs.forEach(paragraph => {
     const text = paragraph.getText();
-    const actionIndex = text.indexOf(actionsPhrase);
+    const actionIndex = text.search(actionsPhrase); // Use search with regex for case-insensitive
 
     if (actionIndex !== -1) {
-      const actionText = text.substring(actionIndex + actionsPhrase.length).trim();
+      const actionText = text.substring(actionIndex + 7).trim(); // Adjusted for "Action:" length
       const words = actionText.split(' ');
 
       if (words.length > 0) {
