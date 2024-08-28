@@ -24,6 +24,16 @@
         font-weight: bold;
         font-size: 20px;
       }
+      .processingMessageStyle {
+        color: blue;
+        font-weight: bold;
+        font-size: 20px;
+      }
+      .errorMessageStyle {
+        color: red;
+        font-weight: bold;
+        font-size: 20px;
+      }
       .chart-container {
         width: 80%;
         margin: auto;
@@ -40,7 +50,7 @@
       th {
         background-color: #f2f2f2;
       }
-      .left-content{
+      .left-content {
         text-align: left;
       }
       hr {
@@ -52,8 +62,8 @@
       }
     </style>
     <script>
-      // Function to hide the success message after 5 seconds
-      function hideSuccessMessage() {
+      // Function to hide the message after 5 seconds
+      function hideMessage() {
         setTimeout(function() {
           document.getElementById('successMessage').style.display = 'none';
           document.getElementById('submitButton').innerText = 'Collect More Actions';
@@ -63,12 +73,28 @@
       // Function to handle the submission
       function submitId() {
         var documentId = document.getElementById('documentId').value;
-        google.script.run.withSuccessHandler(function(response) {
-          document.getElementById('successMessage').innerText = response;
-          document.getElementById('successMessage').style.display = 'block';
-          hideSuccessMessage(); // Hide the message after 5 seconds
-          document.getElementById('documentId').value = ''; // Clear the input field
-        }).processDocumentId(documentId);
+        
+        // Show the "Collecting actions..." message
+        document.getElementById('successMessage').innerText = 'Collecting actions...';
+        document.getElementById('successMessage').style.display = 'block';
+        document.getElementById('successMessage').className = 'processingMessageStyle';
+
+        // Delay the script execution to ensure the message appears
+        setTimeout(function() {
+          google.script.run.withSuccessHandler(function(response) {
+            if (response.toLowerCase().includes('no action items found')) {
+              // Display error message if no actions are found
+              document.getElementById('successMessage').innerText = 'No action items found. Please review the document for proper formatting of the keyword ("action: ") or action occurrences.';
+              document.getElementById('successMessage').className = 'errorMessageStyle';
+            } else {
+              // Display success message
+              document.getElementById('successMessage').innerText = response;
+              document.getElementById('successMessage').className = 'successMessageStyle';
+            }
+            hideMessage(); // Hide the message after 5 seconds
+            document.getElementById('documentId').value = ''; // Clear the input field
+          }).processDocumentId(documentId);
+        }, 100); // 100 milliseconds delay
       }
 
       // Function to detect "Enter" key press in the input field
@@ -94,7 +120,7 @@
       <div>
         <button id="submitButton" onclick="submitId()">Collect Actions</button>
       </div>
-      <div id="successMessage" class="successMessageStyle" style="display:none;"></div> <!-- Success message -->
+      <div id="successMessage" class="successMessageStyle" style="display:none;"></div> <!-- Status message -->
     </div>
 
     <p>Enter the Document ID or URL of a Google Document that you would like to process.
