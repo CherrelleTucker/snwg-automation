@@ -2,65 +2,257 @@
 <html>
   <head>
     <base target="_top">
+    <!-- Favicon Link -->
+    <link rel="icon" href="https://github.com/CherrelleTucker/snwg-automation/blob/be97c4dc79740ebfff3bf9d1a84e6ed5ed0ad566/action-favicon.png" type="image/x-icon">
+    <!-- Custom Tab Title -->
+    <title>Action Item Collect</title>
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
+    <!-- CSS Styles -->
     <style>
+      /* Define CSS variables for light mode */
+      :root {
+        --background-color: #f9f9f9;
+        --text-color: #333;
+        --primary-color: #3498db;
+        --primary-color-hover: #2980b9;
+        --border-color: #ddd;
+        --success-color: #27ae60;
+        --processing-color: #2980b9;
+        --error-color: #e74c3c;
+        --table-header-bg: #3498db;
+        --table-header-text: #fff;
+        --table-row-bg-alt: #f2f2f2;
+        --table-row-hover: #ddd;
+        --container-bg-color: #fff;
+        --container-border-color: #ddd;
+        --shadow-color: rgba(0, 0, 0, 0.1);
+      }
+
+      /* Adjust CSS variables for dark mode */
+      body.dark-mode {
+        --background-color: #1a1a1a;  /* Darker background for contrast */
+        --text-color: #e0e0e0;        /* Lighter text for better readability */
+        --primary-color: #bb86fc;
+        --primary-color-hover: #3700b3;
+        --border-color: #444;         /* Slightly lighter border color for visibility */
+        --success-color: #03dac6;
+        --processing-color: #bb86fc;
+        --error-color: #cf6679;
+        --table-header-bg: #bb86fc;
+        --table-header-text: #000;
+        --table-row-bg-alt: #252525;  /* Darker row background for contrast */
+        --table-row-hover: #333;      /* Slightly lighter hover color for clarity */
+        --container-bg-color: #1f1f1f;
+        --container-border-color: #444; /* Adjusted container border color */
+        --shadow-color: rgba(255, 255, 255, 0.1);
+      }
+
       body {
         font-family: 'Raleway', sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: var(--background-color);
+        color: var(--text-color);
+        transition: background-color 0.3s, color 0.3s; /* Smooth transition for theme change */
       }
-      h1, .center-content {
+
+      h1 {
         text-align: center;
+        margin-top: 30px;
+        color: var(--text-color);
       }
-      img {
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-        width: 500px; /* adjust the width as needed */
+
+      .center-content {
+        text-align: center;
+        margin-top: 20px;
+        padding: 20px;
       }
+
       .center-content div {
         display: inline-block;
+        margin: 10px;
       }
-      .successMessageStyle {
-        color: green;
-        font-weight: bold;
-        font-size: 20px;
+
+      input[type="text"] {
+        padding: 10px;
+        width: 300px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        font-size: 16px;
+        background-color: var(--container-bg-color);
+        color: var(--text-color);
       }
-      .processingMessageStyle {
-        color: blue;
-        font-weight: bold;
-        font-size: 20px;
+
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        color: #fff;
+        background-color: var(--primary-color);
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        margin-top: 10px;
       }
+
+      button:hover {
+        background-color: var(--primary-color-hover);
+      }
+
+      .toggle-button {
+        background-color: var(--primary-color);
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        margin: 20px auto;
+        display: block;
+      }
+
+      .toggle-button:hover {
+        background-color: var(--primary-color-hover);
+      }
+
+      .successMessageStyle,
+      .processingMessageStyle,
       .errorMessageStyle {
-        color: red;
         font-weight: bold;
         font-size: 20px;
+        margin-top: 20px;
       }
+
+      .successMessageStyle {
+        color: var(--success-color);
+      }
+
+      .processingMessageStyle {
+        color: var(--processing-color);
+      }
+
+      .errorMessageStyle {
+        color: var(--error-color);
+      }
+
       .chart-container {
-        width: 80%;
-        margin: auto;
-        text-align: center;
+        width: 90%;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 20px;
+        background-color: var(--container-bg-color);
+        border-radius: 8px;
+        box-shadow: 0 0 10px var(--shadow-color);
+        border: 1px solid var(--container-border-color);
       }
+
       table {
         width: 100%;
         border-collapse: collapse;
+        margin: 20px 0;
       }
+
       th, td {
-        border: 1px solid black;
-        padding: 8px;
+        border: 1px solid var(--border-color);
+        padding: 12px 15px;
+        text-align: left;
+        font-size: 16px;
+        color: var(--text-color);
       }
+
       th {
-        background-color: #f2f2f2;
+        background-color: var(--table-header-bg);
+        color: var(--table-header-text);
       }
+
+      tr:nth-child(even) {
+        background-color: var(--table-row-bg-alt);
+      }
+
+      tr:hover {
+        background-color: var(--table-row-hover);
+      }
+
       .left-content {
         text-align: left;
+        max-width: 800px;
+        margin: auto;
+        padding: 10px 20px;
+        background-color: var(--container-bg-color);
+        border-radius: 8px;
+        border: 1px solid var(--container-border-color);
       }
+
       hr {
         border: 0;
-        height: 5px;
-        background-color: #333; /* Line color */
-        margin-top: 50px; /* Space above the line */
-        margin-bottom: 20px; /* Space below the line */
+        height: 4px;
+        background-color: var(--text-color);
+        margin-top: 50px;
+        margin-bottom: 20px;
+        border-radius: 2px;
+      }
+
+      /* Flexbox layout for the top paragraph */
+      .info-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin: 40px auto;
+        max-width: 900px;
+        padding: 20px;
+        background-color: var(--container-bg-color);
+        border-radius: 8px;
+        box-shadow: 0 0 10px var(--shadow-color);
+        border: 1px solid var(--container-border-color);
+      }
+
+      .info-container > div {
+        flex: 1 1 45%; /* Flex-basis of 45% allows two items per row */
+        padding: 15px;
+        margin: 10px;
+        background-color: var(--background-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-color);
+      }
+
+      .info-container p,
+      .info-container ul {
+        margin: 0;
+        color: var(--text-color);
+      }
+
+      @media (max-width: 768px) {
+        .center-content {
+          width: 100%;
+          padding: 10px;
+        }
+
+        input[type="text"] {
+          width: 80%;
+        }
+
+        .chart-container {
+          width: 95%;
+          padding: 10px;
+        }
+
+        button {
+          width: 80%;
+        }
+
+        .info-container {
+          flex-direction: column; /* Stack columns on smaller screens */
+        }
+
+        .info-container > div {
+          flex: 1 1 100%;
+        }
       }
     </style>
+    <!-- JavaScript -->
     <script>
       // Function to hide the message after 5 seconds
       function hideMessage() {
@@ -107,11 +299,24 @@
           }
         });
       });
+
+      // Function to toggle dark mode
+      function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+        const button = document.getElementById('toggleButton');
+        if (document.body.classList.contains('dark-mode')) {
+          button.innerText = 'Switch to Light Mode';
+        } else {
+          button.innerText = 'Switch to Dark Mode';
+        }
+      }
     </script>
   </head>
   <body>
-    
-    <h1>In-doc action item collection tool</h1>
+    <h1>In-doc Action Item Collection Tool</h1>
+
+    <!-- Dark Mode Toggle Button -->
+    <button id="toggleButton" class="toggle-button" onclick="toggleDarkMode()">Switch to Dark Mode</button>
 
     <div class="center-content">
       <div>
@@ -123,23 +328,29 @@
       <div id="successMessage" class="successMessageStyle" style="display:none;"></div> <!-- Status message -->
     </div>
 
-    <p>Enter the Document ID or URL of a Google Document that you would like to process.
-      Ensure that the document meets the following requirements:
-      <ul>
-        <li>
-          The document must contain action items in the format "Action:". The script assumes that the first word following the name of the person assigned, then the action is the paragraph following.
-          <p>Example 1: "Action: <span style="color:green;">Amy</span> <span style="color:blue;">email purchasing about req 385.</span>" <br>
-          Owner = "<span style="color:green;">Amy</span>" Action Item = "<span style="color:blue;">email purchasing about req 385.</span>" </p>
-          <p>Example 2: Action:"<span style="color:green;">Copy</span> <span style="color:blue;">2024 boards as 20XX boards and update screenshots/demo videos.</span>" <br>
-          Owner = "<span style="color:green;">Copy</span>" Action = "<span style="color:blue;">2024 boards as 20XX boards and update screenshots/demo videos.</span>"</p>
-        </li>
-        <li>
-          Note: Text with hyperlinks is transferred as plain text to the table.
-        </li>
-      </ul>
-      Once the document is processed, the action items will be populated in a 3 column table at the end of the document with the column headers "Status" "Owner""Action". If such a table does not already exist, one will be generated and you may then apply your desired formatting. 
-    </p>
-    <p>Example of an acceptable document with collected action items populated in a table can be found here: <a href="https://drive.google.com/uc?id=1nn1Hxk3kHBpNUsEeSUBOnK7dTAAb4V76" target="_Example Agenda">Example Document </a>
+    <!-- Updated top paragraph in columnar format -->
+    <div class="info-container">
+      <div>
+        <p>Enter the Document ID or URL of a Google Document that you would like to process.
+        Ensure that the document meets the following requirements:</p><br>
+        <ul>
+          <li>
+            The document must contain action items in the format "Action:". The script assumes that the first word following the name of the person assigned, then the action is the paragraph following.
+          </li>
+          <li>
+            Note: Text with hyperlinks is transferred as plain text to the table.
+          </li>
+        </ul>
+      </div>
+      <div>
+        <p>Example 1: "Action: <span style="color:#4caf50;">Amy</span> <span style="color:#2196f3;">email purchasing about req 385.</span>" <br>
+        Owner = "<span style="color:#4caf50;">Amy</span>" Action Item = "<span style="color:#2196f3;">email purchasing about req 385.</span>" </p><br>
+        <p>Example 2: "Action: <span style="color:#4caf50;">Copy</span> <span style="color:#2196f3;">2024 boards as 20XX boards and update screenshots/demo videos.</span>" <br>
+        Owner = "<span style="color:#4caf50;">Copy</span>" Action = "<span style="color:#2196f3;">2024 boards as 20XX boards and update screenshots/demo videos.</span>"</p> <br>
+        <p>Example of an acceptable document with collected action items populated in a table can be found here: <a href="https://drive.google.com/uc?id=1nn1Hxk3kHBpNUsEeSUBOnK7dTAAb4V76" target="_Example Agenda">Example Document </a></p>
+      </div>
+    </div>
+
     <h2 style="text-align:center;">Sample Agenda Elements</h2>
     <div class="left-content">
       <p>Attendees: Carl Tompson, Sam Adams, Eric Northman, Elizabeth Taylor, Tanya, James, Chris, Grace, Ryan (mentioned, not attended) </p>
@@ -152,7 +363,7 @@
         Advanced course on connecting to a printer, generating too many copies, mixing them up, and never getting them put back in order. Elizabeth called HP to them their printer broke through no fault of our own. 
         Action: Ryan scrape up the printer and window glass from the parking lot
       </div>
-     <div class="chart-container">
+    <div class="chart-container">
       <table>
         <tr>
           <th>Status</th>
@@ -182,7 +393,7 @@
     <h2 style="text-align:center;">Known Issues</h2>
     <div class="left-content">
       <p><s>Lines with multiple names can (but won't always) populate with the incorrect name identified as the action owner. It appears that enclosing the correct name with parentheses ( ) can work around this issue</s> Resolved 2023-02-01</p>
-      <p> Send screenshots or snips of found errors to <a href="mailto: cherrelle.j.tucker@nasa.gov">cherrelle.j.tucker@nasa.gov</a></p> 
+      <p>Send screenshots or snips of found errors to <a href="mailto: cherrelle.j.tucker@nasa.gov">cherrelle.j.tucker@nasa.gov</a></p> 
     </div>
   </body>
 </html>
