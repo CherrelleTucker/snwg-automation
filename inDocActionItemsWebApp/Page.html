@@ -1,338 +1,353 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <base target="_top">
     <!-- Favicon Link -->
-    <link rel="icon" href="https://github.com/CherrelleTucker/snwg-automation/blob/be97c4dc79740ebfff3bf9d1a84e6ed5ed0ad566/action-favicon.png" type="image/x-icon">
+    <link rel="icon" href="https://raw.githubusercontent.com/CherrelleTucker/snwg-automation/08d5035760893ed829b6e3ac0ed80404260743b6/action_favicon.png" type="image/x-icon">
+    
     <!-- Custom Tab Title -->
     <title>Action Item Collect</title>
+    
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
+    
     <!-- CSS Styles -->
     <style>
-      /* Define CSS variables for light mode */
-      :root {
-        --background-color: #f9f9f9;
-        --text-color: #333;
-        --primary-color: #3498db;
-        --primary-color-hover: #2980b9;
-        --border-color: #ddd;
-        --success-color: #27ae60;
-        --processing-color: #2980b9;
-        --error-color: #e74c3c;
-        --table-header-bg: #3498db;
-        --table-header-text: #fff;
-        --table-row-bg-alt: #f2f2f2;
-        --table-row-hover: #ddd;
-        --container-bg-color: #fff;
-        --container-border-color: #ddd;
-        --shadow-color: rgba(0, 0, 0, 0.1);
-      }
+        /* Theme Variables - Light Mode Default */
+        :root {
+            --background-color: #f9f9f9;
+            --text-color: #333;
+            --primary-color: #3498db;
+            --primary-color-hover: #2980b9;
+            --border-color: #ddd;
+            --success-color: #27ae60;
+            --processing-color: #2980b9;
+            --error-color: #e74c3c;
+            --table-header-bg: #3498db;
+            --table-header-text: #fff;
+            --table-row-bg-alt: #f2f2f2;
+            --table-row-hover: #ddd;
+            --container-bg-color: #fff;
+            --container-border-color: #ddd;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
 
-      /* Adjust CSS variables for dark mode */
-      body.dark-mode {
-        --background-color: #1a1a1a;  /* Darker background for contrast */
-        --text-color: #e0e0e0;        /* Lighter text for better readability */
-        --primary-color: #bb86fc;
-        --primary-color-hover: #3700b3;
-        --border-color: #444;         /* Slightly lighter border color for visibility */
-        --success-color: #03dac6;
-        --processing-color: #bb86fc;
-        --error-color: #cf6679;
-        --table-header-bg: #bb86fc;
-        --table-header-text: #000;
-        --table-row-bg-alt: #252525;  /* Darker row background for contrast */
-        --table-row-hover: #333;      /* Slightly lighter hover color for clarity */
-        --container-bg-color: #1f1f1f;
-        --container-border-color: #444; /* Adjusted container border color */
-        --shadow-color: rgba(255, 255, 255, 0.1);
-      }
+        /* Dark Mode Theme Variables */
+        body.dark-mode {
+            --background-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --primary-color: #bb86fc;
+            --primary-color-hover: #3700b3;
+            --border-color: #444;
+            --success-color: #03dac6;
+            --processing-color: #bb86fc;
+            --error-color: #cf6679;
+            --table-header-bg: #bb86fc;
+            --table-header-text: #000;
+            --table-row-bg-alt: #252525;
+            --table-row-hover: #333;
+            --container-bg-color: #1f1f1f;
+            --container-border-color: #444;
+            --shadow-color: rgba(255, 255, 255, 0.1);
+        }
 
-      body {
-        font-family: 'Raleway', sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: var(--background-color);
-        color: var(--text-color);
-        transition: background-color 0.3s, color 0.3s; /* Smooth transition for theme change */
-      }
+        /* Theme Switch Styles */
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+        }
 
-      h1 {
-        text-align: center;
-        margin-top: 30px;
-        color: var(--text-color);
-      }
+        .theme-switch {
+            display: inline-block;
+            height: 34px;
+            position: relative;
+            width: 60px;
+        }
 
-      .center-content {
-        text-align: center;
-        margin-top: 20px;
-        padding: 20px;
-      }
+        .theme-switch input {
+            display: none;
+        }
 
-      .center-content div {
-        display: inline-block;
-        margin: 10px;
-      }
+        .slider {
+            background-color: #ccc;
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: .4s;
+            border-radius: 34px;
+        }
 
-      input[type="text"] {
-        padding: 10px;
-        width: 300px;
-        border: 1px solid var(--border-color);
-        border-radius: 4px;
-        font-size: 16px;
-        background-color: var(--container-bg-color);
-        color: var(--text-color);
-      }
+        .slider:before {
+            background-color: #fff;
+            bottom: 4px;
+            content: "";
+            height: 26px;
+            left: 4px;
+            position: absolute;
+            transition: .4s;
+            width: 26px;
+            border-radius: 50%;
+        }
 
-      button {
-        padding: 10px 20px;
-        font-size: 16px;
-        color: #fff;
-        background-color: var(--primary-color);
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-        margin-top: 10px;
-      }
+        input:checked + .slider {
+            background-color: #bb86fc;
+        }
 
-      button:hover {
-        background-color: var(--primary-color-hover);
-      }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
 
-      .toggle-button {
-        background-color: var(--primary-color);
-        color: #fff;
-        border: none;
-        border-radius: 4px;
-        padding: 10px 20px;
-        font-size: 16px;
-        cursor: pointer;
-        margin: 20px auto;
-        display: block;
-      }
+        .theme-switch-wrapper span {
+            margin-left: 10px;
+            font-size: 1rem;
+            color: var(--text-color);
+        }
 
-      .toggle-button:hover {
-        background-color: var(--primary-color-hover);
-      }
+        /* Theme Icons */
+        .slider:after {
+            content: "🌞";
+            position: absolute;
+            left: 7px;
+            top: 7px;
+            font-size: 16px;
+        }
 
-      .successMessageStyle,
-      .processingMessageStyle,
-      .errorMessageStyle {
-        font-weight: bold;
-        font-size: 20px;
-        margin-top: 20px;
-      }
+        input:checked + .slider:after {
+            content: "🌜";
+            position: absolute;
+            left: 35px;
+        }
 
-      .successMessageStyle {
-        color: var(--success-color);
-      }
+        /* Base Styles */
+        body {
+            font-family: 'Raleway', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
 
-      .processingMessageStyle {
-        color: var(--processing-color);
-      }
-
-      .errorMessageStyle {
-        color: var(--error-color);
-      }
-
-      .chart-container {
-        width: 90%;
-        max-width: 800px;
-        margin: 40px auto;
-        padding: 20px;
-        background-color: var(--container-bg-color);
-        border-radius: 8px;
-        box-shadow: 0 0 10px var(--shadow-color);
-        border: 1px solid var(--container-border-color);
-      }
-
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 20px 0;
-      }
-
-      th, td {
-        border: 1px solid var(--border-color);
-        padding: 12px 15px;
-        text-align: left;
-        font-size: 16px;
-        color: var(--text-color);
-      }
-
-      th {
-        background-color: var(--table-header-bg);
-        color: var(--table-header-text);
-      }
-
-      tr:nth-child(even) {
-        background-color: var(--table-row-bg-alt);
-      }
-
-      tr:hover {
-        background-color: var(--table-row-hover);
-      }
-
-      .left-content {
-        text-align: left;
-        max-width: 800px;
-        margin: auto;
-        padding: 10px 20px;
-        background-color: var(--container-bg-color);
-        border-radius: 8px;
-        border: 1px solid var(--container-border-color);
-      }
-
-      hr {
-        border: 0;
-        height: 4px;
-        background-color: var(--text-color);
-        margin-top: 50px;
-        margin-bottom: 20px;
-        border-radius: 2px;
-      }
-
-      /* Flexbox layout for the top paragraph */
-      .info-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin: 40px auto;
-        max-width: 900px;
-        padding: 20px;
-        background-color: var(--container-bg-color);
-        border-radius: 8px;
-        box-shadow: 0 0 10px var(--shadow-color);
-        border: 1px solid var(--container-border-color);
-      }
-
-      .info-container > div {
-        flex: 1 1 45%; /* Flex-basis of 45% allows two items per row */
-        padding: 15px;
-        margin: 10px;
-        background-color: var(--background-color);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        color: var(--text-color);
-      }
-
-      .info-container p,
-      .info-container ul {
-        margin: 0;
-        color: var(--text-color);
-      }
-
-      @media (max-width: 768px) {
+        /* Layout Components */
         .center-content {
-          width: 100%;
-          padding: 10px;
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
         }
 
+        .center-content div {
+            display: inline-block;
+            margin: 10px;
+        }
+
+        /* Form Elements */
         input[type="text"] {
-          width: 80%;
-        }
-
-        .chart-container {
-          width: 95%;
-          padding: 10px;
+            padding: 10px;
+            width: 300px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 16px;
+            background-color: var(--container-bg-color);
+            color: var(--text-color);
         }
 
         button {
-          width: 80%;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
         }
 
+        button:hover {
+            background-color: var(--primary-color-hover);
+        }
+
+        /* Message Styles */
+        .successMessageStyle,
+        .processingMessageStyle,
+        .errorMessageStyle {
+            font-weight: bold;
+            font-size: 20px;
+            margin-top: 20px;
+        }
+
+        .successMessageStyle { color: var(--success-color); }
+        .processingMessageStyle { color: var(--processing-color); }
+        .errorMessageStyle { color: var(--error-color); }
+
+        /* Container Styles */
         .info-container {
-          flex-direction: column; /* Stack columns on smaller screens */
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin: 40px auto;
+            max-width: 900px;
+            padding: 20px;
+            background-color: var(--container-bg-color);
+            border-radius: 8px;
+            box-shadow: 0 0 10px var(--shadow-color);
+            border: 1px solid var(--container-border-color);
         }
 
         .info-container > div {
-          flex: 1 1 100%;
+            flex: 1 1 45%;
+            padding: 15px;
+            margin: 10px;
+            background-color: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
         }
-      }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .center-content {
+                width: 100%;
+                padding: 10px;
+            }
+            
+            input[type="text"] {
+                width: 80%;
+            }
+            
+            button {
+                width: 80%;
+            }
+            
+            .info-container {
+                flex-direction: column;
+            }
+            
+            .info-container > div {
+                flex: 1 1 100%;
+            }
+        }
     </style>
+
     <!-- JavaScript -->
     <script>
-      // Function to hide the message after 5 seconds
-      function hideMessage() {
-        setTimeout(function() {
-          document.getElementById('successMessage').style.display = 'none';
-          document.getElementById('submitButton').innerText = 'Collect More Actions';
-        }, 5000); // 5000 milliseconds = 5 seconds
-      }
-
-      // Function to handle the submission
-      function submitId() {
-        var documentId = document.getElementById('documentId').value;
-        
-        // Show the "Collecting actions..." message
-        document.getElementById('successMessage').innerText = 'Collecting actions...';
-        document.getElementById('successMessage').style.display = 'block';
-        document.getElementById('successMessage').className = 'processingMessageStyle';
-
-        // Delay the script execution to ensure the message appears
-        setTimeout(function() {
-          google.script.run.withSuccessHandler(function(response) {
-            if (response.toLowerCase().includes('no action items found')) {
-              // Display error message if no actions are found
-              document.getElementById('successMessage').innerText = 'No action items found. Please review the document for proper formatting of the keyword ("action: ") or action occurrences.';
-              document.getElementById('successMessage').className = 'errorMessageStyle';
-            } else {
-              // Display success message
-              document.getElementById('successMessage').innerText = response;
-              document.getElementById('successMessage').className = 'successMessageStyle';
+        // Wait for DOM to be fully loaded before attaching event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get references to DOM elements
+            const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
+            const inputField = document.getElementById('documentId');
+            
+            // Theme management functions
+            function setTheme(isDark) {
+                if (isDark) {
+                    document.body.classList.add('dark-mode');
+                    toggleSwitch.checked = true;
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    toggleSwitch.checked = false;
+                }
             }
-            hideMessage(); // Hide the message after 5 seconds
-            document.getElementById('documentId').value = ''; // Clear the input field
-          }).processDocumentId(documentId);
-        }, 100); // 100 milliseconds delay
-      }
 
-      // Function to detect "Enter" key press in the input field
-      document.addEventListener('DOMContentLoaded', function () {
-        var inputField = document.getElementById('documentId');
-        inputField.addEventListener('keypress', function(event) {
-          if (event.key === 'Enter') {
-            event.preventDefault(); // Prevent the default form submission
-            submitId(); // Call the submit function
-          }
+            // Initialize theme based on saved preference or system setting
+            const currentTheme = localStorage.getItem('theme');
+            if (currentTheme) {
+                setTheme(currentTheme === 'dark');
+            } else {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                setTheme(prefersDark);
+            }
+
+            // Theme toggle event listener
+            toggleSwitch.addEventListener('change', function(e) {
+                const isDark = e.target.checked;
+                setTheme(isDark);
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            });
+
+            // System theme change listener
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                if (!localStorage.getItem('theme')) {
+                    setTheme(e.matches);
+                }
+            });
+
+            // Enter key submission handler
+            inputField.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    submitId();
+                }
+            });
         });
-      });
 
-      // Function to toggle dark mode
-      function toggleDarkMode() {
-        document.body.classList.toggle('dark-mode');
-        const button = document.getElementById('toggleButton');
-        if (document.body.classList.contains('dark-mode')) {
-          button.innerText = 'Switch to Light Mode';
-        } else {
-          button.innerText = 'Switch to Dark Mode';
+        // Hide success/error message after delay
+        function hideMessage() {
+            setTimeout(function() {
+                document.getElementById('successMessage').style.display = 'none';
+                document.getElementById('submitButton').innerText = 'Collect More Actions';
+            }, 5000);
         }
-      }
+
+        // Form submission handler
+        function submitId() {
+            const documentId = document.getElementById('documentId').value;
+            const successMessage = document.getElementById('successMessage');
+            
+            // Show processing message
+            successMessage.innerText = 'Collecting actions...';
+            successMessage.style.display = 'block';
+            successMessage.className = 'processingMessageStyle';
+
+            // Process the document ID
+            setTimeout(function() {
+                google.script.run
+                    .withSuccessHandler(function(response) {
+                        if (response.toLowerCase().includes('no action items found')) {
+                            successMessage.innerText = 'No action items found. Please review the document for proper formatting of the keyword ("action: ") or action occurrences.';
+                            successMessage.className = 'errorMessageStyle';
+                        } else {
+                            successMessage.innerText = response;
+                            successMessage.className = 'successMessageStyle';
+                        }
+                        hideMessage();
+                        document.getElementById('documentId').value = '';
+                    })
+                    .processDocumentId(documentId);
+            }, 100);
+        }
     </script>
-  </head>
-  <body>
-    <h1>In-doc Action Item Collection Tool</h1>
+</head>
+<body>
+    <h1 style="text-align:center;">In-doc Action Item Collection Tool</h1>
 
-    <!-- Dark Mode Toggle Button -->
-    <button id="toggleButton" class="toggle-button" onclick="toggleDarkMode()">Switch to Dark Mode</button>
+    <!-- Theme Toggle Switch -->
+    <div class="theme-switch-wrapper">
+        <label class="theme-switch" for="checkbox" aria-label="Toggle dark mode">
+            <input type="checkbox" id="checkbox" />
+            <div class="slider"></div>
+    </div>
 
+    <!-- Main Content -->
     <div class="center-content">
-      <div>
-        Google Document URL: <input type="text" id="documentId">
-      </div>
-      <div>
-        <button id="submitButton" onclick="submitId()">Collect Actions</button>
-      </div>
-      <div id="successMessage" class="successMessageStyle" style="display:none;"></div> <!-- Status message -->
+        <div>
+            Google Document URL: <input type="text" id="documentId" aria-label="Google Document URL input">
+        </div>
+        <div>
+            <button id="submitButton" onclick="submitId()">Collect Actions</button>
+        </div>
+        <div id="successMessage" class="successMessageStyle" style="display:none;"></div>
     </div>
 
     <!-- Updated top paragraph in columnar format -->
     <div class="info-container">
       <div>
         <p>Enter the Document ID or URL of a Google Document that you would like to process.
-        Ensure that the document meets the following requirements:</p><br>
+        Ensure that the document meets the following requirements:</p>
         <ul>
           <li>
             The document must contain action items in the format "Action:". The script assumes that the first word following "Action:" is the name of the person assigned and that the action plus relevant details are the paragraph following.
@@ -344,9 +359,9 @@
       </div>
       <div>
         <p>Example 1: "Action: <span style="color:#4caf50;">Amy</span> <span style="color:#2196f3;">email purchasing about req 385.</span>" <br>
-        Owner = "<span style="color:#4caf50;">Amy</span>" Action Item = "<span style="color:#2196f3;">email purchasing about req 385.</span>" </p><br>
+        Owner = "<span style="color:#4caf50;">Amy</span>" Action Item = "<span style="color:#2196f3;">email purchasing about req 385.</span>" </p>
         <p>Example 2: "Action: <span style="color:#4caf50;">Copy</span> <span style="color:#2196f3;">2024 boards as 20XX boards and update screenshots/demo videos.</span>" <br>
-        Owner = "<span style="color:#4caf50;">Copy</span>" Action = "<span style="color:#2196f3;">2024 boards as 20XX boards and update screenshots/demo videos.</span>"</p> <br>
+        Owner = "<span style="color:#4caf50;">Copy</span>" Action = "<span style="color:#2196f3;">2024 boards as 20XX boards and update screenshots/demo videos.</span>"</p> 
         <p>Example of an acceptable document with collected action items populated in a table can be found here: <a href="https://drive.google.com/uc?id=1nn1Hxk3kHBpNUsEeSUBOnK7dTAAb4V76" target="_Example Agenda">Example Document </a></p>
       </div>
     </div>
