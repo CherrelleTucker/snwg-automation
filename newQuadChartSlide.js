@@ -18,16 +18,16 @@
 /////////////////////////////////
 
 // Global variables
-var quadTemplateId = 'xxxxxxxxxxxxxxxxxxxx'; // SNWG MO Weekly Quad Chart Slide Template
-var targetPresentationId = 'xxxxxxxxxxxx'; // SNWG MO Weekly Quad Chart presentation
-var dmprfolderID = 'xxxxxxxxxxxxx'; // IMPACT/SNWG DMPR folder FY24
-var agendasFolderID = 'xxxxxxxxxxxxxxx'; // SNWG Meeting Notes folder 
-var devSeedFolderID = 'xxxxxxxxxxxxxxxx'; // Assessment/DevSeed Weekly Meeting Agenda Folder
-var assessmentHQFolderID = 'xxxxxxxxxx'; // Assessment/HQ Weekly MEeting Agenda Folder
-var operaFolderID = 'xxxxxxxxxxxx'; // FY24 OPERA Meeting Notes Folder
-var sheetID = 'xxxxxxxxxxx'; // SNWG MO Action Tracking Sheet 
-var teamCalendar = 'xxxxxxxxxxxxx@group.calendar.google.com'; // SNWG Team Google Calendar
-var impactPiCalendar = 'xxxxxxxxxxxxxxxxxx@group.calendar.google.com'; // IMPACT PI calendar
+var quadTemplateId = '1iWm9oAJ-hFR_BJ-pEFGndhfFCLhWIigxJBvZM5xlf2M'; // SNWG MO Weekly Quad Chart Slide Template
+var targetPresentationId = '1wV26VGjZJ_P7hsnxdkub6PltQ3ZkedYb8yDviEYE4aE'; // SNWG MO Weekly Quad Chart presentation
+// var dmprfolderID = '1NCH6-V9pMA8pOivX0XD5ZtGLT-8OQZ6A'; // IMPACT/SNWG DMPR folder FY24; retired function
+var agendasFolderID = '13zl2CvMNtDMFKcNZetAA00e5tkh3Eo_M'; // SNWG Meeting Notes folder 
+var devSeedFolderID = '1Bvj1b1u2LGwjW5fStQaLRpZX5pmtjHSj'; // Assessment/DevSeed Weekly Meeting Agenda Folder
+var assessmentHQFolderID = '1dmN0oYQZwGFu83BwOGT90I_GFtGH1aup'; // Assessment/HQ Weekly MEeting Agenda Folder
+var operaFolderID = '1urLgf4tRUk4hmbWrxNYDidO7Qwb3BV3B'; // FY25 OPERA Meeting Notes Folder
+var sheetID = '1uYgX660tpizNbIy44ddQogrRphfwZqn1D0Oa2RlSYKg'; // SNWG MO Action Tracking Sheet 
+var teamCalendar = 'c_365230bc41700e58e23f74b286db1773d395e4bc6807c81a4c78658df5db423e@group.calendar.google.com'; // SNWG Team Google Calendar
+var impactPiCalendar = 'c_e6e532cefc5ddfdd7f3c715e7a07326607cd240d951991f6a4e3b87653e67ef3@group.calendar.google.com'; // IMPACT PI calendar
 
 // helper function to create custom menu for manually updating slides
 function onOpen() {
@@ -105,54 +105,58 @@ function extractDateFromFileName(fileName) {
   }
 }
 
+// New helper function to format agenda links
+function formatAgendaLink(file) {
+  var doc = DocumentApp.openByUrl(file.url);
+  return {
+    text: doc.getName(),
+    url: file.url
+  };
+}
+
 // Helper function to find current week files, including from subfolders, with certain exclusions
 function getFilesForCurrentWeek(folderIDs, currentWeekDates) {
-    var filesWithLinks = [];
-    var adjustedStartDate = new Date(currentWeekDates.start);
-    adjustedStartDate.setDate(adjustedStartDate.getDate() - 1);
-    var adjustedEndDate = new Date(currentWeekDates.end);
-    adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
+  var filesWithLinks = [];
+  var adjustedStartDate = new Date(currentWeekDates.start);
+  adjustedStartDate.setDate(adjustedStartDate.getDate() - 1);
+  var adjustedEndDate = new Date(currentWeekDates.end);
+  adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
 
-    folderIDs.forEach(function(folderID) {
-        try {
-            var foldersToProcess = [folderID];
-
-            while (foldersToProcess.length > 0) {
-                var currentFolderID = foldersToProcess.pop();
-                var folder = DriveApp.getFolderById(currentFolderID);
-                Logger.log("Processing folder: " + folder.getName());
-
-                var files = folder.getFiles();
-                while (files.hasNext()) {
-                    var file = files.next();
-                    var fileName = file.getName();
-                    Logger.log("Found file: " + fileName);
-                    var fileDate = extractDateFromFileName(fileName);
-
-                    if (fileDate && fileDate >= adjustedStartDate && fileDate <= adjustedEndDate) {
-                        filesWithLinks.push({
-                            name: fileName,
-                            url: file.getUrl()
-                        });
-                    }
-                }
-
-                var subfolders = folder.getFolders();
-                while (subfolders.hasNext()) {
-                    var subfolder = subfolders.next();
-                    var subfolderName = subfolder.getName();
-
-                    if (!["2020", "2021", "FY21", "2022", "FY22", "2023", "FY23", "Archived Notes"].includes(subfolderName)) {
-                        foldersToProcess.push(subfolder.getId());
-                    }
-                }
-            }
-        } catch (e) {
-            Logger.log("Error accessing folder with ID: " + folderID + ". Error: " + e.message);
+  folderIDs.forEach(function(folderID) {
+    try {
+      var foldersToProcess = [folderID];
+      while (foldersToProcess.length > 0) {
+        var currentFolderID = foldersToProcess.pop();
+        var folder = DriveApp.getFolderById(currentFolderID);
+        var files = folder.getFiles();
+        
+        while (files.hasNext()) {
+          var file = files.next();
+          var fileName = file.getName();
+          var fileDate = extractDateFromFileName(fileName);
+          
+          if (fileDate && fileDate >= adjustedStartDate && fileDate <= adjustedEndDate) {
+            filesWithLinks.push({
+              name: fileName,
+              url: file.getUrl()
+            });
+          }
         }
-    });
 
-    return filesWithLinks;
+        var subfolders = folder.getFolders();
+        while (subfolders.hasNext()) {
+          var subfolder = subfolders.next();
+          var subfolderName = subfolder.getName();
+          if (!["2020", "2021", "FY21", "2022", "FY22", "2023", "FY23", "Archived Notes"].includes(subfolderName)) {
+            foldersToProcess.push(subfolder.getId());
+          }
+        }
+      }
+    } catch (e) {
+      Logger.log("Error accessing folder with ID: " + folderID + ". Error: " + e.message);
+    }
+  });
+  return filesWithLinks;
 }
 
 // Helper function: Get Team Schedule events from the designated calendar
@@ -228,7 +232,7 @@ function findShapeByAltText(slide, altText) {
   return null;
 }
 
-// helper function to find current month's DMPR file
+/*Retired function:  helper function to find current month's DMPR file
 function findCurrentDMPRFile() {
   // Get the current year and month
   var date = new Date();
@@ -253,9 +257,9 @@ function findCurrentDMPRFile() {
 
   // If no matching file is found, return null
   return null;
-}
+} */
 
-//helper function to find DMPR shape
+/*retired function: helper function to find DMPR shape
 function handleCurrentDMPRShape(currentDMPRShape) {
   if (currentDMPRShape) {
     Logger.log("Current DMPR shape found.");
@@ -279,9 +283,9 @@ function handleCurrentDMPRShape(currentDMPRShape) {
   } else {
     Logger.log("Current DMPR shape not found!");
   }
-}
+}*/
 
-// Get the current month's DMPR file and format the text
+/* Retired function: Get the current month's DMPR file and format the text
 function getFormattedDmprText() {
     var dmprFile = findCurrentDMPRFile();
     if (dmprFile) {
@@ -290,7 +294,7 @@ function getFormattedDmprText() {
         return year + "-" + month + " DMPR";
     }
     return ""; // Return an empty string if no DMPR file is found
-}
+}*/
 
 // helper function to pull Open Action Items from the Action Tracking workbook
 function updateOpenActionItems() {
@@ -347,56 +351,108 @@ function updateActionItemsTable(newSlide, assignedToTasks) {
 
 // Primary function to create and populate new slide
 function updatePresentationOptimized() {
-  // Duplicate the template slide
-  var newSlide = duplicateTemplateSlide(quadTemplateId);
+  Logger.log('Starting updatePresentationOptimized function');
+  
+  try {
+    // Duplicate the template slide
+    Logger.log('Duplicating template slide');
+    var newSlide = duplicateTemplateSlide(quadTemplateId);
 
-  // Get Current PI
-  var currentPI = getPiFromImpactPiCalendar();
+    // Get Current PI
+    Logger.log('Getting current PI');
+    var currentPI = getPiFromImpactPiCalendar();
 
-  // Update DMPR
-  var dmprShape = findShapeByAltText(newSlide, "DMPR Placeholder");
-  handleCurrentDMPRShape(dmprShape);
-  var dmprText = getFormattedDmprText();
+    // Get the current week's dates
+    var currentWeekDates = getCurrentWeekDates();
+    var weekDatesString = currentWeekDates.formatted;
 
-  // Get the current week's dates
-  var currentWeekDates = getCurrentWeekDates();
-  var weekDatesString = currentWeekDates.formatted;
+    // Fetch team schedule events
+    Logger.log('Getting team schedule events');
+    var teamScheduleEvents = getCalendarEventsForCurrentWeek();
+    var teamSchedulesString = teamScheduleEvents.map(function(event) {
+      return event.title + ": " + event.date;
+    }).join('\n');
 
-  // Fetch the team schedule events for the current week
-  var teamScheduleEvents = getCalendarEventsForCurrentWeek();
-  var teamSchedulesString = teamScheduleEvents.map(function(event) {
-    return event.title + ": " + event.date;
-  }).join('\n');
+    // Fetch agenda files first
+    Logger.log('Getting agenda files');
+    var folderIDsToSearch = [
+      agendasFolderID,
+      devSeedFolderID
+    ];
+    
+    var currentWeekAgendas = getFilesForCurrentWeek(folderIDsToSearch, currentWeekDates);
+    Logger.log('Found ' + currentWeekAgendas.length + ' agenda files');
+    
+    // Update placeholders first
+    var placeholders = {
+      '{{Current Mon to Fri}}': weekDatesString,
+      '{{Team Schedules}}': teamSchedulesString,
+      '{{Adjusted PI}}': currentPI
+    };
+    
+    Logger.log('Replacing placeholders');
+    replacePlaceholdersInSlide(newSlide, placeholders);
 
-  // Fetch agenda files for the current week
-  var folderIDsToSearch = [agendasFolderID, 
-      // '1AX95NPrIYiLvn_1l8a6G4JwI6wW0viD8', // OPERA FY24 Monthly Meeting Agenda Folder
-      // '1dmN0oYQZwGFu83BwOGT90I_GFtGH1aup', // Assessment/HQ Weekly Meeting Agenda Folder
-      '1Bvj1b1u2LGwjW5fStQaLRpZX5pmtjHSj']; // DevSeed Folder ID
-  var currentWeekAgendas = getFilesForCurrentWeek(folderIDsToSearch, currentWeekDates);
-  var agendaString = currentWeekAgendas.map(function(file) {
-    return file.url;
-  }).join('\n');
+    // Handle agenda items
+    Logger.log('Processing agenda items');
+    var agendaShape = findShapeByAltText(newSlide, "Meetings & Agendas");
+    
+    if (agendaShape) {
+      var textRange = agendaShape.getText();
+      var fullText = '';
+      var agendaItems = [];
+      
+      // First, collect all items
+      currentWeekAgendas.forEach(function(file, index) {
+        try {
+          var fileId = file.url.match(/[-\w]{25,}/);
+          if (fileId) {
+            var driveFile = DriveApp.getFileById(fileId[0]);
+            var title = driveFile.getName();
+            agendaItems.push({
+              title: title,
+              url: file.url,
+              startIndex: fullText.length,
+              endIndex: fullText.length + title.length
+            });
+            fullText += title;
+            if (index < currentWeekAgendas.length - 1) {
+              fullText += '\n';
+            }
+          }
+        } catch (e) {
+          Logger.log('Error building text: ' + e.toString());
+        }
+      });
+      
+      // Set the complete text
+      textRange.setText(fullText);
+      Logger.log('Text set successfully');
+      
+      // Apply links to each item's specific range
+      agendaItems.forEach(function(item) {
+        try {
+          Logger.log('Applying link for: ' + item.title + ' at indices ' + item.startIndex + ':' + item.endIndex);
+          var itemRange = textRange.getRange(item.startIndex, item.endIndex);
+          var linkStyle = itemRange.getTextStyle();
+          linkStyle.setForegroundColor('#0000FF');
+          linkStyle.setUnderline(true);
+          linkStyle.setLinkUrl(item.url);
+        } catch (e) {
+          Logger.log('Error applying link: ' + e.toString());
+        }
+      });
+    }
 
-  // Fetch the open action items
-  var assignedToTasks = updateOpenActionItems();
+    // Insert the new slide
+    Logger.log('Inserting new slide');
+    var targetPresentation = SlidesApp.openById(targetPresentationId);
+    targetPresentation.insertSlide(0, newSlide);
+    
+    Logger.log('Slide update completed successfully');
 
-  // Update the Open Action Items table
-  updateActionItemsTable(newSlide, assignedToTasks);
-
-  // Placeholder replacements
-  var placeholders = {
-    '{{Current Mon to Fri}}': weekDatesString,  // Current week's Monday to Friday dates
-    '{{Team Schedules}}': teamSchedulesString, // Team schedules for the current week
-    '{{Current Week Agenda}}': agendaString, // Agendas for the current week
-    '{{Adjusted PI}}': currentPI,// Update PI
-    '{{Current DMPR}}': dmprText, // Update current DMPR
-  };
-
-  // Replace placeholders in the new slide
-  replacePlaceholdersInSlide(newSlide, placeholders);
-
-  // Insert the new slide at the beginning of the target presentation
-  var targetPresentation = SlidesApp.openById(targetPresentationId);
-  targetPresentation.insertSlide(0, newSlide);
+  } catch (error) {
+    Logger.log('Error in updatePresentationOptimized: ' + error.toString());
+    throw error;
+  }
 }
