@@ -4,13 +4,10 @@
     <base target="_top">
     <!-- Favicon Link -->
     <link rel="icon" href="https://raw.githubusercontent.com/CherrelleTucker/snwg-automation/08d5035760893ed829b6e3ac0ed80404260743b6/action_favicon.png" type="image/x-icon">
-    
     <!-- Custom Tab Title -->
     <title>Action Item Collect</title>
-    
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
-    
     <!-- CSS Styles -->
     <style>
         /* Theme Variables - Light Mode Default */
@@ -33,7 +30,7 @@
         }
 
         /* Dark Mode Theme Variables */
-        body.dark-mode {
+        [data-theme="dark"] {
             --background-color: #1a1a1a;
             --text-color: #e0e0e0;
             --primary-color: #bb86fc;
@@ -51,78 +48,6 @@
             --shadow-color: rgba(255, 255, 255, 0.1);
         }
 
-        /* Theme Switch Styles */
-        .theme-switch-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 20px auto;
-        }
-
-        .theme-switch {
-            display: inline-block;
-            height: 34px;
-            position: relative;
-            width: 60px;
-        }
-
-        .theme-switch input {
-            display: none;
-        }
-
-        .slider {
-            background-color: #ccc;
-            bottom: 0;
-            cursor: pointer;
-            left: 0;
-            position: absolute;
-            right: 0;
-            top: 0;
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            background-color: #fff;
-            bottom: 4px;
-            content: "";
-            height: 26px;
-            left: 4px;
-            position: absolute;
-            transition: .4s;
-            width: 26px;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: #bb86fc;
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(26px);
-        }
-
-        .theme-switch-wrapper span {
-            margin-left: 10px;
-            font-size: 1rem;
-            color: var(--text-color);
-        }
-
-        /* Theme Icons */
-        .slider:after {
-            content: "🌞";
-            position: absolute;
-            left: 7px;
-            top: 7px;
-            font-size: 16px;
-        }
-
-        input:checked + .slider:after {
-            content: "🌜";
-            position: absolute;
-            left: 35px;
-        }
-
         /* Base Styles */
         body {
             font-family: 'Raleway', sans-serif;
@@ -131,6 +56,33 @@
             background-color: var(--background-color);
             color: var(--text-color);
             transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background-color: var(--container-bg-color);
+            color: var(--text-color);
+            cursor: pointer;
+            box-shadow: 0 2px 8px var(--shadow-color);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            padding: 0;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow-color);
         }
 
         /* Layout Components */
@@ -204,79 +156,125 @@
             flex: 1 1 45%;
             padding: 15px;
             margin: 10px;
-            background-color: var(--background-color);
+            background-color: var(--container-bg-color);
             border: 1px solid var(--border-color);
             border-radius: 8px;
         }
 
-        /* Responsive Design */
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: var(--container-bg-color);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--table-header-bg);
+            color: var(--table-header-text);
+        }
+
+        tr:nth-child(even) {
+            background-color: var(--table-row-bg-alt);
+        }
+
+        tr:hover {
+            background-color: var(--table-row-hover);
+        }
+
+        /* Example Text Colors */
+        .owner-text {
+            color: #4caf50 !important;
+        }
+
+        .action-text {
+            color: #2196f3 !important;
+        }
+
+        /* Links */
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Mobile Responsiveness */
         @media (max-width: 768px) {
+            .theme-toggle {
+                top: 10px;
+                right: 10px;
+            }
+
             .center-content {
                 width: 100%;
                 padding: 10px;
             }
-            
+
             input[type="text"] {
                 width: 80%;
             }
-            
+
             button {
                 width: 80%;
             }
-            
+
             .info-container {
-                flex-direction: column;
+                margin: 20px;
+                padding: 15px;
             }
-            
+
             .info-container > div {
                 flex: 1 1 100%;
+                margin: 5px 0;
             }
         }
     </style>
 
-    <!-- JavaScript -->
     <script>
-        // Wait for DOM to be fully loaded before attaching event listeners
+        // Wait for DOM to be fully loaded
         document.addEventListener('DOMContentLoaded', function() {
-            // Get references to DOM elements
-            const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
-            const inputField = document.getElementById('documentId');
+            // Theme management
+            const themeToggle = document.getElementById('themeToggle');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
             
-            // Theme management functions
             function setTheme(isDark) {
-                if (isDark) {
-                    document.body.classList.add('dark-mode');
-                    toggleSwitch.checked = true;
-                } else {
-                    document.body.classList.remove('dark-mode');
-                    toggleSwitch.checked = false;
-                }
-            }
-
-            // Initialize theme based on saved preference or system setting
-            const currentTheme = localStorage.getItem('theme');
-            if (currentTheme) {
-                setTheme(currentTheme === 'dark');
-            } else {
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                setTheme(prefersDark);
-            }
-
-            // Theme toggle event listener
-            toggleSwitch.addEventListener('change', function(e) {
-                const isDark = e.target.checked;
-                setTheme(isDark);
+                document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                themeToggle.textContent = isDark ? '☀️' : '🌙';
                 localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            }
+
+            // Initialize theme
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                setTheme(savedTheme === 'dark');
+            } else {
+                setTheme(prefersDark.matches);
+            }
+
+            // Theme toggle click handler
+            themeToggle.addEventListener('click', () => {
+                const isDark = document.body.getAttribute('data-theme') === 'dark';
+                setTheme(!isDark);
             });
 
-            // System theme change listener
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            // System theme change handler
+            prefersDark.addEventListener('change', (e) => {
                 if (!localStorage.getItem('theme')) {
                     setTheme(e.matches);
                 }
             });
 
-            // Enter key submission handler
+            // Enter key handler for input field
+            const inputField = document.getElementById('documentId');
             inputField.addEventListener('keypress', function(event) {
                 if (event.key === 'Enter') {
                     event.preventDefault();
@@ -285,7 +283,7 @@
             });
         });
 
-        // Hide success/error message after delay
+        // Hide message after delay
         function hideMessage() {
             setTimeout(function() {
                 document.getElementById('successMessage').style.display = 'none';
@@ -297,13 +295,11 @@
         function submitId() {
             const documentId = document.getElementById('documentId').value;
             const successMessage = document.getElementById('successMessage');
-            
-            // Show processing message
+
             successMessage.innerText = 'Collecting actions...';
             successMessage.style.display = 'block';
             successMessage.className = 'processingMessageStyle';
 
-            // Process the document ID
             setTimeout(function() {
                 google.script.run
                     .withSuccessHandler(function(response) {
@@ -322,17 +318,14 @@
         }
     </script>
 </head>
+
 <body>
     <h1 style="text-align:center;">In-doc Action Item Collection Tool</h1>
 
-    <!-- Theme Toggle Switch -->
-    <div class="theme-switch-wrapper">
-        <label class="theme-switch" for="checkbox" aria-label="Toggle dark mode">
-            <input type="checkbox" id="checkbox" />
-            <div class="slider"></div>
-    </div>
+    <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+        🌙
+    </button>
 
-    <!-- Main Content -->
     <div class="center-content">
         <div>
             Google Document URL: <input type="text" id="documentId" aria-label="Google Document URL input">
@@ -343,71 +336,77 @@
         <div id="successMessage" class="successMessageStyle" style="display:none;"></div>
     </div>
 
-    <!-- Updated top paragraph in columnar format -->
     <div class="info-container">
-      <div>
-        <p>Enter the Document ID or URL of a Google Document that you would like to process.
-        Ensure that the document meets the following requirements:</p>
-        <ul>
-          <li>
-            The document must contain action items in the format "Action:". The script assumes that the first word following "Action:" is the name of the person assigned and that the action plus relevant details are the paragraph following.
-          </li>
-          <li>
-            Note: Text with hyperlinks is transferred as plain text to the table.
-          </li>
-        </ul>
-      </div>
-      <div>
-        <p>Example 1: "Action: <span style="color:#4caf50;">Amy</span> <span style="color:#2196f3;">email purchasing about req 385.</span>" <br>
-        Owner = "<span style="color:#4caf50;">Amy</span>" Action Item = "<span style="color:#2196f3;">email purchasing about req 385.</span>" </p>
-        <p>Example 2: "Action: <span style="color:#4caf50;">Copy</span> <span style="color:#2196f3;">2024 boards as 20XX boards and update screenshots/demo videos.</span>" <br>
-        Owner = "<span style="color:#4caf50;">Copy</span>" Action = "<span style="color:#2196f3;">2024 boards as 20XX boards and update screenshots/demo videos.</span>"</p> 
-        <p>Example of an acceptable document with collected action items populated in a table can be found here: <a href="https://drive.google.com/uc?id=1nn1Hxk3kHBpNUsEeSUBOnK7dTAAb4V76" target="_Example Agenda">Example Document </a></p>
-      </div>
+        <div>
+            <p>Enter the Document ID or URL of a Google Document that you would like to process. 
+            Ensure that the document meets the following requirements:</p>
+            <ul>
+                <li>The document must contain action items in the format "Action:". The script assumes that the first word following "Action:" is the name of the person assigned and that the action plus relevant details are the paragraph following.</li>
+                <li>Note: Text with hyperlinks is transferred as plain text to the table.</li>
+            </ul>
+        </div>
+        <div>
+            <p>Example 1: "Action: <span class="owner-text">Amy</span> <span class="action-text">email purchasing about req 385.</span>"<br>
+            Owner = "<span class="owner-text">Amy</span>" Action Item = "<span class="action-text">email purchasing about req 385.</span>"</p>
+
+            <p>Example 2: "Action: <span class="owner-text">Copy</span> <span class="action-text">2024 boards as 20XX boards and update screenshots/demo videos.</span>"<br>
+            Owner = "<span class="owner-text">Copy</span>" Action = "<span class="action-text">2024 boards as 20XX boards and update screenshots/demo videos.</span>"</p>
+
+            <p>Example of an acceptable document with collected action items populated in a table can be found here: <a href="https://drive.google.com/uc?id=1nn1Hxk3kHBpNUsEeSUBOnK7dTAAb4V76" target="_Example Agenda">Example Document</a></p>
+        </div>
     </div>
 
     <h2 style="text-align:center;">Sample Agenda Elements</h2>
-    <div class="left-content">
-      <p>Attendees: Carl Tompson, Sam Adams, Eric Northman, Elizabeth Taylor, Tanya, James, Chris, Grace, Ryan (mentioned, not attended) </p>
-      <p> Notes:</p>
-        <p>9:20 AM - Bureaucratic Acronym Creation Contest <br>
-        Crafting new, unnecessary acronyms for fun and non-profit. Action: Tanya record blurb “During the AGM, the CFO presented the FYI on ROI, EBITDA, and EPS to the SEC, IRS, and HR, while the PMO coordinated with IT to ensure GDPR compliance and a streamlined UX for KPI monitoring.
-        <p>11:00 AM -  The Great Pen Crisis of 2023<br>
-        Who keeps taking them? Action: Stop taking our pens.</p>
-        <p>1:30 PM - Working Group: Streamlining Paper Shuffling <br>
-        Advanced course on connecting to a printer, generating too many copies, mixing them up, and never getting them put back in order. Elizabeth called HP to them their printer broke through no fault of our own. 
-        Action: Ryan scrape up the printer and window glass from the parking lot
-      </div>
-    <div class="chart-container">
-      <table>
-        <tr>
-          <th>Status</th>
-          <th>Owner</th>
-          <th>Action</th>
-        </tr>
-        <tr>
-          <td> Not Started</td>
-          <td> Tanya</td>
-          <td> record blurb “During the AGM, the CFO presented the FYI on ROI, EBITDA, and EPS to the SEC, IRS, and HR, while the PMO coordinated with IT to ensure GDPR compliance and a streamlined UX for KPI monitoring." </td>
-        </tr>
-        <tr>
-          <td> Never Gonna Start</td>
-          <td> Stop </td>
-          <td> taking our pens </td>
-        </tr>
-        <tr>
-          <td> Not Started</td>
-          <td> Ryan</td>
-          <td> scrape up the printer and window glass from the parking lot.</td>
-        </tr>
-      </table>
+
+    <div class="info-container">
+        <div>
+            <p>Attendees: Carl Tompson, Sam Adams, Eric Northman, Elizabeth Taylor, Tanya, James, Chris, Grace, Ryan (mentioned, not attended)</p>
+            
+            <p>Notes:</p>
+            
+            <p>9:20 AM - Bureaucratic Acronym Creation Contest<br>
+            Crafting new, unnecessary acronyms for fun and non-profit. Action: Tanya record blurb "During the AGM, the CFO presented the FYI on ROI, EBITDA, and EPS to the SEC, IRS, and HR, while the PMO coordinated with IT to ensure GDPR compliance and a streamlined UX for KPI monitoring.</p>
+
+            <p>11:00 AM - The Great Pen Crisis of 2023<br>
+            Who keeps taking them? Action: Stop taking our pens.</p>
+
+            <p>1:30 PM - Working Group: Streamlining Paper Shuffling<br>
+            Advanced course on connecting to a printer, generating too many copies, mixing them up, and never getting them put back in order. Elizabeth called HP to them their printer broke through no fault of our own. Action: Ryan scrape up the printer and window glass from the parking lot</p>
+        </div>
     </div>
-    
+
+    <div class="info-container">
+        <table>
+            <tr>
+                <th>Status</th>
+                <th>Owner</th>
+                <th>Action</th>
+            </tr>
+            <tr>
+                <td>Not Started</td>
+                <td>Tanya</td>
+                <td>record blurb "During the AGM, the CFO presented the FYI on ROI, EBITDA, and EPS to the SEC, IRS, and HR, while the PMO coordinated with IT to ensure GDPR compliance and a streamlined UX for KPI monitoring."</td>
+            </tr>
+            <tr>
+                <td>Never Gonna Start</td>
+                <td>Stop</td>
+                <td>taking our pens</td>
+            </tr>
+            <tr>
+                <td>Not Started</td>
+                <td>Ryan</td>
+                <td>scrape up the printer and window glass from the parking lot.</td>
+            </tr>
+        </table>
+    </div>
+
     <hr>
 
     <h2 style="text-align:center;">Known Issues</h2>
-    <div class="left-content">
-      <p><s>Lines with multiple names can (but won't always) populate with the incorrect name identified as the action owner. It appears that enclosing the correct name with parentheses ( ) can work around this issue</s> Resolved 2023-02-01</p>
+
+    <div class="info-container">
+        <div class="left-content">
+            <p><s>Lines with multiple names can (but won't always) populate with the incorrect name identified as the action owner. It appears that enclosing the correct name with parentheses ( ) can work around this issue</s> Resolved 2023-02-01</p>
       <p>Send screenshots or snips of found errors to <a href="mailto: cherrelle.j.tucker@nasa.gov">cherrelle.j.tucker@nasa.gov</a></p> 
     </div>
   </body>
