@@ -1,75 +1,54 @@
 /*
 Script Name: inDocActionItemsWebApp
 
-Description: 
-This script is designed to parse a Google Document to identify and extract action items, then populate them in an Action Tracking table within the document. It processes action items mentioned in both paragraph text and existing tables, sorts them by the owner's name, and ensures no duplication in the final action item table.
+  Description: 
+  This script is designed to parse a Google Document to identify and extract action items, then populate them in an Action Tracking table within the document. It processes action items mentioned in both paragraph text and existing tables, sorts them by the owner's name, and ensures no duplication in the final action item table.
 
-Prerequisites: 
-- A Google Document containing action items in paragraphs or tables.
-- The Google Document should have a section with attendees listed, starting with 'Attendees:'.
+  Prerequisites: 
+  - A Google Document containing action items in paragraphs or tables.
+  - The Google Document should have a section with attendees listed, starting with 'Attendees:'.
 
-Setup:
-1. Open the Google Apps Script editor linked to the Google Document.
-2. Paste this entire script into the script editor.
-3. Save the script.
+  Setup:
+  1. Open the Google Apps Script editor linked to the Google Document.
+  2. Paste this entire script into the script editor.
+  3. Save the script.
 
-Execution: 
-To run the script, either use the `testScriptWithDocumentUrl` function with a valid Google Document URL or call the `processDocument` function with a specific document ID.
+  Execution: 
+  To run the script, either use the `testScriptWithDocumentUrl` function with a valid Google Document URL or call the `processDocument` function with a specific document ID.
 
-Script Functions: 
-- `extractAttendees(body)`: Extracts attendees' names from the document.
-- `createSecondTable(body)`: Creates a new action item table.
-- `getExistingActions(table)`: Retrieves existing action items from a table.
-- `checkIfActionExistsInTable(existingActions, actionItem)`: Checks for the existence of an action item in the table.
-- `populateActionInTable(table, actionItem)`: Populates an action item into the table.
-- `extractActionsFromTable(table)`: Extracts action items from an existing table.
-- `findExistingActionTable(body)`: Searches for an existing action item table.
-- `sortActionItemsByName(actionItems)`: Sorts action items by the owner's name.
-- `actionsFromTable(documentId)`: Extracts action items from a table and populates them into the Action Items table.
-- `actionsFromParagraphs(documentId)`: Extracts action items from paragraphs and populates them into the Action Items table.
-- `runBothActionItems(documentId)`: Runs both `actionsFromParagraphs` and `actionsFromTable`.
-- `processDocument(documentId)`: Main function to process the document.
-- `extractDocumentIdFromUrl(url)`: Extracts the document ID from a Google Docs URL.
-- `testScriptWithDocumentUrl(url)`: Test function for running the script with a document URL.
+  Script Functions: 
+  - `extractAttendees(body)`: Extracts attendees' names from the document.
+  - `createSecondTable(body)`: Creates a new action item table.
+  - `getExistingActions(table)`: Retrieves existing action items from a table.
+  - `checkIfActionExistsInTable(existingActions, actionItem)`: Checks for the existence of an action item in the table.
+  - `populateActionInTable(table, actionItem)`: Populates an action item into the table.
+  - `extractActionsFromTable(table)`: Extracts action items from an existing table.
+  - `findExistingActionTable(body)`: Searches for an existing action item table.
+  - `sortActionItemsByName(actionItems)`: Sorts action items by the owner's name.
+  - `actionsFromTable(documentId)`: Extracts action items from a table and populates them into the Action Items table.
+  - `actionsFromParagraphs(documentId)`: Extracts action items from paragraphs and populates them into the Action Items table.
+  - `runBothActionItems(documentId)`: Runs both `actionsFromParagraphs` and `actionsFromTable`.
+  - `processDocument(documentId)`: Main function to process the document.
+  - `extractDocumentIdFromUrl(url)`: Extracts the document ID from a Google Docs URL.
+  - `testScriptWithDocumentUrl(url)`: Test function for running the script with a document URL.
 
-Outputs: 
-- An updated Google Document with an Action Tracking table containing sorted action items from both paragraphs and tables.
+  Outputs: 
+  - An updated Google Document with an Action Tracking table containing sorted action items from both paragraphs and tables.
 
-Post-Execution: 
-- Review the populated Action Tracking table in the Google Document for accuracy.
+  Post-Execution: 
+  - Review the populated Action Tracking table in the Google Document for accuracy.
 
-Troubleshooting:
-- Ensure the Google Document contains the 'Attendees:' section.
-- Check for proper formatting of action items in the document.
-- Use logging statements (`Logger.log`) to debug issues with specific functions.
+  Troubleshooting:
+  - Ensure the Google Document contains the 'Attendees:' section.
+  - Check for proper formatting of action items in the document.
+  - Use logging statements (`Logger.log`) to debug issues with specific functions.
 
-Notes:
-- Future development includes preserving links in task items when copying to the action table.
-- The script currently assumes a specific format for action items and attendees.
+  Notes:
+  - Future development includes preserving links in task items when copying to the action table.
+  - The script currently assumes a specific format for action items and attendees.
 */
 
 ///////////////////////////////////////////////////
-
-// Former helper function that extracts attendees' names from the document. Updates to streamline process by identifying the word following "Action:" as the Action Owner name regardless of inclusion in the Attendees list have rendered this function obsolete.
-/*function extractAttendees(body) {
-  const attendees = [];
-  const paragraphs = body.getParagraphs();
-
-  for (let i = 0; i < paragraphs.length; i++) {
-    const paragraph = paragraphs[i];
-    const text = paragraph.getText();
-
-    if (text.startsWith('Attendees:')) {
-      const attendeeText = text.replace('Attendees:', '').trim();
-      const attendeeNames = attendeeText.split(',');
-
-      attendeeNames.forEach(name => attendees.push(name.trim().split(' ')[0]));
-      break;
-    }
-  }
-
-  return attendees;
-}*/
 
 // Helper function that creates a new action item table in the document.
 function createSecondTable(body) {
@@ -180,91 +159,163 @@ function sortActionItemsByName(actionItems) {
   return actionItems.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-// function to extract action items from an existing table in the document and populate them into the Action Items table.
-function actionsFromTable(documentId) {
-  const document = DocumentApp.openById(documentId);
-  const body = document.getBody();
-  const existingTable = findExistingActionTable(body);
-
-  if (existingTable) {
-    let actionList = extractActionsFromTable(existingTable);
-
-    // Sort the action list by name before returning
-    actionList = sortActionItemsByName(actionList);
-
-    if (actionList.length > 0) {
-      const existingActions = getExistingActions(existingTable);
-
-      for (const actionItem of actionList) {
-        const isDuplicate = checkIfActionExistsInTable(existingActions, actionItem);
-        if (!isDuplicate) {
-          populateActionInTable(existingTable, actionItem);
-        }
-      }
-
-      Logger.log('Actions populated from table.');
-    } else {
-      Logger.log('No action items found in the existing table.');
+// Helper function to check if any valid action items were found
+function validateActionItems(actionList) {
+    if (!actionList || actionList.length === 0) {
+        Logger.log('No action items found');
+        throw new Error('No action items found');
     }
-  } else {
-    Logger.log('No existing action item table found.');
-  }
+    
+    // Validate each action item has required properties
+    const invalidItems = actionList.filter(item => 
+        !item.name || !item.action || 
+        item.name.trim() === '' || 
+        item.action.trim() === ''
+    );
+    
+    if (invalidItems.length > 0) {
+        Logger.log('Invalid action items found');
+        throw new Error('Invalid action items found');
+    }
+    
+    return true;
 }
 
-// function to extract action items from paragraphs in the document and populate them into an action item table.
+// Modified actionsFromParagraphs function with validation
 function actionsFromParagraphs(documentId) {
-  const document = DocumentApp.openById(documentId);
-  const body = document.getBody();
-  const actionsPhrase = /Action:/i; // Regular expression for case-insensitive match
-  let actionList = [];
+    try {
+        const document = DocumentApp.openById(documentId);
+        const body = document.getBody();
+        const actionsPhrase = /Action:/i;
+        let actionList = [];
+        
+        const paragraphs = body.getParagraphs();
+        
+        paragraphs.forEach(paragraph => {
+            const text = paragraph.getText();
+            const actionIndex = text.search(actionsPhrase);
+            
+            if (actionIndex !== -1) {
+                const actionText = text.substring(actionIndex + 7).trim();
+                const words = actionText.split(' ');
+                
+                if (words.length > 1) { // Ensure we have both owner and action
+                    const potentialOwner = words[0];
+                    const actionDescription = words.slice(1).join(' ').trim();
+                    
+                    if (actionDescription) {
+                        const isDuplicate = actionList.some(item => 
+                            item.name === potentialOwner && 
+                            item.action === actionDescription
+                        );
+                        
+                        if (!isDuplicate) {
+                            actionList.push({ 
+                                name: potentialOwner, 
+                                action: actionDescription 
+                            });
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Validate action items before proceeding
+        validateActionItems(actionList);
+        
+        // Sort and populate the table if validation passes
+        actionList = sortActionItemsByName(actionList);
+        const existingTable = findExistingActionTable(body) || createSecondTable(body);
+        
+        actionList.forEach(actionItem => {
+            const existingActions = getExistingActions(existingTable);
+            const isDuplicate = checkIfActionExistsInTable(existingActions, actionItem);
+            if (!isDuplicate) {
+                populateActionInTable(existingTable, actionItem);
+            }
+        });
+        
+        Logger.log('Actions successfully populated from paragraphs.');
+        return true;
+        
+    } catch (error) {
+        Logger.log('Error in actionsFromParagraphs: ' + error.message);
+        throw error;
+    }
+}
 
-  const paragraphs = body.getParagraphs();
-  paragraphs.forEach(paragraph => {
-    const text = paragraph.getText();
-    const actionIndex = text.search(actionsPhrase); // Use search with regex for case-insensitive
-
-    if (actionIndex !== -1) {
-      const actionText = text.substring(actionIndex + 7).trim(); // Adjusted for "Action:" length
-      const words = actionText.split(' ');
-
-      if (words.length > 0) {
-        const potentialOwner = words[0]; // Assuming the first word is always the owner
-        const actionDescription = words.slice(1).join(' ').trim();
-        const isDuplicate = actionList.some(item => item.name === potentialOwner && item.action === actionDescription);
-        if (!isDuplicate) {
-          actionList.push({ name: potentialOwner, action: actionDescription });
+// Modified actionsFromTable function with validation
+function actionsFromTable(documentId) {
+    try {
+        const document = DocumentApp.openById(documentId);
+        const body = document.getBody();
+        const existingTable = findExistingActionTable(body);
+        
+        if (existingTable) {
+            let actionList = extractActionsFromTable(existingTable);
+            
+            // Validate action items before proceeding
+            validateActionItems(actionList);
+            
+            // Sort and populate if validation passes
+            actionList = sortActionItemsByName(actionList);
+            
+            const existingActions = getExistingActions(existingTable);
+            for (const actionItem of actionList) {
+                const isDuplicate = checkIfActionExistsInTable(existingActions, actionItem);
+                if (!isDuplicate) {
+                    populateActionInTable(existingTable, actionItem);
+                }
+            }
+            
+            Logger.log('Actions successfully populated from table.');
+            return true;
+            
+        } else {
+            Logger.log('No existing action item table found.');
+            throw new Error('No existing action item table found');
         }
-      }
+        
+    } catch (error) {
+        Logger.log('Error in actionsFromTable: ' + error.message);
+        throw error;
     }
-  });
-
-  // Sort the action list by name
-  actionList = sortActionItemsByName(actionList);
-
-  // Populate the actions in the table
-  const existingTable = findExistingActionTable(body) || createSecondTable(body);
-  actionList.forEach(actionItem => {
-    const existingActions = getExistingActions(existingTable);
-    const isDuplicate = checkIfActionExistsInTable(existingActions, actionItem);
-    if (!isDuplicate) {
-      populateActionInTable(existingTable, actionItem);
-    }
-  });
-
-  Logger.log('Actions populated from paragraphs.');
 }
 
-// function to run both actionsFromParagraphs and actionsFromTable functions for the "Populate Actions" button.
+// Modified runBothActionItems function with error handling
 function runBothActionItems(documentId) {
-  // Run actionsFromParagraphs function
-  actionsFromParagraphs(documentId);
-
-  // Run actionsFromTable function
-  actionsFromTable(documentId);
+    try {
+        let actionsFound = false;
+        
+        try {
+            actionsFromParagraphs(documentId);
+            actionsFound = true;
+        } catch (paragraphError) {
+            Logger.log('No actions found in paragraphs: ' + paragraphError.message);
+        }
+        
+        try {
+            actionsFromTable(documentId);
+            actionsFound = true;
+        } catch (tableError) {
+            Logger.log('No actions found in tables: ' + tableError.message);
+        }
+        
+        if (!actionsFound) {
+            throw new Error('No action items found');
+        }
+        
+        return 'Success! Action items collected.';
+        
+    } catch (error) {
+        Logger.log('Error in runBothActionItems: ' + error.message);
+        throw error;
+    }
 }
 
-function processDocument(documentId){
-  runBothActionItems(documentId)
+// Keep the original processDocument function
+function processDocument(documentId) {
+    return runBothActionItems(documentId);
 }
 
 ////////////////Testing ////////////////
