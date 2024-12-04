@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        /* Basic styling for the dialog layout */
+        html, body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f9f9f9;
+        }
+
+        #container {
+            display: flex;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 1500px;
+            width: 100%;
+            position: relative;
+        }
+
+        #instructions {
+            width: 250%;
+            padding: 10px;
+            margin-right: 20px;
+            background-color: #f1f1f1;
+            border-radius: 8px;
+            font-size: 0.8em;
+        }
+
+        #emailForm {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 60%;
+            padding-right: 20px;
+        }
+
+        label {
+            margin-top: 10px;
+        }
+
+        select, input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        select {
+            min-width: 250px;
+        }
+
+        select[multiple] {
+            height: 4em;
+        }
+
+        #generateButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #generateButton:hover {
+            background-color: #45a049;
+        }
+
+        #result {
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        #emailOutput {
+            width: 100%;
+            height: 150px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 10px;
+            resize: none;
+        }
+
+        #copyButton, #docButton {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #copyButton:hover, #docButton:hover {
+            background-color: #0056b3;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            margin-left: 10px;
+            position: relative;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 70px;
+            height: 30px;
+            margin-left: 10px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 30px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "OR";
+            height: 26px;
+            width: 26px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        input:checked + .slider {
+            background-color: #4CAF50;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(40px);
+            content: "AND";
+        }
+
+        .toggle-label {
+            margin-left: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="instructions">
+            <h4>How to use this tool:</h4>
+            <ul>
+                <li>Attribute: heading of the search field. <i>(Assessment Role, Thematic Area, etc)</i></li>
+                <li>Values: selection options within the search field. <i>(2016, 2018, 2020, etc)</i></li>
+                <li><b>Ctrl+click</b> to <b>select</b> multiple options in an Attribute field.</li>
+                <li><b>Ctrl+click</b> to <b>deselect</b> options.</li>
+                <li>Make no selection if any search value is desired.
+                <li>Between <b>different</b> Attributes (Year, Role, Cycle, etc): Contacts will match <b>all</b> selected Attributes simultaneously (e.g., Role AND Year Survey Submitted AND Contact Level).</li>
+                <li>Within the <b>same</b> Attribute field: Contacts will match <b>any</b> of the search values selections (e.g., Year Survey Submitted: "2016" OR "2018").</li>
+                <li> Feature in progress: Toggle to limit values search to all Contacts who match all selections within the Attribute's selection field.</li>
+            </ul>
+            <br>
+            <hr style="width: 100%; border: 1px solid #ccc; margin: 10px 0;">
+            <br>
+            <i>Example 1: Values "Secondary SME" "2016, 2018" will return all contacts who were Secondary SMEs in EITHER 2016 OR 2018.<br><br>
+            Example 2: Values "Secondary SME" "2016, 2018" "1. Primary/Required" will return all contacts who were Secondary SMEs in EITHER 2016 OR 2018 AND who are now considered required attendees in future Project Implementation meetings</i>
+            <br><br>See comments within the Workbook itself for more details on the individual Attributes.
+        </div>
+
+        <form id="emailForm">
+            <!-- Dropdown for selecting Role -->
+            <label for="role">Assessment Role:</label>
+            <div style="display: flex; align-items: center;">
+                <select name="role" id="role" multiple size="3">
+                    <option value="Survey Submitter">Survey Submitter</option>
+                    <option value="Primary SME">Primary SME</option>
+                    <option value="Secondary SME">Secondary SME</option>
+                </select>
+                <div class="toggle-container">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="roleToggle" onchange="updateToggleLabel('roleToggleLabel', this)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Dropdown for selecting Year Survey Submitted -->
+            <label for="year">Year Survey Submitted:</label>
+            <div style="display: flex; align-items: center;">
+                <select name="year" id="year" multiple size="3">
+                    <option value="2016">2016</option>
+                    <option value="2018">2018</option>
+                    <option value="2020">2020</option>
+                    <option value="2022">2022</option>
+                    <option value="2024">2024</option>
+                </select>
+                <div class="toggle-container">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="yearToggle" onchange="updateToggleLabel('yearToggleLabel', this)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Dropdown for selecting Thematic Areas -->
+            <label for="thematicAreas">Thematic Areas:</label>
+            <div style="display: flex; align-items: center;">
+                <select name="thematicAreas" id="thematicAreas" multiple size="3">
+                    <option value="Atmospheric Composition">Atmospheric Composition</option>
+                    <option value="Carbon Cycle & Ecosystems">Carbon Cycle & Ecosystems</option>
+                    <option value="Disaster Response">Disaster Response</option>
+                    <option value="Earth Surface & Interior">Earth Surface & Interior</option>
+                    <option value="Land Cover / Land Use Change">Land Cover / Land Use Change</option>
+                    <option value="Ocean & Cryosphere">Ocean & Cryosphere</option>
+                    <option value="Water & Energy Cycle">Water & Energy Cycle</option>
+                    <option value="Weather & Atmospheric Dynamics">Weather & Atmospheric Dynamics</option>
+                    <option value="Other / Infrastructure">Other / Infrastructure</option>
+                </select>
+                <div class="toggle-container">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="thematicAreasToggle" onchange="updateToggleLabel('thematicAreasToggleLabel', this)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Dropdown for selecting Contact Level -->
+            <label for="contactLevel">Implementation Contact Level:</label>
+            <div style="display: flex; align-items: center;">
+                <select name="contactLevel" id="contactLevel" multiple size="3">
+                    <option value="1. Primary/Required">1. Primary/Required</option>
+                    <option value="2. Secondary/Optional">2. Secondary/Optional</option>
+                    <option value="3. Informational">3. Informational</option>
+                    <option value="4. Stakeholder">4. Stakeholder</option>
+                </select>
+                <div class="toggle-container">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="contactLevelToggle" onchange="updateToggleLabel('contactLevelToggleLabel', this)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Dropdown for selecting Cycle -->
+            <label for="cycle">SNWG Project Cycle:</label>
+            <div style="display: flex; align-items: center;">
+                <select name="cycle" id="cycle" multiple size="3">
+                    <option value="All Cycles">All Cycles</option>
+                    <option value="C1">C1</option>
+                    <option value="C2">C2</option>
+                    <option value="C3">C3</option>
+                    <option value="C4">C4</option>
+                    <option value="C5">C5</option>
+                </select>
+                <div class="toggle-container">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="cycleToggle" onchange="updateToggleLabel('cycleToggleLabel', this)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Dropdown for selecting SNWG Project -->
+            <label for="project">SNWG Project:</label>
+            <div style="display: flex; align-items: center;">
+                <select name="project" id="project" multiple size="3">
+                    <option value="All SNWG Projects">All SNWG Projects</option>
+                    <option value="C1 - ADMG">C1 - ADMG</option>
+                    <option value="C1 - CSDA (Maxar Support)">C1 - CSDA (Maxar Support)</option>
+                    <option value="C1 - DCD">C1 - DCD</option>
+                    <option value="C1 - HLS">C1 - HLS</option>
+                    <option value="C2 - NISAR High-Res">C2 - NISAR High-Res</option>
+                    <option value="C2 - AC-GEOS">C2 - AC-GEOS</option>
+                    <option value="C2 - Freeboard and Ice Thickness">C2 - Freeboard and Ice Thickness</option>
+                    <option value="C2 - Internet of Animals">C2 - Internet of Animals</option>
+                    <option value="C2 - NISAR SM">C2 - NISAR SM</option>
+                    <option value="C2 - OPERA">C2 - OPERA</option>
+                    <option value="C2 - Radiation and Clouds">C2 - Radiation and Clouds</option>
+                    <option value="C2 - Water Quality Products">C2 - Water Quality Products</option>
+                    <option value="C3 - Air Quality">C3 - Air Quality</option>
+                    <option value="C3 - EarthDEM 2.0">C3 - EarthDEM 2.0</option>
+                    <option value="C3 - PBL">C3 - PBL</option>
+                    <option value="C3 - Sea Ice">C3 - Sea Ice</option>
+                    <option value="C3 - TEMPO NRT">C3 - TEMPO NRT</option>
+                    <option value="C3 - HLS-VI">C3 - HLS-VI</option>
+                    <option value="C4 - ARSET">C4 - ARSET</option>
+                    <option value="C2 - Commercial Solution">C2 - Commercial Solution</option>
+                    <option value="C4 - HLS-LL">C4 - HLS-LL</option>
+                    <option value="C4 - GABAN">C4 - GABAN</option>
+                    <option value="C4 - Ocean Winds">C4 - Ocean Winds</option>
+                    <option value="C4 - PBL-Height">C4 - PBL-Height</option>
+                    <option value="C4 - TEMPO Enhanced">C4 - TEMPO Enhanced</option>
+                    <option value="C4 - Vertical Land Motion">C4 - Vertical Land Motion</option>
+                    <option value="SNWG MO">SNWG MO</option>
+                    <option value="unfunded">unfunded</option>
+                </select>
+                <div class="toggle-container">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="projectToggle" onchange="updateToggleLabel('projectToggleLabel', this)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Button to generate the email list -->
+            <button type="button" id="generateButton" onclick="submitForm()">Generate List</button>
+        </form>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Function to update the toggle label text
+        function updateToggleLabel(labelId, checkbox) {
+            const slider = checkbox.nextElementSibling;
+            slider.querySelector('content').textContent = checkbox.checked ? "AND" : "OR";
+        }
+
+        // Function to gather form data and send it to the server-side function
+        function submitForm() {
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = "<p>Gathering emails...</p>";
+
+            try {
+                // Hide instructions after form submission
+                document.getElementById("instructions").style.display = "none";
+
+                // Collect form data
+                const data = {
+                    role: Array.from(document.getElementById("role").selectedOptions).map(option => option.value),
+                    year: Array.from(document.getElementById("year").selectedOptions).map(option => option.value),
+                    contactLevel: Array.from(document.getElementById("contactLevel").selectedOptions).map(option => option.value),
+                    cycle: Array.from(document.getElementById("cycle").selectedOptions).map(option => option.value),
+                    project: Array.from(document.getElementById("project").selectedOptions).map(option => option.value),
+                    thematicAreas: Array.from(document.getElementById("thematicAreas").selectedOptions).map(option => option.value),
+                    toggles: {
+                        role: document.getElementById("roleToggle").checked,
+                        year: document.getElementById("yearToggle").checked,
+                        contactLevel: document.getElementById("contactLevelToggle").checked,
+                        cycle: document.getElementById("cycleToggle").checked,
+                        thematicAreas: document.getElementById("thematicAreasToggle").checked,
+                        project: document.getElementById("projectToggle").checked
+                    }
+                };
+
+                console.log("Collected Data (from HTML):", data); // Log collected data for debugging
+
+                // Call the server-side function with the collected data
+                google.script.run.withSuccessHandler(displayEmails).withFailureHandler(handleError).generateEmailList(data);
+            } catch (error) {
+                console.error("An error occurred while submitting the form: ", error);
+                // Only show the alert if there's a legitimate failure
+                if (error.message && error.message.length > 0) {
+                    alert("An error occurred. Please try again.");
+                }
+            }
+        }
+
+        // Function to handle errors from the server-side script
+        function handleError(error) {
+            console.error("Error from server-side script:", error);
+            alert("Failed to generate email list. Please check your selections and try again.");
+            // Re-display instructions to help users understand what went wrong
+            document.getElementById("instructions").style.display = "block";
+        }
+
+        // Function to format selected criteria for display
+        function formatSelectedCriteria(data) {
+          const criteriaStrings = [];
+          
+          // Helper function to format a single criterion
+          const formatCriterion = (values, label) => {
+            if (values && values.length > 0) {
+              criteriaStrings.push(`${label}: ${values.join(', ')}`);
+            }
+          };
+          
+          // Format each criterion
+          formatCriterion(data.year, 'Year');
+          formatCriterion(data.role, 'Role');
+          formatCriterion(data.contactLevel, 'Contact Level');
+          formatCriterion(data.cycle, 'Cycle');
+          formatCriterion(data.project, 'Project');
+          formatCriterion(data.thematicAreas, 'Thematic Areas');
+          
+          return criteriaStrings.length > 0 ? criteriaStrings.join('; ') : 'all contacts';
+        }
+
+        // Updated display emails function
+        function displayEmails(response) {
+          console.log("Response Data:", response);
+          const { uniqueEmails } = response;
+          const resultDiv = document.getElementById("result");
+          
+          // Get selected criteria from form
+          const data = {
+            role: Array.from(document.getElementById("role").selectedOptions).map(option => option.value),
+            year: Array.from(document.getElementById("year").selectedOptions).map(option => option.value),
+            contactLevel: Array.from(document.getElementById("contactLevel").selectedOptions).map(option => option.value),
+            cycle: Array.from(document.getElementById("cycle").selectedOptions).map(option => option.value),
+            project: Array.from(document.getElementById("project").selectedOptions).map(option => option.value),
+            thematicAreas: Array.from(document.getElementById("thematicAreas").selectedOptions).map(option => option.value)
+          };
+          
+          // Format the header text
+          const criteriaText = formatSelectedCriteria(data);
+          const emailCount = uniqueEmails.length;
+          const headerText = `${emailCount} contact email${emailCount !== 1 ? 's' : ''} found for ${criteriaText}`;
+          
+          resultDiv.innerHTML = `
+            <h3>${headerText}</h3>
+            <textarea id="emailOutput" readonly>${uniqueEmails.join("; ")}</textarea>
+            <button type="button" id="copyButton" onclick="copyToClipboard()">Copy to Clipboard</button>
+            <button type="button" id="docButton" onclick="createGoogleDoc()">Open as Google Doc</button>
+          `;
+        }
+
+        // Function to copy email list to clipboard
+        function copyToClipboard() {
+            const emailOutput = document.getElementById("emailOutput");
+            emailOutput.select();
+            document.execCommand("copy");
+            alert("Email list copied to clipboard!");
+        }
+
+        // Function to create a Google Doc with the email list
+        function createGoogleDoc() {
+            const emailList = document.getElementById("emailOutput").value;
+            console.log("Creating Google Doc with email list:", emailList); // Debugging
+            
+            // Display the "Creating your Google Doc..." message
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML += `<p id="docCreationStatus">Creating your Google Doc...</p>`;
+
+            // Call the server-side function to create the Google Doc
+            google.script.run.withSuccessHandler(showDocLink).openEmailListDoc(emailList, collectCriteria());
+        }
+
+        // Helper function to collect criteria for document creation
+        function collectCriteria() {
+            return {
+                role: Array.from(document.getElementById("role").selectedOptions).map(option => option.value),
+                year: Array.from(document.getElementById("year").selectedOptions).map(option => option.value),
+                contactLevel: Array.from(document.getElementById("contactLevel").selectedOptions).map(option => option.value),
+                cycle: Array.from(document.getElementById("cycle").selectedOptions).map(option => option.value),
+                project: Array.from(document.getElementById("project").selectedOptions).map(option => option.value),
+                thematicAreas: Array.from(document.getElementById("thematicAreas").selectedOptions).map(option => option.value)
+            };
+        }
+
+        // Function to display the created Google Doc link
+        function showDocLink(docData) {
+            console.log("Google Doc created with URL:", docData.url); // Debugging
+
+            // Remove the "Creating your Google Doc..." message
+            const statusElement = document.getElementById("docCreationStatus");
+            if (statusElement) {
+                statusElement.remove();
+            }
+
+            // Display the created Google Doc link
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML += `
+                <h4>Google Doc Created:</h4>
+                <p><a href="${docData.url}" target="_blank">${docData.title}</a></p>
+            `;
+        }
+    </script>
+</body>
+</html>
