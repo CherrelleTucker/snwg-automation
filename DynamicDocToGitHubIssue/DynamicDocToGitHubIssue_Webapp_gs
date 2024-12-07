@@ -6,26 +6,52 @@
 **/
 
 /**
- * Serves the HTML content for the web application
+ * Handles web app requests and OAuth flow
+ * @param {Object} e - Event object from web app
  * @returns {HtmlOutput} The HTML page
  */
-function doGet() {
-  // Check GitHub access before loading the web app
-  try {
-    const gitHubAccess = verifyGitHubAccess();
-    if (!gitHubAccess.success){
-      // If Github access fails, still show the web app but store the error
-      PropertiesService.getUserProperties().setProperty('GITHUB_ACCESS_ERROR',gitHubAccess.error);
+function doGet(e) {
+  // Handle OAuth callback
+  if (e.parameter.code) {
+    const result = handleOAuthCallback(e.parameter.code, e.parameter.state);
+    if (!result.success) {
+      return HtmlService.createHtmlOutput(
+        `<h3>Authentication Failed</h3>
+         <p>Error: ${result.error}</p>
+         <p>Please close this window and try again.</p>`
+      );
     }
-  } catch (error){
-    console.error('GitHub initialization failed:',error);
+    return HtmlService.createHtmlOutput(
+      `<h3>Authentication Successful!</h3>
+       <p>You can close this window and return to QuickGit Refresh the page to access the tool.</p>
+       <script>setTimeout(function() { window.close(); }, 2000);</script>`
+    );
   }
-
-  return HtmlService.createTemplateFromFile('index')
-    .evaluate()
-    .setTitle('Google Doc to GitHub Transfer Tool')
-    .setFaviconUrl('https://raw.githubusercontent.com/CherrelleTucker/snwg-automation/38b13230c6f746ef09a0a583f6746d706cad6233/DocToGitHubTransferToolIcon.png')
+  
+  // Check if user is authenticated
+  const userProperties = PropertiesService.getUserProperties();
+  const isAuthenticated = Boolean(userProperties.getProperty('github_access_token'));
+  
+  // Create template and add authentication state
+  const template = HtmlService.createTemplateFromFile('index');
+  template.isAuthenticated = isAuthenticated;
+  
+  // Log authentication state for debugging
+  console.log('User authentication state:', isAuthenticated);
+  
+  return template.evaluate()
+    .setTitle('QuickGit')
+    .setFaviconUrl('https://raw.githubusercontent.com/CherrelleTucker/snwg-automation/348c5c6f451c951c6a4558fec69e75809886aa45/DocToGitHubTransferToolIcon.png')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+/**
+ * Checks if user is authenticated
+ * @returns {boolean} Authentication status
+ */
+function checkAuthStatus() {
+  const userProperties = PropertiesService.getUserProperties();
+  return Boolean(userProperties.getProperty('github_access_token'));
 }
 
 function processDocument(docUrl) {
