@@ -11,33 +11,177 @@ const CONFIG = {
   GITHUB_API_BASE: 'https://api.github.com',
   ORG_NAME: 'NASA-IMPACT',
   CACHE_DURATION: 21600, // 6 hours in seconds
-  //  PAGE_SIZE: 100,
-  get COMMENT_MARKER_URL() {
-    return PropertiesService.getScriptProperties().getProperty('TOOL_URL');
+  GITHUB_AUTH_URL: 'https://github.com/login/oauth/authorize',
+  GITHUB_TOKEN_URL: 'https://github.com/login/oauth/access_token',
+  OAUTH_SCOPES: ['repo', 'read:org', 'write:discussion'],
+  
+  get OAUTH_CLIENT_ID() {
+    return PropertiesService.getScriptProperties().getProperty('GITHUB_CLIENT_ID');
+  },
+  get OAUTH_CLIENT_SECRET() {
+    return PropertiesService.getScriptProperties().getProperty('GITHUB_CLIENT_SECRET');
+  },
+  get OAUTH_REDIRECT_URI() {
+    return PropertiesService.getScriptProperties().getProperty('REDIRECT_URI');
   }
 };
 
 /**
- * GitHub API client factory with validation and error handling
- * @returns {Object} Configured GitHub client with headers and base URL
- * @throws {Error} If GitHub token is missing or invalid
+ * Verifies OAuth is properly set up
+ * @returns {boolean} True if OAuth configuration is valid
+ */
+function verifyOAuthConfig() {
+  const clientId = CONFIG.OAUTH_CLIENT_ID;
+  const clientSecret = CONFIG.OAUTH_CLIENT_SECRET;
+  const redirectUri = CONFIG.OAUTH_REDIRECT_URI;  // Fetch from CONFIG to keep it consistent
+
+  if (!clientId || !clientSecret || !redirectUri) {
+    console.error('Missing OAuth configuration:', {
+      hasClientId: Boolean(clientId),
+      hasClientSecret: Boolean(clientSecret),
+      hasRedirectUri: Boolean(redirectUri)
+    });
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Starts OAuth flow with error checking
+ * @returns {Object} Auth URL or error message
+ */
+function startOAuthFlow() {
+  try {
+    const state = Utilities.getUuid();
+    PropertiesService.getUserProperties().setProperty('oauth_state', state);
+
+    const authUrl = `${CONFIG.GITHUB_AUTH_URL}?` +
+      `client_id=${CONFIG.OAUTH_CLIENT_ID}&` +
+      `redirect_uri=${encodeURIComponent(CONFIG.OAUTH_REDIRECT_URI)}&` +
+      `scope=${encodeURIComponent(CONFIG.OAUTH_SCOPES.join(' '))}&` +
+      `state=${state}`;
+
+    console.log('Generated auth URL:', authUrl);
+
+    return {
+      success: true,
+      authUrl: authUrl
+    };
+  } catch (error) {
+    console.error('OAuth initialization error:', error);
+    return {
+      success: false,
+      error: `Failed to start authentication: ${error.message}`
+    };
+  }
+}
+
+
+/**
+ * Handles the OAuth callback and exchanges code for access token
+ * @param {string} code - Authorization code from GitHub
+ * @param {string} state - State parameter for verification
+ * @returns {Object} Object containing success status and any error message
+ */
+function handleOAuthCallback(code, state) {
+  try {
+    // Verify state parameter matches stored value
+    const savedState = PropertiesService.getUserProperties().getProperty('oauth_state');
+    if (state !== savedState) {
+      throw new Error('State parameter mismatch - possible CSRF attempt');
+    }
+
+    // Exchange authorization code for access token
+    const response = UrlFetchApp.fetch(CONFIG.GITHUB_TOKEN_URL, {
+      method: 'post',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      payload: {
+        client_id: CONFIG.OAUTH_CLIENT_ID,
+        client_secret: CONFIG.OAUTH_CLIENT_SECRET,
+        code: code,
+        redirect_uri: CONFIG.OAUTH_REDIRECT_URI
+      },
+      muteHttpExceptions: true
+    });
+
+    const result = JSON.parse(response.getContentText());
+    if (result.error) {
+      throw new Error(`GitHub OAuth error: ${result.error_description}`);
+    }
+
+    // Store the access token in user properties
+    PropertiesService.getUserProperties().setProperty('github_access_token', result.access_token);
+
+    return { success: true };
+  } catch (error) {
+    console.error('OAuth callback error:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+
+function isUserAuthenticated() {
+  // Check if the user has authenticated by checking the token
+  const token = PropertiesService.getUserProperties().getProperty('github_access_token');
+  return Boolean(token);
+}
+
+function getPermissions() {
+  try {
+    const accessToken = PropertiesService.getUserProperties().getProperty('github_access_token');
+    if (!accessToken) {
+      throw new Error('No access token found');
+    }
+
+    // Make a request to GitHub to get the user details and permissions
+    const permissionResponse = UrlFetchApp.fetch('https://api.github.com/user', {
+      method: 'get',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Accept': 'application/json'
+      },
+      muteHttpExceptions: true
+    });
+
+    return JSON.parse(permissionResponse.getContentText());
+  } catch (error) {
+    console.error('Failed to fetch permissions:', error);
+    return null;
+  }
+}
+
+/**
+ * Helper function to include HTML files
+ * @param {string} filename - Name of the HTML file to include
+ * @returns {string} The evaluated HTML content
+ */
+function include(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+}
+
+/**
+ * Updates the GitHub client creation to use OAuth token
+ * @returns {Object} Configured GitHub client
  */
 function createGitHubClient() {
-  // Get GitHub token from script properties
-  const token = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
+  const token = PropertiesService.getUserProperties().getProperty('github_access_token');
   
-  // Validate token
-  if (!token || typeof token !== 'string' || token.trim().length === 0) {
-    throw new Error('Invalid or missing GitHub token in script properties');
+  if (!token) {
+    throw new Error('Authentication required. Please authenticate with GitHub first.');
   }
-
-  // Create and return client configuration
+  
   return {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Accept': 'application/vnd.github.v3+json',
       'Content-Type': 'application/json',
-      'User-Agent': 'Google-Apps-Script'
+      'User-Agent': 'QuickGit'
     },
     baseUrl: CONFIG.GITHUB_API_BASE,
     validateResponse: function(response) {
@@ -781,7 +925,7 @@ function finalizeIssueContent(contentElements, docMetadata, issue) {
 
     // Add attribution footer with proper markdown
     const footer = docMetadata ?
-      `\n---\n*Generated by [Google Doc to GitHub Transfer Tool](${CONFIG.COMMENT_MARKER_URL}) from [${docMetadata.title}](${docMetadata.url})*` :
+      `\n---\n*Generated by [QuickGit](${CONFIG.COMMENT_MARKER_URL}) from [${docMetadata.title}](${docMetadata.url})*` :
       '';
 
     return content + footer;
@@ -1050,3 +1194,6 @@ function getDocumentMetadata(docUrl) {
     return null;
   }
 }
+
+
+
