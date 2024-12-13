@@ -1,8 +1,16 @@
-/** Contains core functionality, utility functions, and GitHub API interactions
-  - Contains all core functionality
-  - Has GitHub API interaction functions
-  - Contains document processing logic
-Houses utility functions and helpers
+/**
+ * CODE.GS - Core Backend Functionality
+ * Contains core functionality, GitHub API interactions, and document processing logic
+ * Handles all backend operations and utility functions
+ */
+
+// =============================================================================
+// CONFIGURATION AND CONSTANTS
+// =============================================================================
+/**
+ * Core configuration object for application settings
+ * Contains API endpoints, organization settings, and OAuth configuration
+*/
 
 /**
  * Constants and configuration
@@ -25,6 +33,12 @@ const CONFIG = {
     return PropertiesService.getScriptProperties().getProperty('REDIRECT_URI');
   }
 };
+
+/* 
+=============================================================================
+OAUTH AND AUTHENTICATION
+=============================================================================
+*/
 
 /**
  * Verifies OAuth is properly set up
@@ -125,13 +139,20 @@ function handleOAuthCallback(code, state) {
   }
 }
 
-
+/**
+ * Checks if user is authenticated
+ * @returns {boolean} Authentication status
+ */
 function isUserAuthenticated() {
   // Check if the user has authenticated by checking the token
   const token = PropertiesService.getUserProperties().getProperty('github_access_token');
   return Boolean(token);
 }
 
+/**
+ * Fetches user permissions from GitHub
+ * @returns {Object|null} User permissions or null if error
+ */
 function getPermissions() {
   try {
     const accessToken = PropertiesService.getUserProperties().getProperty('github_access_token');
@@ -157,17 +178,65 @@ function getPermissions() {
 }
 
 /**
- * Helper function to include HTML files
- * @param {string} filename - Name of the HTML file to include
- * @returns {string} The evaluated HTML content
+ * Verifies GitHub token permissions
+ * @returns {Object} Object containing verification results
  */
-function include(filename) {
-  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+function verifyGitHubAccess() {
+  try {
+    const client = createGitHubClient();
+    
+    // Check user access
+    const userUrl = `${client.baseUrl}/user`;
+    const userResponse = UrlFetchApp.fetch(userUrl, {
+      headers: client.headers,
+      muteHttpExceptions: true
+    });
+
+    if (userResponse.getResponseCode() !== 200) {
+      throw new Error('Invalid GitHub token or token expired');
+    }
+
+    // Check organization access
+    const orgUrl = `${client.baseUrl}/orgs/${CONFIG.ORG_NAME}`;
+    const orgResponse = UrlFetchApp.fetch(orgUrl, {
+      headers: client.headers,
+      muteHttpExceptions: true
+    });
+
+    if (orgResponse.getResponseCode() !== 200) {
+      throw new Error(`No access to organization ${CONFIG.ORG_NAME}`);
+    }
+
+    return {
+      success: true,
+      user: JSON.parse(userResponse.getContentText()).login,
+      organization: CONFIG.ORG_NAME
+    };
+  } catch (error) {
+    console.error('GitHub access verification failed:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
 }
 
 /**
- * Updates the GitHub client creation to use OAuth token
- * @returns {Object} Configured GitHub client
+ * Clears stored OAuth token
+ * Used for logout or token refresh
+ */
+function clearStoredToken() {
+  PropertiesService.getUserProperties().deleteProperty('github_access_token');
+  Logger.log('Token cleared - app will require reauthorization');
+}
+/* =============================================================================
+GITHUB API INTERACTIONS
+=============================================================================
+*/
+
+/**
+ * Creates configured GitHub API client
+ * @returns {Object} Configured GitHub client with auth headers
  */
 function createGitHubClient() {
   const token = PropertiesService.getUserProperties().getProperty('github_access_token');
@@ -196,7 +265,8 @@ function createGitHubClient() {
 }
 
 /**
- * Fetches all restartPositories for the organization with pagination
+ * Fetches repositories for the organization
+ * Includes pagination and caching
  * @returns {Array} List of repositories
  */
 function fetchOrgRepos() {
@@ -407,49 +477,10 @@ function fetchRepoIssues(repoName) {
   }
 }
 
-/**
- * Verifies GitHub token permissions
- * @returns {Object} Object containing verification results
- */
-function verifyGitHubAccess() {
-  try {
-    const client = createGitHubClient();
-    
-    // Check user access
-    const userUrl = `${client.baseUrl}/user`;
-    const userResponse = UrlFetchApp.fetch(userUrl, {
-      headers: client.headers,
-      muteHttpExceptions: true
-    });
-
-    if (userResponse.getResponseCode() !== 200) {
-      throw new Error('Invalid GitHub token or token expired');
-    }
-
-    // Check organization access
-    const orgUrl = `${client.baseUrl}/orgs/${CONFIG.ORG_NAME}`;
-    const orgResponse = UrlFetchApp.fetch(orgUrl, {
-      headers: client.headers,
-      muteHttpExceptions: true
-    });
-
-    if (orgResponse.getResponseCode() !== 200) {
-      throw new Error(`No access to organization ${CONFIG.ORG_NAME}`);
-    }
-
-    return {
-      success: true,
-      user: JSON.parse(userResponse.getContentText()).login,
-      organization: CONFIG.ORG_NAME
-    };
-  } catch (error) {
-    console.error('GitHub access verification failed:', error);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
+/* =============================================================================
+DOCUMENT PROCESSING
+=============================================================================
+*/
 
 /**
  * Main processor for Google Doc with rich text preservation
@@ -635,6 +666,82 @@ function processListItem(element) {
 }
 
 /**
+ * Parses document content into structured format
+ * @param {string} content - Raw document content
+ * @param {Object} docMetadata - Document metadata
+ * @returns {Object} Parsed content structure
+ */
+function parseDocContent(content, docMetadata) {
+  // Debug log the incoming content
+  console.log("Parsing content:", content);
+
+  const results = {
+    newIssues: [],
+    updateIssues: []
+  };
+
+  // Split content into lines and clean up
+  const lines = content.split('\n')
+    .map(line => line.trim())
+    .filter(line => line);
+  
+  // Debug log the lines
+  console.log("Processed lines:", lines);
+
+  let currentIssue = null;
+  let contentLines = [];
+
+  // Process each line
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    
+    // Debug log each line being processed
+    console.log(`Processing line ${i}:`, line);
+    
+    // Check for issue markers
+    const newMatch = line.match(/^new\s+issue:\s*(.+)/i);
+    const updateMatch = line.match(/^update\s+issue:\s*(.+)/i);
+
+    // Debug log matches
+    if (newMatch) console.log("Found new issue:", newMatch[1]);
+    if (updateMatch) console.log("Found update issue:", updateMatch[1]);
+
+    if (newMatch || updateMatch) {
+      // Save previous issue if exists
+      if (currentIssue) {
+        console.log("Finalizing previous issue:", currentIssue);
+        finalizeIssue(currentIssue, contentLines, results, docMetadata);
+      }
+
+      // Start new issue
+      currentIssue = {
+        type: newMatch ? 'new' : 'update',
+        title: (newMatch || updateMatch)[1].trim(),
+        lineNumber: i + 1
+      };
+      contentLines = [];
+      console.log("Started new issue:", currentIssue);
+    }
+    // If we have a current issue and this isn't the start of another issue
+    else if (currentIssue && !hasUpcomingIssue(line)) {
+      contentLines.push(line);
+      console.log("Added content line:", line);
+    }
+  }
+
+  // Handle last issue
+  if (currentIssue) {
+    console.log("Finalizing last issue:", currentIssue);
+    finalizeIssue(currentIssue, contentLines, results, docMetadata);
+  }
+
+  // Debug log final results
+  console.log("Final results:", results);
+
+  return results;
+}
+
+/**
  * Parses document content preserving formatting
  * @param {Body} body - Google Doc body element
  * @param {Object} docMetadata - Document metadata for linking
@@ -742,74 +849,13 @@ function parseDocContentWithFormatting(body, docMetadata) {
   }
 }
 
-function parseDocContent(content, docMetadata) {
-  // Debug log the incoming content
-  console.log("Parsing content:", content);
-
-  const results = {
-    newIssues: [],
-    updateIssues: []
-  };
-
-  // Split content into lines and clean up
-  const lines = content.split('\n')
-    .map(line => line.trim())
-    .filter(line => line);
-  
-  // Debug log the lines
-  console.log("Processed lines:", lines);
-
-  let currentIssue = null;
-  let contentLines = [];
-
-  // Process each line
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    
-    // Debug log each line being processed
-    console.log(`Processing line ${i}:`, line);
-    
-    // Check for issue markers
-    const newMatch = line.match(/^new\s+issue:\s*(.+)/i);
-    const updateMatch = line.match(/^update\s+issue:\s*(.+)/i);
-
-    // Debug log matches
-    if (newMatch) console.log("Found new issue:", newMatch[1]);
-    if (updateMatch) console.log("Found update issue:", updateMatch[1]);
-
-    if (newMatch || updateMatch) {
-      // Save previous issue if exists
-      if (currentIssue) {
-        console.log("Finalizing previous issue:", currentIssue);
-        finalizeIssue(currentIssue, contentLines, results, docMetadata);
-      }
-
-      // Start new issue
-      currentIssue = {
-        type: newMatch ? 'new' : 'update',
-        title: (newMatch || updateMatch)[1].trim(),
-        lineNumber: i + 1
-      };
-      contentLines = [];
-      console.log("Started new issue:", currentIssue);
-    }
-    // If we have a current issue and this isn't the start of another issue
-    else if (currentIssue && !isNextIssueLine(line)) {
-      contentLines.push(line);
-      console.log("Added content line:", line);
-    }
-  }
-
-  // Handle last issue
-  if (currentIssue) {
-    console.log("Finalizing last issue:", currentIssue);
-    finalizeIssue(currentIssue, contentLines, results, docMetadata);
-  }
-
-  // Debug log final results
-  console.log("Final results:", results);
-
-  return results;
+/**
+ * Checks if a line starts a new issue
+ * @param {string} line - Line to check
+ * @returns {boolean} True if line starts a new issue
+ */
+function isNextIssueLine(line) {
+  return /^(new|update)\s+issue:?/i.test(line);
 }
 
 /**
@@ -837,25 +883,242 @@ function isIssueMarker(line) {
 }
 
 /**
- * Separates title and description from issue content
- * @param {string} content - Raw issue content
- * @returns {Object} Separated title and description
+ * Checks if a line is an issue marker
+ * @param {string} line - Line to check
+ * @returns {boolean} True if line starts a new issue
  */
-function separateTitleAndDescription(content) {
-  let title, description;
-  
-  // Split on first hyphen or semicolon
-  const separatorMatch = content.match(/^([^-;]+)[-;](.+)$/);
-  
-  if (separatorMatch) {
-    title = separatorMatch[1].trim();
-    description = separatorMatch[2].trim();
-  } else {
-    title = content.trim();
-    description = '';
+function isIssueLine(line) {
+  return /^(new|update)\s+issue:?/i.test(line);
+}
+
+/**
+ * Checks if any upcoming lines contain issue markers
+ * @param {string[]} upcomingLines - Array of lines to check
+ * @returns {boolean} True if next issue marker found
+ */
+function hasUpcomingIssue(upcomingLines) {
+  for (const line of upcomingLines) {
+    if (line.toLowerCase().match(/^(new|update)\s+issue:/)) {
+      return true;
+    }
   }
+  return false;
+}
+
+/* =============================================================================
+ISSUE MANAGEMENT
+=============================================================================
+*/
+
+/**
+ * Creates a new issue with proper assignee handling using two-step process if needed
+ * @param {string} repo - Repository name
+ * @param {Object} issueData - Issue data including title, body, and assignees
+ * @returns {Object} Created issue details
+ */
+function createIssue(repo, issueData) {
+  const client = createGitHubClient();
+  const url = `${client.baseUrl}/repos/${CONFIG.ORG_NAME}/${repo}/issues`;
   
-  return { title, description };
+  try {
+    // Format payload ensuring assignees is an array
+    const payload = {
+      title: issueData.title,
+      body: issueData.body,
+      assignees: Array.isArray(issueData.assignees) ? issueData.assignees : 
+                issueData.assignee ? [issueData.assignee] : 
+                []
+    };
+
+    Logger.log('Creating issue with payload:', JSON.stringify(payload));
+
+    // First step: Create the issue
+    const response = UrlFetchApp.fetch(url, {
+      method: 'POST',
+      headers: client.headers,
+      muteHttpExceptions: true,
+      payload: JSON.stringify(payload)
+    });
+
+    if (response.getResponseCode() !== 201) {
+      const errorResponse = JSON.parse(response.getContentText());
+      throw new Error(`Failed to create issue: ${errorResponse.message}`);
+    }
+
+    const createdIssue = JSON.parse(response.getContentText());
+    Logger.log('Issue created:', createdIssue.number);
+
+    // Second step: If issue was created but assignees are empty, try direct assignment
+    if (createdIssue.number && payload.assignees.length && (!createdIssue.assignees || !createdIssue.assignees.length)) {
+      Logger.log('Attempting direct assignment for issue:', createdIssue.number);
+      
+      const assignUrl = `${url}/${createdIssue.number}/assignees`;
+      const assignResponse = UrlFetchApp.fetch(assignUrl, {
+        method: 'POST',
+        headers: client.headers,
+        payload: JSON.stringify({ assignees: payload.assignees }),
+        muteHttpExceptions: true
+      });
+
+      if (assignResponse.getResponseCode() === 201) {
+        const updatedIssue = JSON.parse(assignResponse.getContentText());
+        Logger.log('Assignment successful:', updatedIssue.assignees);
+        return {
+          number: updatedIssue.number,
+          html_url: updatedIssue.html_url
+        };
+      } else {
+        Logger.log('Assignment failed, but issue was created');
+      }
+    }
+
+    return {
+      number: createdIssue.number,
+      html_url: createdIssue.html_url
+    };
+    
+  } catch (error) {
+    Logger.log('Error in createIssue:', error);
+    throw error;
+  }
+}
+
+/**
+ * Updates an existing issue in the specified GitHub repository.
+ * Uses the GitHub API to post a comment on an existing issue.
+ * @param {string} repo - The name of the repository where the issue exists.
+ * @param {number} issueNumber - The number of the issue to update.
+ * @param {string} comment - The comment to add to the existing issue.
+ * @returns {Object} Object containing the updated issue number and the HTML URL of the added comment.
+ * @throws {Error} If updating the issue fails or response is missing expected fields.
+ */
+function updateIssue(repo, issueNumber, comment) {
+  // Create the GitHub API client
+  const client = createGitHubClient();
+  const url = `${client.baseUrl}/repos/${CONFIG.ORG_NAME}/${repo}/issues/${issueNumber}/comments`;
+
+  try {
+    // Log the URL and payload for debugging
+    Logger.log(`Updating issue at URL: ${url}`);
+    Logger.log(`Payload: ${JSON.stringify({ body: comment })}`);
+
+    // Ensure that the payload includes all necessary fields in the correct format
+    const payload = {
+      body: comment
+    };
+
+    // Make the POST request to add a comment to the issue
+    const response = UrlFetchApp.fetch(url, {
+      method: 'POST',
+      headers: client.headers,
+      muteHttpExceptions: true,
+      payload: JSON.stringify(payload)
+    });
+
+    // Check if the request was successful (HTTP 201 Created)
+    if (response.getResponseCode() === 201) {
+      // Parse the response to get the updated issue details
+      const updatedIssue = JSON.parse(response.getContentText());
+
+      // Validate that the html_url is present in the response
+      if (updatedIssue.html_url) {
+        Logger.log(`Successfully updated issue with comment: ${updatedIssue.html_url}`);
+        return {
+          number: issueNumber,
+          html_url: updatedIssue.html_url
+        };
+      } else {
+        throw new Error("html_url missing in response for updated issue comment.");
+      }
+    } else {
+      // If not successful, log full response details for debugging
+      Logger.log(`Full response for failed issue update: ${response.getContentText()}`);
+      const errorResponse = JSON.parse(response.getContentText());
+      throw new Error(`Failed to update issue #${issueNumber}: ${errorResponse.message}. Ensure the issue number is correct and the GitHub token has the appropriate permissions.`);
+    }
+  } catch (error) {
+    // Log any errors that occur during issue updating
+    Logger.log(`Error in updateIssue: ${error.message}`);
+    throw error;
+  }
+}
+
+/**
+ * Processes confirmed issues with improved assignee handling
+ * @param {Object} data - Object containing new issues and updates
+ * @returns {Object} Results including links to created/updated items
+ */
+function processConfirmedIssues(data) {
+  const results = {
+    created: [],
+    updated: [],
+    errors: [],
+    links: []
+  };
+
+  try {
+    if (data.newIssues?.length) {
+      Logger.log('Processing new issues:', data.newIssues);
+      
+      for (const issue of data.newIssues) {
+        try {
+          // Log the incoming issue data
+          Logger.log('Processing issue:', issue);
+          
+          if (!issue.repo) {
+            throw new Error('Repository is required');
+          }
+
+          // Create issue with explicit assignee handling
+          const issueData = {
+            title: issue.title,
+            body: issue.body,
+            assignees: issue.assignee ? [issue.assignee] : [] // Ensure assignee is in array format
+          };
+
+          Logger.log('Prepared issue data:', issueData);
+          const createdIssue = createIssue(issue.repo, issueData);
+          Logger.log('Created issue response:', createdIssue);
+
+          results.created.push(createdIssue.number);
+          results.links.push({
+            type: 'issue',
+            number: createdIssue.number,
+            url: createdIssue.html_url,
+            repo: issue.repo,
+            title: issue.title,
+            assignees: createdIssue.assignees // Track assignees in results
+          });
+        } catch (error) {
+          Logger.log('Error creating issue:', error);
+          results.errors.push(`Failed to create issue "${issue.title}": ${error.message}`);
+        }
+      }
+    }
+
+    // Handle update issues (unchanged)
+    if (data.updateIssues?.length) {
+      for (const update of data.updateIssues) {
+        try {
+          const updatedIssue = updateIssue(update.repo, update.issueNumber, update.comment);
+          results.updated.push(update.issueNumber);
+          results.links.push({
+            type: 'comment',
+            number: update.issueNumber,
+            url: updatedIssue.html_url,
+            repo: update.repo
+          });
+        } catch (error) {
+          results.errors.push(`Failed to update issue #${update.issueNumber}: ${error.message}`);
+        }
+      }
+    }
+
+    return results;
+  } catch (error) {
+    Logger.log('Error in processConfirmedIssues:', error);
+    throw new Error(`Failed to process issues: ${error.message}`);
+  }
 }
 
 /**
@@ -925,7 +1188,7 @@ function finalizeIssueContent(contentElements, docMetadata, issue) {
 
     // Add attribution footer with proper markdown
     const footer = docMetadata ?
-      `\n---\n*Generated by [QuickGit](${CONFIG.COMMENT_MARKER_URL}) from [${docMetadata.title}](${docMetadata.url})*` :
+      `\n---\n*Generated by [QuickGit](https://script.google.com/a/macros/nasa.gov/s/AKfycbwbJ8OCr9TxiPE9caMtlhDPTAKIe0QsMY5bgaNO2N2heVqXF8ctnE0_k1Zu1bFmSLm1DA/exec) from [${docMetadata.title}](${docMetadata.url})*` :
       '';
 
     return content + footer;
@@ -936,7 +1199,73 @@ function finalizeIssueContent(contentElements, docMetadata, issue) {
 }
 
 /**
- * Formats issue content with proper structure
+ * Gathers issue data from the UI with improved assignee handling
+ * @returns {Object|null} Collected issue data or null if validation fails
+ */
+function gatherIssueData() {
+  const newIssues = [];
+  const updateIssues = [];
+  
+  try {
+    // Gather new issues
+    const newIssueElements = document.querySelectorAll('.issue-item[data-issue-type="new"]');
+    newIssueElements.forEach(item => {
+      const index = parseInt(item.dataset.issueIndex);
+      const repoInput = item.querySelector('.repo-search');
+      const assigneeInput = item.querySelector('.assignee-search');
+      
+      if (repoInput?.value) {
+        // Log the gathered data
+        Logger.log('Gathering data for new issue:', {
+          title: documentContent.newIssues[index].title,
+          assignee: assigneeInput?.value
+        });
+
+        newIssues.push({
+          title: documentContent.newIssues[index].title,
+          body: documentContent.newIssues[index].body,
+          repo: repoInput.value,
+          assignee: assigneeInput?.value || null // Explicitly handle empty assignee
+        });
+      }
+    });
+    
+    // Gather update issues (unchanged)
+    const updateIssueElements = document.querySelectorAll('.issue-item[data-issue-type="update"]');
+    updateIssueElements.forEach(item => {
+      const index = parseInt(item.dataset.issueIndex);
+      const repoInput = item.querySelector('.repo-search');
+      const issueInput = item.querySelector('.issue-search');
+      
+      if (repoInput?.value && issueInput?.value) {
+        const issueNumber = issueInput.value.match(/#(\d+):/)?.[1];
+        if (issueNumber) {
+          updateIssues.push({
+            repo: repoInput.value,
+            issueNumber: parseInt(issueNumber),
+            comment: documentContent.updateIssues[index].comment
+          });
+        }
+      }
+    });
+    
+    return {
+      newIssues,
+      updateIssues
+    };
+  } catch (error) {
+    console.error('Error gathering issue data:', error);
+    return null;
+  }
+}
+
+/* =============================================================================
+UTILITY FUNCTIONS
+=============================================================================
+*/
+
+/**
+ * Formats issue content with proper structure for display
  * @param {string[]} contentLines - Raw content lines
  * @returns {string} Formatted content
  */
@@ -954,227 +1283,37 @@ function formatIssueContent(contentLines) {
 }
 
 /**
- * Checks if a line starts a new issue
- * @param {string} line - Line to check
- * @returns {boolean} True if line starts a new issue
+ * Separates title and description from issue content
+ * @param {string} content - Raw issue content
+ * @returns {Object} Separated title and description
  */
-function isNextIssueLine(line) {
-  return /^(new|update)\s+issue:?/i.test(line);
-}
-
-/*
- * Hides the repository applied banner.
- */
-function hideRepositoryBanner() {
-  const ui = SpreadsheetApp.getUi();
-  const bannerElement = ui.alert('Repository applied successfully!', ui.ButtonSet.OK);
-  Utilities.sleep(500);
-}
-
-
-/* Uses the GitHub API to post a new issue with provided data.
-* @param {string} repo - The name of the repository where the issue will be created.
-* @param {Object} issueData - The data for the new issue (e.g., title, body, assignees).
-* @returns {Object} Object containing the issue number and the HTML URL of the created issue.
-* @throws {Error} If issue creation fails or response is missing expected fields.
-*/
-function createIssue(repo, issueData) {
-  // Create the GitHub API client
-  const client = createGitHubClient();
-  const url = `${client.baseUrl}/repos/${CONFIG.ORG_NAME}/${repo}/issues`;
-
-  try {
-    // Log the URL and payload for debugging
-    Logger.log(`Creating issue at URL: ${url}`);
-    Logger.log(`Payload: ${JSON.stringify(issueData)}`);
-
-    // Ensure that the payload includes all necessary fields in the correct format
-    const payload = {
-      title: issueData.title,
-      body: issueData.body,
-      assignees: issueData.assignee ? [issueData.assignee] : []
-    };
-      
-    Logger.log(`Formatted payload: ${JSON.stringify(payload)}`);
-
-    // Make the POST request to create the issue
-    const response = UrlFetchApp.fetch(url, {
-      method: 'POST',
-      headers: client.headers,
-      muteHttpExceptions: true,
-      payload: JSON.stringify(payload)
-    });
-
-    // Check if the request was successful (HTTP 201 Created)
-    if (response.getResponseCode() === 201) {
-      // Parse the response to get the created issue details
-      const createdIssue = JSON.parse(response.getContentText());
-
-      // Validate that the html_url is present in the response
-      if (createdIssue.html_url) {
-        Logger.log(`Successfully created issue: ${createdIssue.html_url}`);
-        return {
-          number: createdIssue.number,
-          html_url: createdIssue.html_url
-        };
-      } else {
-        throw new Error("html_url missing in response for created issue.");
-      }
-    } else {
-      // If not successful, log full response details for debugging
-      Logger.log(`Full response for failed issue creation: ${response.getContentText()}`);
-      const errorResponse = JSON.parse(response.getContentText());
-      throw new Error(`Failed to create issue: ${errorResponse.message}. Ensure the repository name is correct and the GitHub token has the appropriate permissions.`);
-    }
-  } catch (error) {
-    // Log any errors that occur during issue creation
-    Logger.log(`Error in createIssue: ${error.message}`);
-    throw error;
+function separateTitleAndDescription(content) {
+  let title, description;
+  
+  // Split on first hyphen or semicolon
+  const separatorMatch = content.match(/^([^-;]+)[-;](.+)$/);
+  
+  if (separatorMatch) {
+    title = separatorMatch[1].trim();
+    description = separatorMatch[2].trim();
+  } else {
+    title = content.trim();
+    description = '';
   }
+  
+  return { title, description };
 }
 
 /**
- * Updates an existing issue in the specified GitHub repository.
- * Uses the GitHub API to post a comment on an existing issue.
- * @param {string} repo - The name of the repository where the issue exists.
- * @param {number} issueNumber - The number of the issue to update.
- * @param {string} comment - The comment to add to the existing issue.
- * @returns {Object} Object containing the updated issue number and the HTML URL of the added comment.
- * @throws {Error} If updating the issue fails or response is missing expected fields.
+ * @param {string} type - The type of issue action (e.g., 'New Issue', 'Updated Issue').
+ * @param {string} title - The title or identifier for the issue.
+ * @param {string} url - The URL of the GitHub issue or comment.
+ * @returns {string} HTML string for displaying the link.
  */
-function updateIssue(repo, issueNumber, comment) {
-  // Create the GitHub API client
-  const client = createGitHubClient();
-  const url = `${client.baseUrl}/repos/${CONFIG.ORG_NAME}/${repo}/issues/${issueNumber}/comments`;
-
-  try {
-    // Log the URL and payload for debugging
-    Logger.log(`Updating issue at URL: ${url}`);
-    Logger.log(`Payload: ${JSON.stringify({ body: comment })}`);
-
-    // Ensure that the payload includes all necessary fields in the correct format
-    const payload = {
-      body: comment
-    };
-
-    // Make the POST request to add a comment to the issue
-    const response = UrlFetchApp.fetch(url, {
-      method: 'POST',
-      headers: client.headers,
-      muteHttpExceptions: true,
-      payload: JSON.stringify(payload)
-    });
-
-    // Check if the request was successful (HTTP 201 Created)
-    if (response.getResponseCode() === 201) {
-      // Parse the response to get the updated issue details
-      const updatedIssue = JSON.parse(response.getContentText());
-
-      // Validate that the html_url is present in the response
-      if (updatedIssue.html_url) {
-        Logger.log(`Successfully updated issue with comment: ${updatedIssue.html_url}`);
-        return {
-          number: issueNumber,
-          html_url: updatedIssue.html_url
-        };
-      } else {
-        throw new Error("html_url missing in response for updated issue comment.");
-      }
-    } else {
-      // If not successful, log full response details for debugging
-      Logger.log(`Full response for failed issue update: ${response.getContentText()}`);
-      const errorResponse = JSON.parse(response.getContentText());
-      throw new Error(`Failed to update issue #${issueNumber}: ${errorResponse.message}. Ensure the issue number is correct and the GitHub token has the appropriate permissions.`);
-    }
-  } catch (error) {
-    // Log any errors that occur during issue updating
-    Logger.log(`Error in updateIssue: ${error.message}`);
-    throw error;
-  }
-}
-
-/**
- * Clears previous issues and comments.
- */
-function clearPreviousIssuesAndComments() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('GitHub Issues');
-  if (sheet) {
-    sheet.clear();
-  }
-}
-
-
-/** @param {string} type - The type of issue action (e.g., 'New Issue', 'Updated Issue').
-* @param {string} title - The title or identifier for the issue.
-* @param {string} url - The URL of the GitHub issue or comment.
-* @returns {string} HTML string for displaying the link.
-**/
 function generateIssueLinkHtml(type, title, url) {
   // Hide previous banners or messages before generating new ones
   hideRepositoryBanner();
   return `<div><strong>${type}:</strong> <a href="${url}" target="_blank">${title}</a></div>`;
-}
-
-
-/**
- * Processes issues based on UI data and returns results with links
- * @param {Object} data - Object containing new issues and updates
- * @returns {Object} Results including links to created/updated items
- */
-function processConfirmedIssues(data) {
-  const results = {
-    created: [],
-    updated: [],
-    errors: [],
-    links: []
-  };
-
-  try {
-    if (data.newIssues?.length) {
-      for (const issue of data.newIssues) {
-        try {
-          const createdIssue = createIssue(issue.repo, {
-            title: issue.title,
-            body: issue.body,
-            assignees: issue.assignee ? [issue.assignee] : []
-          });
-
-          results.created.push(createdIssue.number);
-          results.links.push({
-            type: 'issue',
-            number: createdIssue.number,
-            url: createdIssue.url, // Use the GitHub URL
-            repo: issue.repo,
-            title: createdIssue.title
-          });
-        } catch (error) {
-          results.errors.push(`Failed to create issue "${issue.title}": ${error.message}`);
-        }
-      }
-    }
-
-    if (data.updateIssues?.length) {
-      for (const update of data.updateIssues) {
-        try {
-          const updatedIssue = updateIssue(update.repo, update.issueNumber, update.comment);
-          
-          results.updated.push(update.issueNumber);
-          results.links.push({
-            type: 'comment',
-            number: update.issueNumber,
-            url: updatedIssue.url, // Use the GitHub URL
-            repo: update.repo
-          });
-        } catch (error) {
-          results.errors.push(`Failed to update issue #${update.issueNumber}: ${error.message}`);
-        }
-      }
-    }
-
-    return results;
-  } catch (error) {
-    throw new Error(`Failed to process issues: ${error.message}`);
-  }
 }
 
 /**
@@ -1193,6 +1332,41 @@ function getDocumentMetadata(docUrl) {
     Logger.log(`Error getting document metadata: ${error.message}`);
     return null;
   }
+}
+
+// Add any additional utility functions here...
+
+/* =============================================================================
+HELPER FUNCTIONS
+=============================================================================
+*/
+
+/**
+ * Helper function to include HTML files
+ * @param {string} filename - Name of the HTML file to include
+ * @returns {string} The evaluated HTML content
+ */
+function include(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+}
+
+/**
+ * Clears previous issues and comments.
+ */
+function clearPreviousIssuesAndComments() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('GitHub Issues');
+  if (sheet) {
+    sheet.clear();
+  }
+}
+
+/*
+ * Hides the repository applied banner.
+ */
+function hideRepositoryBanner() {
+  const ui = SpreadsheetApp.getUi();
+  const bannerElement = ui.alert('Repository applied successfully!', ui.ButtonSet.OK);
+  Utilities.sleep(500);
 }
 
 
