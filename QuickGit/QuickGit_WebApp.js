@@ -1,12 +1,16 @@
-/**  Contains web app specific functions (doGet, handling web requests)
-  - Contains doGet function for serving the web app
-  - Has endpoint functions called directly by the frontend
-  - Handles web-specific error reporting
-  - Acts as a bridge between the frontend and core functionality
-**/
+/**
+ * WEBAPP.GS - Web Application Interface
+ * Contains web app specific functions and request handling
+ * Acts as bridge between frontend and core functionality
+ */
+
+// =============================================================================
+// WEB APP INITIALIZATION
+// =============================================================================
 
 /**
  * Handles web app requests and OAuth flow
+ * Entry point for the web application
  * @param {Object} e - Event object from web app
  * @returns {HtmlOutput} The HTML page
  */
@@ -15,27 +19,19 @@ function doGet(e) {
   if (e.parameter.code) {
     const result = handleOAuthCallback(e.parameter.code, e.parameter.state);
     if (!result.success) {
-      return HtmlService.createHtmlOutput(
-        `<h3>Authentication Failed</h3>
-         <p>Error: ${result.error}</p>
-         <p>Please close this window and try again.</p>`
-      );
+      return HtmlService.createHtmlOutput('<h3>Authentication Failed</h3><p>Error: ' + result.error + '</p>');
     }
-    return HtmlService.createHtmlOutput(
-      `<h3>Authentication Successful!</h3>
-       <p>You can close this window and return to QuickGit Refresh the page to access the tool.</p>
-       <script>setTimeout(function() { window.close(); }, 2000);</script>`
-    );
+    return HtmlService.createHtmlOutput('<h3>Authentication Successful!</h3><script>setTimeout(function() { window.close(); }, 2000);</script>');
   }
   
   // Check if user is authenticated
   const userProperties = PropertiesService.getUserProperties();
   const isAuthenticated = Boolean(userProperties.getProperty('github_access_token'));
   
-  // Create template and add authentication state
+ // Pass `isAuthenticated` to the HTML template
   const template = HtmlService.createTemplateFromFile('index');
   template.isAuthenticated = isAuthenticated;
-  
+
   // Log authentication state for debugging
   console.log('User authentication state:', isAuthenticated);
   
@@ -45,15 +41,17 @@ function doGet(e) {
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
-/**
- * Checks if user is authenticated
- * @returns {boolean} Authentication status
- */
-function checkAuthStatus() {
-  const userProperties = PropertiesService.getUserProperties();
-  return Boolean(userProperties.getProperty('github_access_token'));
-}
+/* =============================================================================
+DOCUMENT PROCESSING ENDPOINTS
+=============================================================================
+*/
 
+/**
+ * Processes document from URL
+ * Called by frontend when processing a new document
+ * @param {string} docUrl - URL of document to process
+ * @returns {Object} Processing results or error
+ */
 function processDocument(docUrl) {
   try {
     const doc = DocumentApp.openByUrl(docUrl);
@@ -98,6 +96,12 @@ function processDocument(docUrl) {
     return { error: error.message || 'Failed to process document' };
   }
 }
+
+/* =============================================================================
+ISSUE MANAGEMENT ENDPOINTS
+=============================================================================
+*/
+
 
 /**
  * Processes issues based on UI data
@@ -203,6 +207,11 @@ function validateIssue(issue, type) {
   return false;
 }
 
+/* =============================================================================
+GITHUB DATA ENDPOINTS
+=============================================================================
+*/
+
 /**
  * Gets repositories for frontend display
  * @returns {Array} List of repositories
@@ -278,25 +287,4 @@ function fetchRepoIssues(repoName) {
     throw new Error(`Failed to fetch issues: ${error.message}`);
   }
 }
-
-/**
- * Parses the document and returns structured content
- * Called by the frontend when processing a document
- * @param {string} docUrl - The URL of the document to process
- * @returns {Object} Parsed document content
- */
-function parseDocument(docUrl) {
-  try {
-    Logger.log('WebApp: Starting to parse document: ' + docUrl);
-    const results = processGoogleDoc(docUrl);
-    Logger.log('WebApp: Processing results: ' + JSON.stringify(results));
-    return results;
-  } catch (error) {
-    Logger.log('WebApp: Error in parseDocument: ' + error.message);
-    throw new Error(error.message);
-  }
-}
-
-
-
 
