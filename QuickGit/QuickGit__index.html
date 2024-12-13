@@ -1,0 +1,2146 @@
+<!-- Core HTML and Theme Variables -->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <!-- Google Fonts Integration -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* Theme Variables */
+    :root {
+      --background-color: #f9f9f9;
+      --text-color: #333;
+      --primary-color: #3498db;
+      --primary-hover: #2980b9;
+      --border-color: #ddd;
+      --success-color: #27ae60;
+      --processing-color: #2980b9;
+      --error-color: #e74c3c;
+      --container-bg: #fff;
+      --input-bg: #f5f5f5;
+      --code-bg: #f5f5f5;
+      --shadow-color: rgba(0, 0, 0, 0.1);
+    }
+
+    /* Dark theme variables */
+    [data-theme="dark"] {
+      --background-color: #1a1a1a;
+      --text-color: #e0e0e0;
+      --primary-color: #bb86fc;
+      --primary-hover: #985eff;
+      --border-color: #444;
+      --success-color: #03dac6;
+      --processing-color: #bb86fc;
+      --error-color: #cf6679;
+      --container-bg: #2d2d2d;
+      --input-bg: #3d3d3d;
+      --code-bg: #383838;
+      --shadow-color: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Dark mode-specific styles */
+    [data-theme="dark"] .expand-button {
+      color: #f0f0f0; /* Light color for better contrast in dark mode */
+    }
+
+    /* Base styles */
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      line-height: 1.5;
+      transition: all 0.3s ease;
+    }
+
+    .select-container {
+      position: relative;
+    }
+
+    .example {
+      background-color: var(--code-bg);
+      padding: 10px;
+      border-radius: 8px;
+      margin: 10px 0;
+      font-family: monospace;
+
+    }
+
+    /* Form group visibility */
+      #repoCheckboxGroup {
+        display: none;
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 16px;
+        background-color: var(--container-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        box-shadow: 0 2px 4px var(--shadow-color);
+      }
+
+      #repoCheckboxGroup.visible {
+        display: block;
+      }
+
+      #repoSelectGroup, #assigneeSelectGroup {
+        display: none;
+      }
+
+      #repoSelectGroup.visible, #assigneeSelectGroup.visible {
+        display: block;
+      }
+
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      background-color: var(--container-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 30px;
+      box-shadow: 0 1px 3px var(--shadow-color);
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .modal.active {
+        display: flex;
+        opacity: 1;
+    }
+
+    .modal-content {
+        background-color: var(--container-bg);
+        margin: auto;
+        padding: 0;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+        position: relative;
+        box-shadow: 0 4px 6px var(--shadow-color);
+    }
+
+    .modal-header {
+        padding: 20px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        font-size: 1.5em;
+        color: var(--text-color);
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal-content {
+      background-color: var(--container-bg);
+      margin: auto;
+      padding: 0;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.5em;
+    }
+
+    .modal-body {
+      padding: 20px;
+    }
+
+    /* Modal Tabs */
+    .modal-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 20px;
+    }
+
+    .tab-button {
+      padding: 12px 20px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-color);
+      opacity: 0.7;
+      transition: all 0.2s;
+    }
+
+    .tab-button.active {
+      border-bottom-color: var(--primary-color);
+      opacity: 1;
+    }
+
+    .tab-button:hover {
+      opacity: 1;
+    }
+
+    /* Tab Content */
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Expandable Sections */
+    .expandable-section {
+      margin: 12px 0;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+    }
+
+    .expand-button {
+      color: var(--text-color);
+      width: 100%;
+      padding: 12px;
+      background: none;
+      border: none;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .expand-icon {
+      margin-right: 8px;
+      font-size: 16px;
+      transition: transform 0.2s;
+    }
+
+    .expand-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+      padding: 0 12px;
+    }
+
+    .expandable-section.active .expand-content {
+      max-height: 500px;
+      padding: 12px;
+    }
+
+    .expandable-section.active .expand-icon {
+      transform: rotate(45deg);
+    }
+
+    /* Code Block */
+    .code-block {
+      background: var(--code-bg);
+      padding: 12px;
+      border-radius: 4px;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+
+    /* Permission Grid */
+    .permission-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .permission-item {
+      padding: 16px;
+      background: var(--input-bg);
+      border-radius: 6px;
+    }
+
+    /* Info Cards */
+    .info-card {
+      padding: 16px;
+      background: var(--input-bg);
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .close-button {
+      background: none;
+      border: none;
+      color: var(--text-color);
+      font-size: 24px;
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .info-section {
+      margin-bottom: 24px;
+    }
+
+    .info-section h3 {
+      margin-bottom: 12px;
+    }
+
+    .info-section p {
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    .info-section ul {
+      margin-left: 20px;
+      margin-bottom: 12px;
+    }
+
+    .info-section li {
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+</style>
+</head>
+
+<!--Form and Component Styles-->
+
+<style>
+    /* Form elements */
+    .form-group {
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--text-color);
+    }
+
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 14px;
+      background-color: var(--surface-color);
+      color: var(--text-color);
+      box-sizing: border-box;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="text"]:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+    }
+
+    /* Individual issue display styling*/
+    /* Content Areas */
+    .issue-content {
+      background-color: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 16px;
+      margin: 12px 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+
+    .issue-content a {
+        color: #0366d6;
+        text-decoration: none;
+    }
+
+    .issue-content a:hover {
+        text-decoration: underline;
+    }
+
+    .issue-content strong {
+        font-weight: 600;
+    }
+
+    .issue-content em {
+        font-style: italic;
+    }
+
+    .issue-content del {
+        text-decoration: line-through;
+    }
+
+    .issue-content::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .issue-content::-webkit-scrollbar-track {
+        background: var(--background-color);
+    }
+
+    .issue-content::-webkit-scrollbar-thumb {
+        background-color: var(--border-color);
+        border-radius: 4px;
+    }
+
+    .issue-content::-webkit-scrollbar-thumb:hover {
+        background-color: var(--text-muted);
+    }
+
+    .issue-metadata {
+      color: var(--text-muted);
+      font-size: 0.9em;
+      margin: 8px 0;
+    }
+
+    /* Issues display styling */
+    .issues-container {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .issues-container.visible {
+      display: block;
+    }
+
+    .issues-section {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .issues-section h2 {
+      color: var(--text-color);
+      font-size: 1.25em;
+      font-weight: 600;
+      margin: 24px 0 16px;
+    }
+
+    /* Enhanced Issue Item Styling */
+    .issue-item {
+      background-color: var(--container-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 4px var(--shadow-color);
+      max-width: 800px
+      margin: 20px 10px;
+    }
+
+    .issue-title {
+      font-weight: 600;
+      color: var(--text-color);
+      font-size: 1.1em;
+      margin-bottom: 8px;
+    }
+
+    .issue-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    /* Input Fields */
+    .select-search {
+      background-color: var(--input-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 10px 12px;
+      border-radius: 6px;
+      width: 100%;
+      margin-bottom: 8px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .select-search:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-color-alpha);
+    }
+
+    /* Dropdown styles */
+    .select-container {
+      position: relative;
+    }
+
+    .dropdown-content {
+      max-height: 200px;
+      overflow-y: auto;
+      background-color: var(--container-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      box-shadow: 0 4px 6px var(--shadow-color);
+      display: none;
+      position: absolute;
+      width: 100%;
+      z-index: 1000;
+      margin-top: -1px;
+      scroll-behavior: smooth;
+    }
+
+    .dropdown-content.active {
+      display: block;
+    }
+
+    .dropdown-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      color: var(--text-color);
+      transition: background-color 0.2s;
+    }
+
+    .dropdown-item:hover {
+      background-color: var(--hover-color);
+    }
+
+    .dropdown-item.selected {
+      background-color: var(--hover-color);
+      border-left: 3px solid var(--primary-color);
+      padding-left: 9px; /* Compensate for the border */
+    }
+</style>
+
+<!--Additional Component Styles-->
+
+<style>
+    /* Checkbox styles */
+    .checkbox-group {
+      margin: 16px 0;
+      display: none; /* Hidden by default */
+    }
+
+    .checkbox-group.visible {
+      display: block; /* Shown when document URL is entered */
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      color: var(--text-color);
+    }
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    /* Same repo checkbox styling */
+    .repo-selection-controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .repo-selection-controls input {
+      flex: 1;
+    }
+
+    .apply-button {
+      background-color: var(--primary-color);
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .apply-button:hover:not(:disabled) {
+      filter: brightness(90%);
+      transform: translateY(-1px);
+    }
+
+    .apply-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      background-color: var(--border-color);
+    }
+
+    /* Button styles */
+    button#submitButton {
+      background-color: var(--primary-color);
+      color: #ffffff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      width: 100%;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    button#submitButton:hover:not(:disabled) {
+      filter: brightness(90%);
+      transform: translateY(-1px);
+    }
+
+    button#submitButton:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Create/Update Button */
+      #createButton {
+      background-color: var(--primary-color);
+      color: #ffffff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      max-width: 800px;
+      margin: 20px auto;
+      display: block;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    #createButton:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    #createButton:active {
+      transform: translateY(0);
+    }
+
+    /* Title container and info button */
+    .title-container {
+        position: relative;
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .info-button {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 2px solid var(--text-color);
+        background: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: var(--text-color);
+        transition: all 0.2s ease;
+    }
+
+    .info-button:hover {
+        background-color: var(--text-color);
+        color: var(--container-bg);
+    }
+
+    /* Message styles */
+    .message {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      text-align: center;
+      display: none;
+    }
+
+    .message.info {
+      background-color: #0969da15;
+      border: 1px solid var(--primary-color);
+      color: var(--primary-color);
+    }
+
+    .message.error {
+      background-color: #ff000015;
+      border: 1px solid var(--error-color);
+      color: var(--error-color);
+    }
+
+    .message.success { background-color: var(--success-color); color: white; }
+    .message.error { background-color: var(--error-color); color: white; }
+    .message.processing { background-color: var(--processing-color); color: white; }
+
+    /* Loading indicator */
+    .loading {
+      display: none;
+      text-align: center;
+      margin-top: 16px;
+      color: var(--text-muted);
+    }
+
+    .loading.active {
+      display: block;
+    }
+
+  /* Generated Text Style */
+  .generated-by {
+    font-size: 0.85em;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border-color);
+    margin-top: 16px;
+    padding-top: 12px;
+  }
+</style>
+
+<!--Theme Toggle and Responsive Styles-->
+
+<style>
+    /* Theme toggle button */
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: none;
+      background-color: var(--container-bg);
+      color: var(--text-color);
+      cursor: pointer;
+      box-shadow: 0 2px 8px var(--shadow-color);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      padding: 0;
+      z-index: 1000;
+    }
+
+    .theme-toggle:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow-color);
+    }
+
+    /* Responsive styles */
+    @media (max-width: 768px) {
+        .container {
+          max-width: 800px
+          margin: 20px 10px;
+          padding: 20px;
+        }
+
+      h1 {
+          text-align: center;
+          margin-bottom: 30px;
+          color: var(--text-color);
+          align-items: center;
+          margin-right: auto;
+      }
+
+      h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: var(--text-color);
+        justify-content: center;
+      }
+
+      h3 {
+        text-align: center;
+        margin-bottom: 10px;
+        color: var(--text-color);
+        justify-content: center;
+      }
+
+      h4 {
+        text-align: center;
+        margin-bottom: 10px;
+        color: var(--text-color);
+        justify-content: center;
+      }
+
+      .theme-toggle {
+        top: 10px;
+        right: 10px;
+      }
+    }
+
+    /* Scrollbar styles */
+    .dropdown-content::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .dropdown-content::-webkit-scrollbar-track {
+      background: var(--surface-color);
+    }
+
+    .dropdown-content::-webkit-scrollbar-thumb {
+      background-color: var(--border-color);
+      border-radius: 4px;
+    }
+
+    .dropdown-content::-webkit-scrollbar-thumb:hover {
+      background-color: var(--text-muted);
+    }
+  </style>
+</head>
+
+<!--HTML Body and Form-->
+<script>
+  // Show/hide containers based on authentication status
+  window.onload = function() {
+  // Initialize features
+  initializeTheme();
+  setupEventListeners();
+};  
+</script>
+
+<!-- HTML Body and Form -->
+<script>
+  // Show/hide containers based on authentication status and initialize features
+  window.onload = function () {
+    // Initialize features like theme and event listeners
+    initializeTheme();
+    setupEventListeners();
+  };
+</script>
+
+<body>
+  <!-- Conditional rendering based on authentication -->
+  <?!= isAuthenticated ? '' : include('OAuth'); ?>
+
+  <!-- Main Container -->
+  <div id="appContainer" class="container" style="display: <?= isAuthenticated ? 'block' : 'none' ?>">
+    <!-- Theme Toggle and Title -->
+    <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">🌙</button>
+    <div class="title-container">
+      <h1>QuickGit</h1>
+      <button class="info-button" onclick="showInfo()" aria-label="Show information">i</button>
+    </div>
+
+    <!-- Document URL Input -->
+    <div class="form-group">
+      <label for="docUrl">Google Document URL</label>
+      <input type="text" id="docUrl" placeholder="Paste your Google Doc URL here">
+    </div>
+    <button id="submitButton" onclick="processDocument()">Process Document</button>
+
+    <!-- Repository Selection -->
+    <div id="repoCheckboxGroup" class="form-group checkbox-group">
+      <div class="checkbox-label">
+        <input type="checkbox" id="sameRepoCheckbox" />
+        <label for="sameRepoCheckbox">All actions are in the same repo</label>
+      </div>
+      <div id="sameRepoSelectGroup" class="select-container" style="display: none;">
+        <div class="repo-selection-controls">
+          <input type="text" id="sameRepoSearch" class="repo-search select-search" placeholder="Select repository..." />
+          <button id="applyRepoButton" class="apply-button" disabled>Apply to All</button>
+        </div>
+        <div id="sameRepoDropdown" class="dropdown-content"></div>
+      </div>
+    </div>
+
+    <!-- Status Messages -->
+    <div id="loading" class="loading"></div>
+    <div id="message" class="message"></div>
+
+    <!-- Issues Container -->
+    <div id="issuesContainer" class="issues-container">
+      <div id="newIssues" class="issues-section">
+        <h2>New Issues</h2>
+      </div>
+      <div id="updateIssues" class="issues-section">
+        <h2>Update Issues</h2>
+      </div>
+      <button id="createButton" onclick="createAllIssues()" class="submit-button">
+        Create/Update All Issues
+      </button>
+    </div>
+  </div>
+
+  <!-- Templates for Issues -->
+  <template id="newIssueTemplate">
+    <div class="issue-item">
+      <div class="issue-title"></div>
+      <div class="issue-metadata">Issue content:</div>
+      <div class="issue-content"></div>
+      <div class="issue-controls">
+        <div class="select-container">
+          <input type="text" class="repo-search select-search" placeholder="Select repository...">
+          <div class="dropdown-content repo-dropdown"></div>
+        </div>
+        <div class="select-container">
+          <input type="text" class="assignee-search select-search" placeholder="Select assignee...">
+          <div class="dropdown-content assignee-dropdown"></div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="updateIssueTemplate">
+    <div class="issue-item">
+      <div class="issue-title"></div>
+      <div class="issue-metadata">Comment to be added:</div>
+      <div class="issue-content"></div>
+      <div class="issue-controls">
+        <div class="select-container">
+          <input type="text" class="repo-search select-search" placeholder="Select repository...">
+          <div class="dropdown-content repo-dropdown"></div>
+        </div>
+        <div class="select-container">
+          <input type="text" class="issue-search select-search" placeholder="Select issue...">
+          <div class="dropdown-content issue-dropdown"></div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- Info Modal -->
+  <div id="infoModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>QuickGit Documentation</h2>
+        <button class="close-button" onclick="closeInfoModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Tabs Navigation -->
+        <div class="modal-tabs">
+          <button class="tab-button active" onclick="switchTab('usage')">How to Use</button>
+          <button class="tab-button" onclick="switchTab('permissions')">Permissions</button>
+          <button class="tab-button" onclick="switchTab('about')">About</button>
+          <button class="tab-button" onclick="switchTab('troubleshoot')">Troubleshooting</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="usage" class="tab-content active">
+          <h3>How to Use This Tool</h3>
+          <p>This tool helps you convert Google Docs into GitHub issues. Please follow these guidelines:</p>
+          <div class="content-section">
+            <div class="expandable-section">
+              <button class="expand-button" onclick="toggleExpand(this)">
+                <span class="expand-icon">+</span>
+                Document Formatting
+              </button>
+              <div class="expand-content">
+                <p>Ensure your Google Doc includes clear markers:</p>
+                <div class="code-block">
+                  New Issue: [Issue Title]
+                  [Issue description and details]
+
+                  Update Issue: [Comment content]
+                </div>
+              </div>
+            </div>
+            <div class="expandable-section">
+              <button class="expand-button" onclick="toggleExpand(this)">
+                <span class="expand-icon">+</span>
+                Supported Content
+              </button>
+              <div class="expand-content">
+                <ul>
+                  <li>Headings and text formatting</li>
+                  <li>Bullet points and numbering</li>
+                  <li>Basic text styling (bold, italic)</li>
+                  <li>Links and references</li>
+                  <br>
+                  <li>Currently not supported: tables, graphs, images</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="permissions" class="tab-content">
+          <h3>GitHub Organization & Repository Permissions</h3>
+          <div class="permission-grid">
+            <div class="permission-item">
+              <h4>Create Issues</h4>
+              <p>✓ Available to all</p>
+            </div>
+            <div class="permission-item">
+              <h4>Add Comments</h4>
+              <p>✓ Available to all</p>
+            </div>
+            <div class="permission-item">
+              <h4>Assign Users</h4>
+              <p>⚡ Requires Specific Repo Write access</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="about" class="tab-content">
+          <h3>About QuickGit & IssueWeaver</h3>
+          <p class="mb-4">QuickGit is a specialized web application that converts Google Docs into GitHub issues. It's designed to streamline the process of creating and managing GitHub issues in bulk from well-formatted Google Documents.</p>
+
+          <h4>IssueWeaver GitHub Account</h4>
+          <p class="mb-2">The IssueWeaver account (<code>@IssueWeaver</code> on GitHub) is NASA IMPACT's dedicated service account for hosting and managing our GitHub automation applications. This account:</p>
+          <ul class="mb-4">
+              <li>Owns and administers our GitHub-based automation tools</li>
+              <li>Maintains consistent access across our organization</li>
+              <li>Acts as the identified creator of automated issues and comments</li>
+              <li>Ensures separation between personal and automated actions</li>
+          </ul>
+
+          <div class="info-box mb-4">
+              <h5>Why This Structure?</h5>
+              <p>Having a dedicated service account (IssueWeaver) for our GitHub applications:</p>
+              <ul>
+                  <li>Provides clear identification of automated actions</li>
+                  <li>Maintains consistent permissions across repositories</li>
+                  <li>Allows for future expansion with additional automation tools</li>
+                  <li>Keeps automation separate from individual user accounts</li>
+              </ul>
+          </div>
+        </div>
+
+        <div id="troubleshoot" class="tab-content">
+          <h3>Common Issues & Solutions</h3>
+          <div class="expandable-section">
+            <button class="expand-button" onclick="toggleExpand(this)">
+              <span class="expand-icon">+</span>
+              Document and GitHub Access
+            </button>
+            <div class="expand-content">
+              <ul>
+                <li>Ensure the document is shared with your account.</li>
+                <li>Check you're signed in to the correct Google account.</li>
+                <li>Ensure that IssueWeaver has write access to your repo.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="expandable-section">
+            <button class="expand-button" onclick="toggleExpand(this)">
+              <span class="expand-icon">+</span>
+              Formatting Issues
+            </button>
+            <div class="expand-content">
+              <ul>
+                <li>Verify "New Issue:" and "Update Issue:" markers.</li>
+                <li>Check for extra spaces or formatting.</li>
+                <li>Ensure content follows each marker.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+<!--JavaScript-->
+
+<script>
+    // State management
+    let repos = [];
+    let members = [];
+    let issues = {}; // store issues by repo
+    let selectedRepo = '';
+    let selectedAssignee = '';
+    let documentContent = null;
+    let documentProcessed = false; // Global variable to store document content
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeTheme();
+      setupEventListeners();
+    });
+
+    // Theme management
+    function initializeTheme() {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const savedTheme = localStorage.getItem('theme');
+      const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+      setTheme(theme);
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      setTheme(newTheme);
+    }
+
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      document.getElementById('themeToggle').textContent = theme === 'dark' ? '☀️' : '🌙';
+
+      // Optional: Log theme change for debugging
+      console.log(`Theme set to ${theme}`);
+    }
+
+    // Event listeners setup
+    function setupEventListeners() {
+      // vent listener code
+      document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+      document.getElementById('submitButton').addEventListener('click', processDocument);
+
+      // Global click handler for dropdowns
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.select-container')) {
+          document.querySelectorAll('.dropdown-content').forEach(el => {
+            el.classList.remove('active');
+          });
+        }
+      });
+
+      // Add new repo selection handlers
+      setupRepoSelectionHandlers();
+    }
+
+    // Separate function for repo selection setup to keep code organized
+    function setupRepoSelectionHandlers() {
+      const sameRepoCheckbox = document.getElementById('sameRepoCheckbox');
+      const sameRepoSelectGroup = document.getElementById('sameRepoSelectGroup');
+      const sameRepoSearch = document.getElementById('sameRepoSearch');
+      const sameRepoDropdown = document.getElementById('sameRepoDropdown');
+      const applyRepoButton = document.getElementById('applyRepoButton');
+
+      if (sameRepoCheckbox && sameRepoSelectGroup) {
+        sameRepoCheckbox.addEventListener('change', (e) => {
+          sameRepoSelectGroup.style.display = e.target.checked ? 'block' : 'none';
+          
+          if (!e.target.checked) {
+            if (sameRepoSearch) {
+              sameRepoSearch.value = '';
+              if (applyRepoButton) {
+                applyRepoButton.disabled = true;
+              }
+              clearAllRepoSelections();
+            }
+          }
+        });
+      }
+
+      if (sameRepoSearch && sameRepoDropdown) {
+          // Focus handler - show all repos
+          sameRepoSearch.addEventListener('focus', () => {
+            updateDropdown(sameRepoSearch, repos, 'name', '');
+          });
+
+          // Input handler - filter repos and update button state
+          sameRepoSearch.addEventListener('input', (e) => {
+            updateDropdown(sameRepoSearch, repos, 'name', e.target.value);
+            if (applyRepoButton) {
+              applyRepoButton.disabled = !e.target.value;
+            }
+          });
+
+          // Click handler for dropdown items
+          sameRepoDropdown.addEventListener('click', (e) => {
+            const item = e.target.closest('.dropdown-item');
+            if (!item || item.textContent === 'No matches found') return;
+            
+            // Update search input with selected repo
+            sameRepoSearch.value = item.textContent;
+            
+            // Enable the apply button
+            if (applyRepoButton) {
+              applyRepoButton.disabled = false;
+            }
+            
+            // Hide the dropdown
+            sameRepoDropdown.classList.remove('active');
+          });
+        }
+
+        // Apply button click handler
+        if (applyRepoButton) {
+          applyRepoButton.addEventListener('click', () => {
+            const selectedRepo = sameRepoSearch.value;
+            if (!selectedRepo) return;
+
+            updateAllRepoSelections(selectedRepo);
+            showMessage('Repository applied to all issues', 'success',false, 3000);//hide message after 3 seconds
+          });
+        }
+      }
+
+    function clearAllRepoSelections() {
+      const repoSearchInputs = document.querySelectorAll('.repo-search');
+      repoSearchInputs.forEach(input => {
+        input.value = '';
+      });
+    }
+    
+
+    function updateAllRepoSelections(repoName) {
+      const repoSearchInputs = document.querySelectorAll('.repo-search');
+      
+      repoSearchInputs.forEach(input => {
+        // Skip the global search input
+        if (input.id === 'sameRepoSearch') return;
+        
+        input.value = repoName;
+        
+        // If this is an update issue, trigger loading of issues
+        const issueItem = input.closest('.issue-item');
+        if (issueItem?.dataset.issueType === 'update') {
+          const issueSearch = issueItem.querySelector('.issue-search');
+          if (issueSearch) {
+            loadIssuesForRepo(repoName, issueSearch);
+          }
+        }
+      });
+    }
+
+    function handleDocumentProcessed(result) {
+      setLoading(false);
+      
+      if (result.error) {
+        showMessage(result.error, 'error');
+        return;
+      }
+
+      // Load repos and members for dropdowns
+      google.script.run
+        .withSuccessHandler(handleRepos)
+        .withFailureHandler(handleError)
+        .getRepos();
+        
+      google.script.run
+        .withSuccessHandler(handleMembers)
+        .withFailureHandler(handleError)
+        .getMembers();
+
+      // Display found issues
+      displayIssues(result);
+    }
+
+/**
+ * Formats issue content for display in the web interface
+ * Converts markdown to HTML for proper rendering
+ * @param {string} content - The markdown formatted content
+ * @returns {string} HTML formatted content
+ */
+function formatIssueForDisplay(content) {
+  if (!content) return '';
+  
+  try {
+    return content
+      // Convert markdown links
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+      // Convert bold
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      // Convert italic (both * and _ syntax)
+      .replace(/[*_]([^*_]+)[*_]/g, '<em>$1</em>')
+      // Convert bullet lists (preserve indentation)
+      .replace(/^(\s*)\* (.+)$/gm, '$1• $2')
+      // Convert newlines
+      .split('\n').join('<br>');
+  } catch (error) {
+    console.error('Error formatting content for display:', error);
+    return content; // Return unformatted content as fallback
+  }
+}
+
+  /**
+   * Display parsed issues in the UI
+   * @param {Object} result - Parsed document results containing new and update issues
+   */
+  function displayIssues(result) {
+    console.log('Displaying issues:', result);  // Add this line
+    const newIssuesContainer = document.getElementById('newIssues');
+    const updateIssuesContainer = document.getElementById('updateIssues');
+    const template = document.getElementById('newIssueTemplate');
+    const updateTemplate = document.getElementById('updateIssueTemplate');
+
+    // Clear existing content
+    newIssuesContainer.innerHTML = '<h2>New Issues</h2>';
+    updateIssuesContainer.innerHTML = '<h2>Update Issues</h2>';
+
+    // Show the checkbox group after displaying issues
+    const repoCheckboxGroup = document.getElementById('repoCheckboxGroup');
+    if (repoCheckboxGroup) {
+      repoCheckboxGroup.classList.add('visible');
+    }
+
+    // Reset the checkbox state
+    const sameRepoCheckbox = document.getElementById('sameRepoCheckbox');
+    const sameRepoSelectGroup = document.getElementById('sameRepoSelectGroup');
+    if (sameRepoCheckbox && sameRepoSelectGroup) {
+      sameRepoCheckbox.checked = false;
+      sameRepoSelectGroup.style.display = 'none';
+    }
+
+    // Display new issues with formatted content
+    result.newIssues.forEach((issue, index) => {
+      const clone = template.content.cloneNode(true);
+      clone.querySelector('.issue-title').textContent = issue.title;
+      
+      // Format the content for display
+      const formattedContent = formatIssueForDisplay(issue.body);
+      clone.querySelector('.issue-content').innerHTML = formattedContent;
+      
+      const issueItem = clone.querySelector('.issue-item');
+      issueItem.dataset.issueIndex = index;
+      issueItem.dataset.issueType = 'new';
+      
+      setupDropdownListeners(issueItem);
+      newIssuesContainer.appendChild(clone);
+    });
+
+    // Display update issues with formatted content
+    result.updateIssues.forEach((update, index) => {
+      const clone = updateTemplate.content.cloneNode(true);
+      
+      // For update issues, display the comment as the full content
+      const contentElement = clone.querySelector('.issue-content');
+      if (contentElement) {
+        contentElement.innerHTML = `<em>${formatIssueForDisplay(update.comment)}</em>`;
+      }
+      
+      const issueItem = clone.querySelector('.issue-item');
+      issueItem.dataset.issueIndex = index;
+      issueItem.dataset.issueType = 'update';
+      issueItem.dataset.comment = update.comment;
+      
+      setupDropdownListeners(issueItem);
+      updateIssuesContainer.appendChild(clone);
+    });
+
+    // Show the issues container
+    document.getElementById('issuesContainer').classList.add('visible');
+  }
+
+    function setupDropdownListeners(issueItem) {
+      console.log('Setting up listeners for issue item:', issueItem);
+      
+      const repoSearch = issueItem.querySelector('.repo-search');
+      const assigneeOrIssueSearch = issueItem.querySelector(
+        issueItem.dataset.issueType === 'new' ? '.assignee-search' : '.issue-search'
+      );
+
+      console.log('Setting up dropdowns for:', {
+        repoSearch,
+        assigneeOrIssueSearch,
+        repos,
+        members
+      });
+
+      if (repoSearch) {
+        repoSearch.addEventListener('focus', () => {
+          updateDropdown(repoSearch, repos, 'name', '');
+        });
+        
+        repoSearch.addEventListener('input', (e) => {
+          updateDropdown(repoSearch, repos, 'name', e.target.value);
+        });
+      }
+
+      if (assigneeOrIssueSearch && issueItem.dataset.issueType === 'new') {
+        assigneeOrIssueSearch.addEventListener('focus', () => {
+          updateDropdown(assigneeOrIssueSearch, members, 'login', '');
+        });
+        
+        assigneeOrIssueSearch.addEventListener('input', (e) => {
+          updateDropdown(assigneeOrIssueSearch, members, 'login', e.target.value);
+        });
+      }
+    }
+
+    /**
+     * Sets up focus and keyboard behavior for dropdown inputs
+     * @param {HTMLElement} input - The input element
+     * @param {Array} items - Array of available items
+     * @param {string} property - Property to display/filter
+     * @param {boolean} showAllOnFocus - Whether to show all items when input is focused
+     */
+    function setupDropdownInput(input, items, property, showAllOnFocus = false) {
+      const container = input.closest('.select-container');
+      const dropdown = container?.querySelector('.dropdown-content');
+      
+      // Handle input focus
+      input.addEventListener('focus', () => {
+        if (showAllOnFocus) {
+          updateDropdown(input, items, property, '');
+        }
+      });
+
+      // Handle input changes
+      input.addEventListener('input', (e) => {
+        updateDropdown(input, items, property, e.target.value);
+      });
+
+      // Handle focus leaving the dropdown container
+      container.addEventListener('focusout', (e) => {
+        // Check if the new focus target is outside the container
+        if (!container.contains(e.relatedTarget)) {
+          dropdown.classList.remove('active');
+        }
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!container.contains(e.target)) {
+          dropdown.classList.remove('active');
+        }
+      });
+    }
+
+    /**
+     * Updates the dropdown with filtered items and sets up keyboard navigation
+     * @param {HTMLElement} input - The input element
+     * @param {Array} items - Array of items to filter
+     * @param {string} property - Property to filter by
+     * @param {string} searchTerm - Term to filter by
+     */
+    function updateDropdown(input, items, property, searchTerm = '') {
+      // Guard against null/undefined inputs
+      if (!input || !items || !property) {
+        console.error('Invalid inputs to updateDropdown:', { input, items, property });
+        return;
+      }
+
+      const dropdown = input.closest('.select-container')?.querySelector('.dropdown-content');
+      if (!dropdown) {
+        console.error('Dropdown element not found for input:', input);
+        return;
+      }
+
+      dropdown.innerHTML = '';
+
+      try {
+        const filtered = items.filter(item => {
+          if (!item || !item[property]) return false;
+
+        if (property === 'number') {
+          // For issues, search in both number and title
+          return item.number.toString().includes(searchTerm.toLowerCase()) ||
+                item.title.toLowerCase().includes(searchTerm.toLowerCase());
+        } else {
+          // For other dropdowns, search as before
+          return item[property].toString().toLowerCase().includes(searchTerm.toLowerCase());
+        }
+      });
+
+        if (filtered.length === 0) {
+          const div = document.createElement('div');
+          div.className = 'dropdown-item';
+          div.textContent = 'No matches found';
+          dropdown.appendChild(div);
+        } else {
+          filtered.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'dropdown-item';
+
+            // Special formatting for issues
+            if (property === 'number') {
+              div.textContent = `#${item.number}: ${item.title}`;
+            } else {
+              div.textContent = item[property];
+            }
+
+            // Make sure the div is clickable
+            div.style.cursor = 'pointer';
+            
+            div.addEventListener('mousedown', (e) => {
+              e.preventDefault(); // Prevent blur from firing before click
+              // For issues, set the full "number: title" format as the input value
+              if (property === 'number') {
+                input.value = `#${item.number}: ${item.title}`;
+              } else {
+                input.value = item[property];
+              }
+              
+              dropdown.classList.remove('active');
+
+              // Handle repo selection for update issues
+              if (input.classList.contains('repo-search') &&
+                  input.closest('.issue-item')?.dataset.issueType === 'update') {
+                const issueSearch = input.closest('.issue-item')
+                  .querySelector('.issue-search');
+                if (issueSearch) {
+                  loadIssuesForRepo(item[property], issueSearch);
+                }
+              }
+            });
+            
+            dropdown.appendChild(div);
+          });
+        }
+
+        // Make sure dropdown is visible
+        dropdown.classList.add('active');
+        
+        // Setup keyboard navigation
+        setupKeyboardNavigation(dropdown, input);
+
+      } catch (error) {
+        console.error('Error updating dropdown:', error);
+      }
+    }
+
+    /**
+     * Manages keyboard navigation for dropdowns
+     * @param {HTMLElement} dropdown - The dropdown container element
+     * @param {HTMLElement} input - The input field associated with the dropdown
+     */
+    function setupKeyboardNavigation(dropdown, input) {
+      let selectedIndex = -1;
+      const items = dropdown.getElementsByClassName('dropdown-item');
+      const container = input.closest('.select-container');
+      
+      function clearSelection() {
+        Array.from(items).forEach(item => item.classList.remove('selected'));
+      }
+      
+      function updateSelection() {
+        clearSelection();
+        if (selectedIndex >= 0 && selectedIndex < items.length) {
+          items[selectedIndex].classList.add('selected');
+          items[selectedIndex].scrollIntoView({ block: 'nearest' });
+        }
+      }
+
+      function selectCurrentItem() {
+        if (selectedIndex >= 0 && selectedIndex < items.length) {
+          // Trigger the same mousedown event that clicking would trigger
+          const event = new MouseEvent('mousedown', {
+            bubbles: true,
+            cancelable: true,
+            view: window
+          });
+          items[selectedIndex].dispatchEvent(event);
+          
+          // Reset selection and hide dropdown
+          selectedIndex = -1;
+          dropdown.classList.remove('active');
+        }
+      }
+      
+      input.addEventListener('keydown', (e) => {
+        const isDropdownVisible = dropdown.classList.contains('active');
+        
+        switch (e.key) {
+          case 'ArrowDown':
+            e.preventDefault();
+            if (!isDropdownVisible) {
+              dropdown.classList.add('active');
+            }
+            selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+            if (selectedIndex === -1) selectedIndex = 0;
+            updateSelection();
+            break;
+            
+          case 'ArrowUp':
+            e.preventDefault();
+            if (isDropdownVisible) {
+              selectedIndex = Math.max(selectedIndex - 1, 0);
+              updateSelection();
+            }
+            break;
+            
+          case 'Tab':
+            // Close dropdown immediately when tabbing away
+            dropdown.classList.remove('active');
+            selectedIndex = -1;
+            clearSelection();
+            break;
+
+          case 'Enter':
+            e.preventDefault();
+            if (isDropdownVisible) {
+              selectCurrentItem();
+              // Ensure dropdown closes after selection
+              dropdown.classList.remove('active');
+            }
+            break;
+            
+          case 'Escape':
+            e.preventDefault();
+            dropdown.classList.remove('active');
+            selectedIndex = -1;
+            clearSelection();
+            break;
+        }
+      });
+      
+      // When focus moves to another field, close the current dropdown
+      input.addEventListener('blur', () => {
+        // Small timeout to allow for click events to complete
+        setTimeout(() => {
+          if (!container.contains(document.activeElement)) {
+            dropdown.classList.remove('active');
+            selectedIndex = -1;
+            clearSelection();
+          }
+        }, 100);
+      });
+    }
+
+    // Load issues for a selected repository
+    function loadIssuesForRepo(repoName, issueSearchInput) {
+      console.log('Loading issues for repo:', repoName);
+      setLoading(true);
+
+      google.script.run
+        .withSuccessHandler(issues => {
+          console.log('Received issues response:', issues);
+          setLoading(false);
+
+          if (!issues) {
+            console.error('No issues data received');
+            showMessage(`No issues data received for ${repoName}`, 'error');
+            return;
+          }
+
+          // Setup the issue search input with the new behavior
+          setupDropdownInput(issueSearchInput, issues, 'number', true);
+          
+          // Show all issues immediately if the input is already focused
+          if (document.activeElement === issueSearchInput) {
+            updateDropdown(issueSearchInput, issues, 'number', '');
+          }
+        })
+        .withFailureHandler(error => {
+          console.error('Failed to load issues:', {
+            repo: repoName,
+            error: error,
+            errorMessage: error.message
+          });
+          setLoading(false);
+          showMessage(`Failed to load issues: ${error.message}. Please ensure you have access to this repository.`, 'error');
+        })
+        .fetchRepoIssues(repoName);
+    }
+
+    function validateForm(docUrl) {
+      if (!docUrl) {
+        showMessage('Please enter a Google Document URL', 'error');
+        return false;
+      }
+
+      // Only validate repo selection after document is processed
+      if (documentProcessed && !selectedRepo) {
+        showMessage('Please select a repository', 'error');
+        return false;
+      }
+      return true;
+    }
+
+    /**
+     * Shows a message with optional HTML links
+     * @param {string} text - Message text/HTML
+     * @param {string} type - Message type ('error', 'success', or 'info')
+     * @param {boolean} isHtml - Whether the message contains HTML
+     * @param {number} duration - How long to show the message in ms
+     */
+    function showMessage(text, type, isHtml = false, duration = 50000) {
+      const messageEl = document.getElementById('message');
+      if (messageEl) {
+        if (isHtml) {
+          messageEl.innerHTML = text;
+        } else {
+          messageEl.textContent = text;
+        }
+        messageEl.className = `message ${type}`;
+        messageEl.style.display = 'block';
+
+        // Handle different message types
+        if (text === 'Repository applied to all issues') {
+          // Quick timeout for repo applied message
+          setTimeout(() => {
+            messageEl.style.display = 'none';
+          }, 3000);
+        } else if (isHtml && type === 'success' && text.includes('<a')) {
+          // Don't auto-hide success messages with links
+          return;
+        } else {
+          // Standard timeout for other messages
+          setTimeout(() => {
+            messageEl.style.display = 'none';
+          }, duration);
+        }
+      }
+    }
+
+    /**
+     * Sets the loading state
+     * @param {boolean} isLoading - Whether the app is loading
+     */
+    function setLoading(isLoading) {
+      const loadingEl = document.getElementById('loading');
+      const submitButton = document.getElementById('submitButton');
+      if (loadingEl) loadingEl.classList.toggle('active', isLoading);
+      if (submitButton) submitButton.disabled = isLoading;
+    }
+
+    /**
+     * Resets the form and clears stored data
+     */
+    function resetForm() {
+      const container = document.getElementById('issuesContainer');
+      const checkboxGroup = document.getElementById('repoCheckboxGroup');
+      if (container) container.classList.remove('visible');
+      if (checkboxGroup) checkboxGroup.classList.remove('visible');
+      const docUrlInput = document.getElementById('docUrl');
+      if (docUrlInput) docUrlInput.value = '';
+      documentContent = null;
+    }
+
+    // Dropdown and selection handling
+    function handleRepos(data) {
+      console.log('Received repos:', data);
+      repos = data;
+      if (!repos || !repos.length) {
+        console.error('No repositories received');
+      } else {
+        console.log('Successfully loaded', repos.length, 'repositories');
+      }
+    }
+
+    function handleMembers(data) {
+      console.log('Received members:', data);
+      members = data;
+      if (!members || !members.length) {
+        console.error('No members received');
+      } else {
+        console.log('Successfully loaded', members.length, 'members');
+      }
+    }
+
+    function selectItem(type, value) {
+      const input = document.getElementById(`${type}Search`);
+      const dropdown = document.getElementById(`${type}Dropdown`);
+      
+      input.value = value;
+      if (type === 'repo') {
+        selectedRepo = value;
+      } else {
+        selectedAssignee = value;
+      }
+      
+      dropdown.classList.remove('active');
+    }
+
+    // Process document and store results
+    function processDocument() {
+      const docUrl = document.getElementById('docUrl').value.trim();
+      const submitButton = document.getElementById('submitButton');
+      
+      if (!docUrl) {
+        showMessage('Please enter a Google Document URL', 'error');
+        return;
+      }
+      
+      // Clear any existing success messages before processing new document
+      const messageEl = document.getElementById('message');
+      if (messageEl) {
+        messageEl.style.display = 'none';
+      }
+
+
+      setLoading(true);
+      
+      google.script.run
+        .withSuccessHandler(result => {
+          setLoading(false);
+          
+          if (result.error) {
+            showMessage(result.error, 'error');
+            return;
+          }
+
+          // Update button text after first successful processing
+          if (submitButton) {
+            submitButton.textContent = 'Process Another Document';
+          }
+
+          // Store the document content globally
+          documentContent = result;
+          
+          // Load repos and members for dropdowns
+          loadReposAndMembers();
+          
+          // Display the issues
+          displayIssues(result);
+        })
+        .withFailureHandler(error => {
+          setLoading(false);
+          showMessage(`Failed to process document: ${error.message}`, 'error');
+        })
+        .processDocument(docUrl);
+    }
+
+    function handleError(error) {
+      setLoading(false);
+      showMessage(error.message || 'An error occurred', 'error');
+      console.error('Error:', error);
+    }
+    // Load repositories and members
+    function loadReposAndMembers() {
+      google.script.run
+        .withSuccessHandler(handleRepos)
+        .withFailureHandler(handleError)
+        .getRepos();
+        
+      google.script.run
+        .withSuccessHandler(handleMembers)
+        .withFailureHandler(handleError)
+        .getMembers();
+    }
+
+    /**
+      * Gathers issue data from the UI
+      * @returns {Object|null} Collected issue data or null if validation fails
+      */
+    function gatherIssueData() {
+      const newIssues = [];
+      const updateIssues = [];
+      
+      try {
+        // Gather new issues
+        const newIssueElements = document.querySelectorAll('.issue-item[data-issue-type="new"]');
+        newIssueElements.forEach(item => {
+          const index = parseInt(item.dataset.issueIndex);
+          const repoInput = item.querySelector('.repo-search');
+          const assigneeInput = item.querySelector('.assignee-search');
+          
+          if (repoInput?.value) {
+            newIssues.push({
+              title: documentContent.newIssues[index].title,
+              body: documentContent.newIssues[index].body,
+              repo: repoInput.value,
+              assignee: assigneeInput?.value || null
+            });
+          }
+        });
+        
+        // Gather update issues
+        const updateIssueElements = document.querySelectorAll('.issue-item[data-issue-type="update"]');
+        updateIssueElements.forEach(item => {
+          const index = parseInt(item.dataset.issueIndex);
+          const repoInput = item.querySelector('.repo-search');
+          const issueInput = item.querySelector('.issue-search');
+          
+          if (repoInput?.value && issueInput?.value) {
+            const issueNumber = issueInput.value.match(/#(\d+):/)?.[1];
+            if (issueNumber) {
+              updateIssues.push({
+                repo: repoInput.value,
+                issueNumber: parseInt(issueNumber),
+                comment: documentContent.updateIssues[index].comment
+              });
+            }
+          }
+        });
+        
+        return {
+          newIssues,
+          updateIssues
+        };
+      } catch (error) {
+        console.error('Error gathering issue data:', error);
+        showMessage('Error gathering issue data: ' + error.message, 'error');
+        return null;
+      }
+    }
+
+    /**
+    * Gathers issue data to create/update all issues action with proper error handling
+    */
+    function createAllIssues() {
+      try {
+        console.log("Starting createAllIssues");
+        
+        // Verify document content exists
+        if (!documentContent) {
+          showMessage('No document content found. Please process the document first.', 'error');
+          return;
+        }
+
+        // Gather data from UI
+        const issueData = gatherIssueData();
+        if (!issueData || (!issueData.newIssues.length && !issueData.updateIssues.length)) {
+          showMessage('No issues selected for processing', 'error');
+          return;
+        }
+
+        // Clear form BEFORE processing
+        resetForm();
+        
+        // Show loading state
+        setLoading(true);
+        showMessage('Processing issues...', 'info');
+
+        // Send to server
+        google.script.run
+          .withSuccessHandler(results => {
+            console.log('GitHub API results:', results);
+            setLoading(false);
+            handleResults(results);
+          })
+          .withFailureHandler(error => {
+            console.error('Server error:', error);
+            setLoading(false);
+            showMessage(`Failed to process issues: ${error.message || 'Unknown error'}`, 'error');
+          })
+          .processIssues(issueData);
+          
+      } catch (error) {
+        console.error('Client error:', error);
+        setLoading(false);
+        showMessage(`Error: ${error.message || 'Unknown error'}`, 'error');
+      }
+    }
+
+    /**
+     * Handles the results from issue creation/updates
+     * @param {Object} results - Server response including created/updated issues
+     */
+    function handleResults(results) {
+      setLoading(false);
+      
+      if (results.errors?.length) {
+        showMessage(results.errors.join('\n'), 'error');
+        return;
+      }
+
+      // Build HTML message with links
+      let message = '<div class="results-container">';
+      
+      // Group links by type and repository
+      const issueLinks = results.links?.filter(link => link.type === 'issue') || [];
+      const commentLinks = results.links?.filter(link => link.type === 'comment') || [];
+
+      // Add created issues with links
+      if (issueLinks.length) {
+        message += '<div class="results-section"><h4>Created Issues:</h4>';
+        const issuesByRepo = groupBy(issueLinks, 'repo');
+        
+        Object.entries(issuesByRepo).forEach(([repo, issues]) => {
+          message += `<div class="repo-group"><strong>${repo}</strong>`;
+          issues.forEach(issue => {
+            // Use the GitHub URL directly from the API response
+            const issueUrl = issue.url;
+            message += `<div class="issue-link">
+              <a href="${issueUrl}" target="_blank" rel="noopener noreferrer">
+                #${issue.number}: ${issue.title || `Issue #${issue.number}`}
+              </a>
+            </div>`;
+          });
+          message += '</div>';
+        });
+        message += '</div>';
+      }
+
+      // Add updated issues with links
+      if (commentLinks.length) {
+        message += '<div class="results-section"><h4>Added Comments:</h4>';
+        const commentsByRepo = groupBy(commentLinks, 'repo');
+        
+        Object.entries(commentsByRepo).forEach(([repo, comments]) => {
+          message += `<div class="repo-group"><strong>${repo}</strong>`;
+          comments.forEach(comment => {
+            // Use the GitHub URL directly from the API response
+            const commentUrl = comment.url;
+            message += `<div class="issue-link">
+              <a href="${commentUrl}" target="_blank" rel="noopener noreferrer">
+                Comment on Issue #${comment.number}
+              </a>
+            </div>`;
+          });
+          message += '</div>';
+        });
+        message += '</div>';
+      }
+
+      message += '</div>';
+
+      // Keep existing styles
+      const style = `
+        <style>
+          .results-container {
+            text-align: left;
+            margin: 20px 0;
+            font-family: Inter, system-ui, sans-serif;
+          }
+          .results-section {
+            background: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+          }
+          .results-section h4 {
+            color: var(--text-color);
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+          }
+          .repo-group {
+            border-left: 3px solid var(--primary-color);
+            padding: 8px 0 8px 16px;
+            margin: 16px 0;
+          }
+          .repo-group strong {
+            display: block;
+            font-size: 14px;
+            color: var(--text-color);
+            margin-bottom: 8px;
+          }
+          .issue-link {
+            margin: 8px 0;
+            font-size: 14px;
+          }
+          .issue-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+          }
+          .issue-link a:before {
+            content: '#';
+            opacity: 0.7;
+          }
+          .issue-link a:hover {
+            text-decoration: underline;
+          }
+        </style>
+      `;
+
+      showMessage(style + message, 'success', true, 60000);
+      resetForm();
+    }
+
+    // Utility function to group array items by key
+    function groupBy(array, key) {
+      return array.reduce((result, item) => {
+        (result[item[key]] = result[item[key]] || []).push(item);
+        return result;
+      }, {});
+    }
+
+    // Modal functions
+    function showInfo() {
+        const modal = document.getElementById('infoModal');
+        if (modal) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+            
+            // Ensure modal respects current theme
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            modal.setAttribute('data-theme', currentTheme);
+        }
+    }
+
+    function closeInfoModal() {
+        const modal = document.getElementById('infoModal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach((tab) => {
+          tab.classList.remove('active');
+      });
+      document.querySelectorAll('.tab-button').forEach((button) => {
+          button.classList.remove('active');
+      });
+      const targetTab = document.getElementById(tabId);
+      if (targetTab) {
+          targetTab.classList.add('active');
+          document
+              .querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`)
+              .classList.add('active');
+      }
+    }
+
+    function toggleExpand(button) {
+    const section = button.closest('.expandable-section');
+    if (section) {
+        section.classList.toggle('active');
+        const content = section.querySelector('.expand-content');
+        if (content) {
+            content.style.maxHeight = section.classList.contains('active')
+                ? content.scrollHeight + "px"
+                : "0px";
+        }
+      } 
+    }
+
+
+    // Add these to your existing document.addEventListener('DOMContentLoaded', ...)
+    document.addEventListener('DOMContentLoaded', function() {
+        // Your existing initialization code...
+
+        // Add modal event listeners
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('infoModal');
+            if (event.target === modal) {
+                closeInfoModal();
+            }
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && 
+                document.getElementById('infoModal').classList.contains('active')) {
+                closeInfoModal();
+            }
+        });
+    });
+</script>
+</body>
+</html>
